@@ -1,0 +1,88 @@
+:root {
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 0.75rem;
+  --font-size-base: 0.85rem;
+}
+
+.reviewContainer h4,
+.reviewContainer p {
+  font-size: var(--font-size-base);
+  color: var(--vscode-foreground);
+}
+
+.reviewContainer h4 {
+  font-weight: 600;
+  margin: var(--spacing-md) 0 var(--spacing-sm);
+}
+
+.reviewContainer p {
+  margin: var(--spacing-xs) 0 var(--spacing-md);
+  opacity: 0.9;
+}
+
+.prInputContainer {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-sm);
+  margin: var(--spacing-sm) 0;
+}
+
+.prInputContainer>vscode-text-field {
+  width: 180px;
+}
+
+.prButtonContainer {
+  margin: 0;
+}
+
+.prButtonContainer>vscode-button {
+  height: 24px;
+  min-width: 90px;
+}
+
+.prListContainer {
+  margin-top: var(--spacing-md);
+}
+
+.prList {
+  list-style: none;
+  padding: 0;
+  margin: var(--spacing-xs) 0;
+}
+
+.prItem {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: calc(var(--spacing-xs) + var(--spacing-sm)) var(--spacing-sm);
+  margin-bottom: var(--spacing-xs);
+  border-radius: 3px;
+  transition: background 0.2s ease;
+}
+
+.prTitle {
+  flex: 1;
+  font-size: var(--font-size-base);
+  line-height: 1.4;
+}
+
+.prTitle a {
+  color: var(--vscode-textLink-foreground);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.prTitle a:hover {
+  color: var(--vscode-textLink-activeForeground);
+  text-decoration: underline;
+}
+
+.prItem>vscode-button {
+  padding: 3px;
+  color: var(--vscode-icon-foreground);
+}
+
+.prItem>vscode-button:hover {
+  background: var(--vscode-toolbar-hoverBackground);
+}

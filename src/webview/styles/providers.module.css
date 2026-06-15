@@ -1,0 +1,280 @@
+.providerHeader {
+  align-items: center;
+  display: flex;
+  flex-grow: 1;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.providerHeader h4 {
+  font-size: 13px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.providerHeader svg {
+  height: 16px;
+  width: 16px;
+}
+
+.providerHeader vscode-dropdown {
+  flex-grow: 1;
+  margin-right: 12px;
+}
+
+.fimSelector {
+  margin: 8px 0;
+  width: 100%;
+}
+
+.fimSelector vscode-dropdown {
+  width: 100%;
+}
+
+.providerSelector {
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+  margin-top: 8px;
+  width: 100%;
+}
+
+.providerSelector>div {
+  width: 48%;
+}
+
+.providerSelector vscode-dropdown {
+  background: transparent;
+  border: none;
+  width: 100%;
+}
+
+.providerSelector vscode-dropdown::part(control),
+.providerSelector vscode-text-field::part(root) {
+  background: transparent;
+  border: none;
+}
+
+.providersButtons {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+}
+
+.provider {
+  background: var(--vscode-inputOption-hoverBackground);
+  border: 1px solid var(--vscode-editorWidget-border);
+  border-radius: 4px;
+  margin: 3px 0;
+  padding: 5px;
+  transition: background 0.2s ease;
+}
+
+.provider:hover {
+  background: var(--vscode-inputOption-activeBackground);
+}
+
+.providerDetails {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(2, auto);
+  margin-top: 8px;
+  overflow: hidden;
+}
+
+.providerDetails>div {
+  text-overflow: ellipsis;
+  text-wrap: nowrap;
+}
+
+.providerForm {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 8px 0;
+  width: 100%;
+}
+
+.providerForm div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 0;
+}
+
+.providerForm label {
+  font-size: 12px;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.providerFormButtons {
+  align-self: flex-end;
+  display: flex !important;
+  flex-direction: row !important;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+.providerActions {
+  align-items: center;
+  display: flex;
+  gap: 4px;
+}
+
+.providerName {
+  align-items: center;
+  color: var(--vscode-foreground);
+  display: flex;
+  font-size: 13px;
+  font-weight: 500;
+  margin: 0;
+}
+
+.providerName i {
+  font-size: 14px;
+  margin-right: 8px;
+  opacity: 0.8;
+}
+
+.testStatus {
+  margin-top: var(--container-padding);
+  padding: var(--container-padding);
+  border-radius: var(--input-radius);
+  border: 1px solid var(--vscode-settings-textInputBorder, var(--vscode-input-border));
+}
+
+.defaultsHeader {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.defaults {
+  background-color: var(--vscode-editor-background);
+  border: 1px solid var(--vscode-editor-lineHighlightBorder);
+  border-radius: 4px;
+  margin-top: 16px;
+  padding: 16px;
+}
+
+.defaultsTitle {
+  font-size: 13px;
+  font-weight: 500;
+  margin: 0 0 12px 0;
+}
+
+.defaultsGrid {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  margin-bottom: 16px;
+}
+
+.defaultItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.defaultLabel {
+  color: var(--vscode-descriptionForeground);
+  font-size: 12px;
+}
+
+.useDefaultsButton {
+  width: 100%;
+}
+
+.divider {
+  border-top: 1px solid var(--vscode-editorWidget-border);
+  margin: 16px 0;
+}
+
+.checkBox {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+}
+
+.enableTools {
+  margin-top: 8px;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  max-width: 800px;
+  width: 100%;
+}
+
+.title {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.providersList {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: 1fr;
+}
+
+.providerCard {
+  align-items: flex-start;
+  border: 1px solid var(--vscode-editor-lineHighlightBorder);
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  padding: 16px;
+  transition: all 0.2s ease-in-out;
+}
+
+.providerCard:hover {
+  border-color: var(--vscode-button-background);
+}
+
+.logo {
+  border-radius: 4px;
+  height: 32px;
+  margin-right: 12px;
+  width: 32px;
+}
+
+.logo svg {
+  height: 32px;
+  width: 32px;
+}
+
+.content {
+  flex-grow: 1;
+}
+
+.header {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+
+.actions {
+  display: flex;
+  gap: 4px;
+}
+
+.modelLoader {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  height: 20px;
+  padding: 4px 8px;
+}
+
+.loaderText {
+  color: var(--vscode-foreground);
+  font-size: 13px;
+  opacity: 0.8;
+}
