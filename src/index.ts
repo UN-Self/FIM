@@ -14,7 +14,6 @@ import * as vscode from "vscode"
 import {
   EVENT_NAME,
   EXTENSION_CONTEXT_NAME,
-  EXTENSION_NAME,
   FIM_COMMAND_NAME,
   WEBUI_TABS
 } from "./common/constants"
