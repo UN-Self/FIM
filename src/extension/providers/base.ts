@@ -94,7 +94,7 @@ export class BaseProvider {
       [EVENT_NAME.fimSetWorkspaceContext]: this.setWorkspaceContext,
       [EVENT_NAME.fimFileListRequest]: this.fileListRequest,
       [EVENT_NAME.fimEditDefaultTemplates]: this.editDefaultTemplates,
-      [EVENT_NAME.twinntGetLocale]: this.sendLocaleToWebView,
+      [EVENT_NAME.fimGetLocale]: this.sendLocaleToWebView,
       [EVENT_NAME.fimStopGeneration]: this.destroyStream,
       [EVENT_NAME.fimSidebarReady]: this._sidebarReadyHandler,
       [FIM_COMMAND_NAME.settings]: this.openSettings

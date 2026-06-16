@@ -18,7 +18,7 @@ export const useLocale = () => {
       }
     }
 
-    global.vscode.postMessage({ type: EVENT_NAME.twinntGetLocale })
+    global.vscode.postMessage({ type: EVENT_NAME.fimGetLocale })
 
     window.addEventListener("message", messageHandler)
     return () => window.removeEventListener("message", messageHandler)
