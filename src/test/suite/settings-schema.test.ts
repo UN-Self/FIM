@@ -2,12 +2,11 @@
 import * as assert from "assert"
 
 import {
-  SETTING_DEFS,
-  SETTING_GROUPS,
   coerceValue,
   getConfigKey,
-  getSettingsByGroup
-} from "../../common/settings-schema"
+  getSettingsByGroup,
+  SETTING_DEFS,
+  SETTING_GROUPS} from "../../common/settings-schema"
 
 suite("Settings schema", () => {
   test("every setting has a unique key", () => {
