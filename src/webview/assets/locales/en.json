@@ -10,6 +10,7 @@
   "auto-connect-as-provider": "Auto connect as provider",
   "automatic": "Automatic",
   "back": "Back",
+  "back-to-settings": "Back to settings",
   "cancel-edit": "Cancel edit",
   "cancel": "Cancel",
   "chat-connected-to-provider": "Connected to symmetry network provider {{providerName}} model {{modelName}} provider {{providerId}}",
