@@ -12,7 +12,7 @@ export class Logger {
   }
 
   private constructor() {
-    this.outputChannel = vscode.window.createOutputChannel("Fim")
+    this.outputChannel = vscode.window.createOutputChannel("FIM")
   }
 
   public static getInstance(): Logger {
