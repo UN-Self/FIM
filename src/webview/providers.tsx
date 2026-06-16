@@ -13,6 +13,7 @@ import {
 import {
   API_PROVIDERS,
   DEFAULT_PROVIDER_FORM_VALUES,
+  EVENT_NAME,
   FIM_TEMPLATE_FORMAT,
   PROVIDER_EVENT_NAME
 } from "../common/constants"
@@ -166,6 +167,17 @@ export const Providers = () => {
       default:
         return (
           <>
+            <div className={styles.backHeader}>
+              <VSCodeButton appearance="secondary" onClick={() => {
+                global.vscode.postMessage({
+                  type: EVENT_NAME.fimSetTab,
+                  data: "templates"
+                })
+              }}>
+                <i className="codicon codicon-arrow-left" />
+                {t("back-to-settings")}
+              </VSCodeButton>
+            </div>
             <div className={styles.providerHeader}>
               <h4>{t("fim-provider")}</h4>
               <div className={styles.providersButtons}>

@@ -1,3 +1,9 @@
+.backHeader {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
 .providerHeader {
   align-items: center;
   display: flex;
