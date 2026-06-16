@@ -1,14 +1,14 @@
-export const ACTIVE_CONVERSATION_STORAGE_KEY = "twinny.active-conversation"
-export const ACTIVE_CHAT_PROVIDER_STORAGE_KEY = "twinny.active-chat-provider"
+export const ACTIVE_CONVERSATION_STORAGE_KEY = "fim.active-conversation"
+export const ACTIVE_CHAT_PROVIDER_STORAGE_KEY = "fim.active-chat-provider"
 export const ACTIVE_EMBEDDINGS_PROVIDER_STORAGE_KEY =
-  "twinny.active-embeddings-provider"
-export const ACTIVE_FIM_PROVIDER_STORAGE_KEY = "twinny.active-fim-provider"
-export const CONVERSATION_STORAGE_KEY = "twinny.conversations"
-export const INFERENCE_PROVIDERS_STORAGE_KEY = "twinny.inference-providers"
+  "fim.active-embeddings-provider"
+export const ACTIVE_FIM_PROVIDER_STORAGE_KEY = "fim.active-fim-provider"
+export const CONVERSATION_STORAGE_KEY = "fim.conversations"
+export const INFERENCE_PROVIDERS_STORAGE_KEY = "fim.inference-providers"
 
 export const GLOBAL_STORAGE_KEY = {
-  autoConnectSymmetryProvider: "twinny.autoConnectSymmetryProvider",
-  selectedModel: "twinny.selectedModel"
+  autoConnectSymmetryProvider: "fim.autoConnectSymmetryProvider",
+  selectedModel: "fim.selectedModel"
 }
 
 export const WORKSPACE_STORAGE_KEY = {

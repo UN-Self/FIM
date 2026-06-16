@@ -1,21 +1,21 @@
 export const EXTENSION_CONTEXT_NAME = {
-  twinnyConversationHistory: "twinnyConversationHistory",
-  twinnyEnableRag: "twinnyEnableRag",
-  twinnyGeneratingText: "twinnyGeneratingText",
-  twinnyManageProviders: "twinnyManageProviders",
-  twinnyManageTemplates: "twinnyManageTemplates",
-  twinnyMaxChunkSize: "twinnyMaxChunkSize",
-  twinnyMinChunkSize: "twinnyMinChunkSize",
-  twinnyOverlapSize: "twinnyOverlapSize",
-  twinnyRelevantCodeSnippets: "twinnyRelevantCodeSnippets",
-  twinnyRelevantFilePaths: "twinnyRelevantFilePaths",
-  twinnyRerankThreshold: "twinnyRerankThreshold",
-  twinnyReviewTab: "twinnyReviewTab",
-  twinnySymmetryTab: "twinnySymmetryTab",
-  twinnyEmbeddingsTab: "twinnyEmbeddingsTab"
+  fimConversationHistory: "fimConversationHistory",
+  fimEnableRag: "fimEnableRag",
+  fimGeneratingText: "fimGeneratingText",
+  fimManageProviders: "fimManageProviders",
+  fimManageTemplates: "fimManageTemplates",
+  fimMaxChunkSize: "fimMaxChunkSize",
+  fimMinChunkSize: "fimMinChunkSize",
+  fimOverlapSize: "fimOverlapSize",
+  fimRelevantCodeSnippets: "fimRelevantCodeSnippets",
+  fimRelevantFilePaths: "fimRelevantFilePaths",
+  fimRerankThreshold: "fimRerankThreshold",
+  fimReviewTab: "fimReviewTab",
+  fimSymmetryTab: "fimSymmetryTab",
+  fimEmbeddingsTab: "fimEmbeddingsTab"
 }
 
 export const EXTENSION_SESSION_NAME = {
-  twinnySymmetryConnection: "twinnySymmetryConnection",
-  twinnySymmetryConnectionProvider: "twinnySymmetryConnectionProvider"
+  fimSymmetryConnection: "fimSymmetryConnection",
+  fimSymmetryConnectionProvider: "fimSymmetryConnectionProvider"
 }

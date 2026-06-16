@@ -1,8 +1,8 @@
 {
-  "name": "twinny",
-  "displayName": "twinny - AI Code Completion",
-  "description": "Locally hosted AI code completion plugin for vscode",
-  "version": "3.23.31",
+  "name": "fim",
+  "displayName": "FIM - AI Code Completion",
+  "description": "FIM — locally hosted AI completion engine",
+  "version": "0.1.0",
   "icon": "assets/icon.png",
   "keywords": [
     "code-inference",
@@ -11,7 +11,8 @@
     "localhost",
     "no-leaks",
     "private",
-    "twinny",
+    "fim",
+    "fill-in-the-middle",
     "ai",
     "ollama",
     "llama",
@@ -26,15 +27,15 @@
     "vscode-extension"
   ],
   "repository": {
-    "url": "https://github.com/twinnydotdev/twinny"
+    "url": "https://github.com/UN-Self/FIM"
   },
   "license": "MIT",
-  "publisher": "rjmacarthy",
+  "publisher": "UN-Self",
   "engines": {
     "vscode": "^1.84.0"
   },
   "bugs": {
-    "url": "https://github.com/twinnydotdev/twinny/issues"
+    "url": "https://github.com/UN-Self/FIM/issues"
   },
   "categories": [
     "Programming Languages",
@@ -52,7 +53,8 @@
     "onStartupFinished"
   ],
   "author": {
-    "name": "rjmacarthy"
+    "name": "HandyWote",
+    "email": "18666119673@163.com"
   },
   "main": "./out/index.js",
   "browser": "./out/index.js",
@@ -61,69 +63,69 @@
       "editor/context": [],
       "view/title": [
         {
-          "command": "twinny.manageProviders",
+          "command": "fim.manageProviders",
           "group": "navigation@1",
-          "when": "view == twinny.sidebar"
+          "when": "view == fim.sidebar"
         },
         {
-          "command": "twinny.manageTemplates",
+          "command": "fim.manageTemplates",
           "group": "navigation@2",
-          "when": "view == twinny.sidebar"
+          "when": "view == fim.sidebar"
         },
         {
-          "command": "twinny.embeddings",
-          "when": "view == twinny.sidebar",
+          "command": "fim.embeddings",
+          "when": "view == fim.sidebar",
           "group": "navigation@3",
           "icon": "$(database)"
         },
         {
-          "command": "twinny.settings",
-          "when": "view == twinny.sidebar",
+          "command": "fim.settings",
+          "when": "view == fim.sidebar",
           "group": "navigation@4"
         }
       ]
     },
     "commands": [
       {
-        "command": "twinny.enable",
-        "shortTitle": "Enable twinny",
-        "title": "Enable twinny"
+        "command": "fim.enable",
+        "shortTitle": "Enable FIM",
+        "title": "Enable FIM"
       },
       {
-        "command": "twinny.stopGeneration",
+        "command": "fim.stopGeneration",
         "title": "Stop generation"
       },
       {
-        "command": "twinny.disable",
-        "title": "Disable twinny",
-        "shortTitle": "Disable twinny"
+        "command": "fim.disable",
+        "title": "Disable FIM",
+        "shortTitle": "Disable FIM"
       },
       {
-        "command": "twinny.sidebar.focus",
-        "shortTitle": "Enable twinny sidebar",
-        "title": "Enable twinny sidebar"
+        "command": "fim.sidebar.focus",
+        "shortTitle": "Enable FIM sidebar",
+        "title": "Enable FIM sidebar"
       },
       {
-        "command": "twinny.settings",
-        "shortTitle": "twinny settings",
-        "title": "Open twinny settings",
+        "command": "fim.settings",
+        "shortTitle": "FIM settings",
+        "title": "Open FIM settings",
         "icon": "$(gear)"
       },
       {
-        "command": "twinny.manageTemplates",
-        "shortTitle": "Manage twinny templates",
-        "title": "Manage twinny templates",
+        "command": "fim.manageTemplates",
+        "shortTitle": "Manage FIM templates",
+        "title": "Manage FIM templates",
         "icon": "$(book)"
       },
       {
-        "command": "twinny.manageProviders",
-        "shortTitle": "Manage twinny providers",
-        "title": "Manage twinny providers",
+        "command": "fim.manageProviders",
+        "shortTitle": "Manage FIM providers",
+        "title": "Manage FIM providers",
         "icon": "$(robot)"
       },
       {
-        "command": "twinny.embeddings",
-        "shortTitle": "twinny embeddings",
+        "command": "fim.embeddings",
+        "shortTitle": "FIM embeddings",
         "title": "Embedding options",
         "icon": "$(database)"
       }
@@ -136,40 +138,40 @@
       },
       {
         "key": "CTRL+SHIFT+/",
-        "command": "twinny.stopGeneration",
-        "when": "twinnyGeneratingText"
+        "command": "fim.stopGeneration",
+        "when": "fimGeneratingText"
       }
     ],
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "twinny-sidebar-view",
-          "title": "twinny",
-          "icon": "assets/twinny.svg"
+          "id": "fim-sidebar-view",
+          "title": "FIM",
+          "icon": "assets/fim.svg"
         }
       ]
     },
     "views": {
-      "twinny-sidebar-view": [
+      "fim-sidebar-view": [
         {
           "type": "webview",
-          "id": "twinny.sidebar",
-          "name": "twinny",
-          "icon": "assets/twinny.svg",
-          "contextualTitle": "twinny"
+          "id": "fim.sidebar",
+          "name": "FIM",
+          "icon": "assets/fim.svg",
+          "contextualTitle": "FIM"
         }
       ]
     },
     "configuration": {
-      "title": "twinny",
+      "title": "FIM",
       "properties": {
-        "twinny.enabled": {
+        "fim.enabled": {
           "order": 0,
           "type": "boolean",
           "default": true,
-          "markdownDescription": "Toggles the Twinny extension on or off. When `true`, Twinny is active and ready to provide completions."
+          "markdownDescription": "Toggles the FIM extension on or off. When `true`, FIM is active and ready to provide completions."
         },
-        "twinny.enabledLanguages": {
+        "fim.enabledLanguages": {
           "order": 1,
           "type": "object",
           "additionalProperties": {
@@ -178,9 +180,9 @@
           "default": {
             "*": true
           },
-          "markdownDescription": "Specifies which languages to enable completions with Twinny for. Use `*` as the default for all languages. Example:\n```json\n{\n  \"*\": true,\n  \"python\": true,\n  \"javascript\": false\n}\n```"
+          "markdownDescription": "Specifies which languages to enable completions with FIM for. Use `*` as the default for all languages. Example:\n```json\n{\n  \"*\": true,\n  \"python\": true,\n  \"javascript\": false\n}\n```"
         },
-        "twinny.locale": {
+        "fim.locale": {
           "order": 2,
           "type": "string",
           "enum": [
@@ -214,89 +216,89 @@
             "Dutch"
           ],
           "default": "en",
-          "markdownDescription": "Sets the locale for Twinny. The default is `en` (English)."
+          "markdownDescription": "Sets the locale for FIM. The default is `en` (English)."
         },
-        "twinny.autoSuggestEnabled": {
+        "fim.autoSuggestEnabled": {
           "order": 3,
           "type": "boolean",
           "default": true,
-          "markdownDescription": "When `true`, Twinny will automatically suggest completions. You can still manually trigger completions using the default shortcut (`Alt+\\`)."
+          "markdownDescription": "When `true`, FIM will automatically suggest completions. You can still manually trigger completions using the default shortcut (`Alt+\\`)."
         },
-        "twinny.contextLength": {
+        "fim.contextLength": {
           "order": 4,
           "type": "number",
           "default": 100,
           "markdownDescription": "Specifies how many lines of context (before and after the current line) to include in Fill-in-Middle (FIM) prompts. A higher number provides more context but may slow down completions.",
           "required": true
         },
-        "twinny.debounceWait": {
+        "fim.debounceWait": {
           "order": 5,
           "type": "number",
           "default": 300,
           "markdownDescription": "Sets the delay (in milliseconds) before triggering the next completion. This helps reduce API calls and improve performance.",
           "required": true
         },
-        "twinny.temperature": {
+        "fim.temperature": {
           "order": 6,
           "type": "number",
           "default": 0.2,
           "markdownDescription": "Controls the randomness of the model's output. Lower values (e.g., 0.2) produce more focused and deterministic outputs, while higher values (e.g., 0.8) lead to more diverse and creative completions.",
           "required": true
         },
-        "twinny.multilineCompletionsEnabled": {
+        "fim.multilineCompletionsEnabled": {
           "order": 7,
           "type": "boolean",
           "default": true,
-          "markdownDescription": "When `true`, Twinny will attempt to generate multi-line completions. This is an experimental feature and may not work perfectly in all scenarios."
+          "markdownDescription": "When `true`, FIM will attempt to generate multi-line completions. This is an experimental feature and may not work perfectly in all scenarios."
         },
-        "twinny.maxLines": {
+        "fim.maxLines": {
           "dependencies": {
-            "twinny.multilineCompletionsEnabled": true
+            "fim.multilineCompletionsEnabled": true
           },
           "order": 8,
           "type": "number",
           "default": 40,
-          "markdownDescription": "Sets the maximum number of lines for multi-line completions. Only applies when `twinny.multilineCompletionsEnabled` is `true`."
+          "markdownDescription": "Sets the maximum number of lines for multi-line completions. Only applies when `fim.multilineCompletionsEnabled` is `true`."
         },
-        "twinny.fileContextEnabled": {
+        "fim.fileContextEnabled": {
           "order": 9,
           "type": "boolean",
           "default": false,
-          "markdownDescription": "When `true`, Twinny will scan neighboring documents to provide more context for completions. This is an experimental feature and may impact performance."
+          "markdownDescription": "When `true`, FIM will scan neighboring documents to provide more context for completions. This is an experimental feature and may impact performance."
         },
-        "twinny.completionCacheEnabled": {
+        "fim.completionCacheEnabled": {
           "order": 10,
           "type": "boolean",
           "default": false,
           "markdownDescription": "Enables caching of Fill-in-Middle (FIM) completions for identical prompts. This can significantly improve performance but may use more memory."
         },
-        "twinny.numPredictFim": {
+        "fim.numPredictFim": {
           "order": 12,
           "type": "number",
           "default": 512,
-          "markdownDescription": "Defines the maximum number of tokens for Fill-in-Middle (FIM) completions. Use `-1` for no limit. Twinny will attempt to stop at logical line breaks regardless of this setting.",
+          "markdownDescription": "Defines the maximum number of tokens for Fill-in-Middle (FIM) completions. Use `-1` for no limit. FIM will attempt to stop at logical line breaks regardless of this setting.",
           "required": true
         },
-        "twinny.enableSubsequentCompletions": {
+        "fim.enableSubsequentCompletions": {
           "order": 13,
           "type": "boolean",
           "default": true,
-          "markdownDescription": "When `true`, Twinny will continue to make completion requests to the API after the previous completion was accepted. This can provide a more fluid completion experience."
+          "markdownDescription": "When `true`, FIM will continue to make completion requests to the API after the previous completion was accepted. This can provide a more fluid completion experience."
         },
-        "twinny.embeddingIgnoredGlobs": {
+        "fim.embeddingIgnoredGlobs": {
           "order": 14,
           "type": "array",
           "default": [],
           "markdownDescription": "Specifies file patterns to ignore when calculating embeddings, such as `**/*.md`, `**/node_modules/**`."
         },
-        "twinny.ollamaHostname": {
+        "fim.ollamaHostname": {
           "order": 15,
           "type": "string",
           "default": "0.0.0.0",
           "markdownDescription": "Specifies the hostname for the Ollama API. Use `0.0.0.0` for localhost or provide a specific IP address or domain name.",
           "required": true
         },
-        "twinny.ollamaApiPort": {
+        "fim.ollamaApiPort": {
           "order": 16,
           "type": [
             "number",
@@ -306,25 +308,25 @@
           "markdownDescription": "Sets the port number for the Ollama API. The default is `11434`, but you can change it if your Ollama instance uses a different port.",
           "required": false
         },
-        "twinny.keepAlive": {
+        "fim.keepAlive": {
           "order": 17,
           "type": "string",
           "default": "5m",
           "markdownDescription": "Sets the duration to keep models in memory for Ollama API. Use formats like `5m` for 5 minutes or `1h` for 1 hour. Set to `-1` to keep models in memory indefinitely."
         },
-        "twinny.ollamaUseTls": {
+        "fim.ollamaUseTls": {
           "order": 18,
           "type": "boolean",
           "default": false,
-          "markdownDescription": "When `true`, Twinny will use TLS encryption for connections to the Ollama API. Ensure your Ollama instance is configured for TLS before enabling this option."
+          "markdownDescription": "When `true`, FIM will use TLS encryption for connections to the Ollama API. Ensure your Ollama instance is configured for TLS before enabling this option."
         },
-        "twinny.enableLogging": {
+        "fim.enableLogging": {
           "order": 19,
           "type": "boolean",
           "default": true,
-          "markdownDescription": "Activates debug logging for Twinny. When `true`, Twinny will output detailed logs, which can be helpful for troubleshooting."
+          "markdownDescription": "Activates debug logging for FIM. When `true`, FIM will output detailed logs, which can be helpful for troubleshooting."
         },
-        "twinny.providerStorageLocation": {
+        "fim.providerStorageLocation": {
           "order": 22,
           "type": "string",
           "enum": [
@@ -332,7 +334,7 @@
             "file"
           ],
           "default": "globalState",
-          "markdownDescription": "Specifies where to store Twinny provider configurations. 'globalState' uses VS Code's global state (persists per domain, may be lost if domain changes frequently). 'file' stores configurations in a file within the extension's global storage directory (more resilient to domain changes)."
+          "markdownDescription": "Specifies where to store FIM provider configurations. 'globalState' uses VS Code's global state (persists per domain, may be lost if domain changes frequently). 'file' stores configurations in a file within the extension's global storage directory (more resilient to domain changes)."
         }
       }
     }

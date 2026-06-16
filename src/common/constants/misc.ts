@@ -1,9 +1,9 @@
 import { ContextItem } from "../types"
 
-export const EXTENSION_NAME = "@ext:rjmacarthy.twinny"
+export const EXTENSION_NAME = "@ext:UN-Self.fim"
 export const ASSISTANT = "assistant"
 export const USER = "user"
-export const TWINNY = "twinny"
+export const FIM = "FIM"
 export const SYSTEM = "system"
 export const YOU = "You"
 export const EMPTY_MESAGE = "Sorry, I don’t understand. Please try again."
@@ -27,8 +27,8 @@ export const SKIP_IMPORT_KEYWORDS_AFTER = ["from", "as", "import"]
 export const MIN_COMPLETION_CHUNKS = 2
 export const MAX_EMPTY_COMPLETION_CHARS = 250
 export const DEFAULT_RERANK_THRESHOLD = 0.5
-export const URL_SYMMETRY_WS = "https://twinny.dev/ws"
-export const TWINNY_PROVIDERS_FILENAME = "twinny-providers.json"
+export const URL_SYMMETRY_WS = "https://fim.dev/ws"
+export const FIM_PROVIDERS_FILENAME = "fim-providers.json"
 
 export const defaultChunkOptions = {
   maxSize: 500,
