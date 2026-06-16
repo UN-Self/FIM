@@ -11,19 +11,19 @@ import {
   ACTIVE_FIM_PROVIDER_STORAGE_KEY,
   API_PROVIDERS,
   EVENT_NAME,
+  FIM_PROVIDERS_FILENAME,
   FIM_TEMPLATE_FORMAT,
   GLOBAL_STORAGE_KEY,
   INFERENCE_PROVIDERS_STORAGE_KEY,
   OPEN_AI_COMPATIBLE_PROVIDERS,
   PROVIDER_EVENT_NAME,
-  TWINNY_PROVIDERS_FILENAME,
   WEBUI_TABS
 } from "../common/constants"
 import { ClientMessage, ServerMessage } from "../common/types"
 
 import { getIsOpenAICompatible } from "./utils"
 
-export interface TwinnyProvider {
+export interface FimProvider {
   apiHostname?: string
   apiKey?: string
   apiPath?: string
@@ -40,7 +40,7 @@ export interface TwinnyProvider {
   type: string
 }
 
-type Providers = Record<string, TwinnyProvider> | undefined
+type Providers = Record<string, FimProvider> | undefined
 
 export class ProviderManager {
   _context: ExtensionContext
@@ -51,7 +51,7 @@ export class ProviderManager {
     this._context = context
     this._webView = webviewView
     this._storageLocation =
-      workspace.getConfiguration("twinny").get("providerStorageLocation") ||
+      workspace.getConfiguration("fim").get("providerStorageLocation") ||
       "globalState"
     this._initializeProviders()
     this.setUpEventListeners()
@@ -91,13 +91,13 @@ export class ProviderManager {
 
   setUpEventListeners() {
     this._webView?.onDidReceiveMessage(
-      async (message: ClientMessage<TwinnyProvider>) => {
+      async (message: ClientMessage<FimProvider>) => {
         await this.handleMessage(message)
       }
     )
   }
 
-  async handleMessage(message: ClientMessage<TwinnyProvider>) {
+  async handleMessage(message: ClientMessage<FimProvider>) {
     const { data: provider } = message
     switch (message.type) {
       case PROVIDER_EVENT_NAME.addProvider:
@@ -214,7 +214,7 @@ export class ProviderManager {
     }
     try {
       const fileUri = await window.showSaveDialog({
-        defaultUri: Uri.file("twinny-providers.json"),
+        defaultUri: Uri.file("fim-providers.json"),
         filters: { JSON: ["json"] }
       })
       if (!fileUri) {
@@ -238,17 +238,17 @@ export class ProviderManager {
     } as ServerMessage<string>)
   }
 
-  getTwinnyProvider() {
+  getFimProvider() {
     return {
-      apiHostname: "twinny.dev",
+      apiHostname: "localhost",
       apiPath: "/v1",
       apiProtocol: "https",
       id: "symmetry-default",
-      label: "Twinny.dev (Symmetry)",
+      label: "FIM (Symmetry)",
       modelName: "llama3.2:latest",
-      provider: API_PROVIDERS.Twinny,
+      provider: API_PROVIDERS.Fim,
       type: "chat"
-    } as TwinnyProvider
+    } as FimProvider
   }
 
   getDefaultLocalProvider() {
@@ -276,7 +276,7 @@ export class ProviderManager {
       modelName: "all-minilm:latest",
       provider: API_PROVIDERS.Ollama,
       type: "embedding"
-    } as TwinnyProvider
+    } as FimProvider
   }
 
   getDefaultFimProvider() {
@@ -291,17 +291,17 @@ export class ProviderManager {
       modelName: "codellama:7b-code",
       provider: API_PROVIDERS.Ollama,
       type: "fim"
-    } as TwinnyProvider
+    } as FimProvider
   }
 
   async addDefaultProviders() {
     await this.addDefaultChatProvider()
     await this.addDefaultFimProvider()
     await this.addDefaultEmbeddingsProvider()
-    await this.addTwinnyProvider()
+    await this.addFimProvider()
   }
 
-  async addDefaultLocalProvider(): Promise<TwinnyProvider> {
+  async addDefaultLocalProvider(): Promise<FimProvider> {
     const provider = this.getDefaultLocalProvider()
     if (!this._context.globalState.get(ACTIVE_CHAT_PROVIDER_STORAGE_KEY)) {
       await this.addDefaultProvider(provider)
@@ -309,7 +309,7 @@ export class ProviderManager {
     return provider
   }
 
-  async addDefaultChatProvider(): Promise<TwinnyProvider> {
+  async addDefaultChatProvider(): Promise<FimProvider> {
     const provider = this.getDefaultLocalProvider()
     if (!this._context.globalState.get(ACTIVE_CHAT_PROVIDER_STORAGE_KEY)) {
       await this.addDefaultProvider(provider)
@@ -317,7 +317,7 @@ export class ProviderManager {
     return provider
   }
 
-  async addDefaultFimProvider(): Promise<TwinnyProvider> {
+  async addDefaultFimProvider(): Promise<FimProvider> {
     const provider = this.getDefaultFimProvider()
     if (!this._context.globalState.get(ACTIVE_FIM_PROVIDER_STORAGE_KEY)) {
       await this.addDefaultProvider(provider)
@@ -325,7 +325,7 @@ export class ProviderManager {
     return provider
   }
 
-  async addDefaultEmbeddingsProvider(): Promise<TwinnyProvider> {
+  async addDefaultEmbeddingsProvider(): Promise<FimProvider> {
     const provider = this.getDefaultEmbeddingsProvider()
 
     if (
@@ -336,18 +336,18 @@ export class ProviderManager {
     return provider
   }
 
-  async addTwinnyProvider(): Promise<TwinnyProvider | null> {
-    const provider = this.getTwinnyProvider()
+  async addFimProvider(): Promise<FimProvider | null> {
+    const provider = this.getFimProvider()
     const providers = await this.getProviders()
     if (!providers) return await this.addProvider(provider)
-    const twinnyProvider = Object.values(providers).find(
-      (p) => p.apiHostname === "twinny.dev"
+    const fimSymmetryProvider = Object.values(providers).find(
+      (p) => p.apiHostname === "localhost"
     )
-    if (!twinnyProvider) await this.addProvider(provider)
+    if (!fimSymmetryProvider) await this.addProvider(provider)
     return provider
   }
 
-  async addDefaultProvider(provider: TwinnyProvider): Promise<void> {
+  async addDefaultProvider(provider: FimProvider): Promise<void> {
     if (provider.type === "chat") {
       this._context.globalState.update(
         ACTIVE_CHAT_PROVIDER_STORAGE_KEY,
@@ -397,7 +397,7 @@ export class ProviderManager {
   }
 
   getActiveChatProvider() {
-    const provider = this._context.globalState.get<TwinnyProvider>(
+    const provider = this._context.globalState.get<FimProvider>(
       ACTIVE_CHAT_PROVIDER_STORAGE_KEY
     )
     this._webView?.postMessage({
@@ -408,7 +408,7 @@ export class ProviderManager {
   }
 
   getActiveFimProvider() {
-    const provider = this._context.globalState.get<TwinnyProvider>(
+    const provider = this._context.globalState.get<FimProvider>(
       ACTIVE_FIM_PROVIDER_STORAGE_KEY
     )
     this._webView?.postMessage({
@@ -419,7 +419,7 @@ export class ProviderManager {
   }
 
   getActiveEmbeddingsProvider() {
-    const provider = this._context.globalState.get<TwinnyProvider>(
+    const provider = this._context.globalState.get<FimProvider>(
       ACTIVE_EMBEDDINGS_PROVIDER_STORAGE_KEY
     )
     this._webView?.postMessage({
@@ -429,19 +429,19 @@ export class ProviderManager {
     return provider
   }
 
-  setActiveChatProvider(provider?: TwinnyProvider) {
+  setActiveChatProvider(provider?: FimProvider) {
     if (!provider) return
     this._context.globalState.update(ACTIVE_CHAT_PROVIDER_STORAGE_KEY, provider)
     return this.getActiveChatProvider()
   }
 
-  setActiveFimProvider(provider?: TwinnyProvider) {
+  setActiveFimProvider(provider?: FimProvider) {
     if (!provider) return
     this._context.globalState.update(ACTIVE_FIM_PROVIDER_STORAGE_KEY, provider)
     return this.getActiveFimProvider()
   }
 
-  setActiveEmbeddingsProvider(provider?: TwinnyProvider) {
+  setActiveEmbeddingsProvider(provider?: FimProvider) {
     if (!provider) return
     this._context.globalState.update(
       ACTIVE_EMBEDDINGS_PROVIDER_STORAGE_KEY,
@@ -450,7 +450,7 @@ export class ProviderManager {
     return this.getActiveEmbeddingsProvider()
   }
 
-  async addProvider(provider?: TwinnyProvider): Promise<TwinnyProvider | null> {
+  async addProvider(provider?: FimProvider): Promise<FimProvider | null> {
     const providers = (await this.getProviders()) || {}
     if (!provider) return null
     provider.id = uuidv4()
@@ -459,7 +459,7 @@ export class ProviderManager {
 
     if (provider.type === "chat") {
       this._context.globalState.update(
-        `${EVENT_NAME.twinnyGlobalContext}-${GLOBAL_STORAGE_KEY.selectedModel}`,
+        `${EVENT_NAME.fimGlobalContext}-${GLOBAL_STORAGE_KEY.selectedModel}`,
         provider?.modelName
       )
       if (!this._context.globalState.get(ACTIVE_CHAT_PROVIDER_STORAGE_KEY)) {
@@ -490,14 +490,14 @@ export class ProviderManager {
     return provider
   }
 
-  async copyProvider(provider?: TwinnyProvider) {
+  async copyProvider(provider?: FimProvider) {
     if (!provider) return
     provider.id = uuidv4()
     provider.label = `${provider.label}-copy`
     await this.addProvider(provider)
   }
 
-  async removeProvider(provider?: TwinnyProvider) {
+  async removeProvider(provider?: FimProvider) {
     const providers = (await this.getProviders()) || {}
     if (!provider) return
 
@@ -529,7 +529,7 @@ export class ProviderManager {
     await this.getAllProviders()
   }
 
-  async updateProvider(provider?: TwinnyProvider) {
+  async updateProvider(provider?: FimProvider) {
     const providers = (await this.getProviders()) || {}
     const activeFimProvider = this.getActiveFimProvider()
     const activeChatProvider = this.getActiveChatProvider()
@@ -572,7 +572,7 @@ export class ProviderManager {
     const chatProvider = await this.addDefaultChatProvider()
     const fimProvider = await this.addDefaultFimProvider()
     const embeddingsProvider = await this.addDefaultEmbeddingsProvider()
-    await this.addProvider(this.getTwinnyProvider())
+    await this.addProvider(this.getFimProvider())
 
     this.focusProviderTab()
 
@@ -585,7 +585,7 @@ export class ProviderManager {
   private async _getProvidersFromFile(): Promise<Providers | undefined> {
     const fileUri = Uri.joinPath(
       this._context.globalStorageUri,
-      TWINNY_PROVIDERS_FILENAME
+      FIM_PROVIDERS_FILENAME
     )
     try {
       const content = await workspace.fs.readFile(fileUri)
@@ -599,7 +599,7 @@ export class ProviderManager {
   private async _saveProvidersToFile(providers: Providers): Promise<void> {
     const fileUri = Uri.joinPath(
       this._context.globalStorageUri,
-      TWINNY_PROVIDERS_FILENAME
+      FIM_PROVIDERS_FILENAME
     )
     try {
       const content = JSON.stringify(providers, null, 2)
@@ -609,7 +609,7 @@ export class ProviderManager {
     }
   }
 
-  private _buildProviderBaseUrl(provider: TwinnyProvider): string {
+  private _buildProviderBaseUrl(provider: FimProvider): string {
     const { apiProtocol, apiHostname, apiPort, apiPath = "" } = provider
     let baseUrl = `${apiProtocol || "http"}://${apiHostname}`
     if (apiPort) {
@@ -619,14 +619,14 @@ export class ProviderManager {
     return baseUrl
   }
 
-  private _getProviderTypeForFluency(provider: TwinnyProvider): LLMProvider {
+  private _getProviderTypeForFluency(provider: FimProvider): LLMProvider {
     if (getIsOpenAICompatible(provider)) {
       return OPEN_AI_COMPATIBLE_PROVIDERS.OpenAICompatible as LLMProvider
     }
     return provider.provider as LLMProvider
   }
 
-  async testProvider(provider?: TwinnyProvider) {
+  async testProvider(provider?: FimProvider) {
     if (!provider) {
       this._webView?.postMessage({
         type: PROVIDER_EVENT_NAME.testProviderResult,

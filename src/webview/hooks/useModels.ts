@@ -12,7 +12,7 @@ export const useModels = () => {
 
   const handler = (event: MessageEvent) => {
     const message: ServerMessage<ApiModel[]> = event.data
-    if (message?.type === EVENT_NAME.twinnyGetModels) {
+    if (message?.type === EVENT_NAME.fimGetModels) {
       setModels(message?.data)
     }
     return () => window.removeEventListener("message", handler)
@@ -20,7 +20,7 @@ export const useModels = () => {
 
   useEffect(() => {
     global.vscode.postMessage({
-      type: EVENT_NAME.twinnyGetModels
+      type: EVENT_NAME.fimGetModels
     })
     window.addEventListener("message", handler)
     return () => window.removeEventListener("message", handler)

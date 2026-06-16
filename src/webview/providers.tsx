@@ -16,7 +16,7 @@ import {
   FIM_TEMPLATE_FORMAT,
   PROVIDER_EVENT_NAME
 } from "../common/constants"
-import { TwinnyProvider } from "../extension/provider-manager"
+import { FimProvider } from "../extension/provider-manager"
 
 import { useOllamaModels } from "./hooks/useOllamaModels"
 import { useProviders } from "./hooks/useProviders"
@@ -33,7 +33,7 @@ const global = globalThis as any
 export const Providers = () => {
   const { t } = useTranslation()
   const [view, setView] = React.useState<ViewState>("providers")
-  const [provider, setProvider] = React.useState<TwinnyProvider | undefined>()
+  const [provider, setProvider] = React.useState<FimProvider | undefined>()
   const {
     providers,
     removeProvider,
@@ -84,16 +84,16 @@ export const Providers = () => {
     })
   }
 
-  const handleEdit = (provider: TwinnyProvider) => {
+  const handleEdit = (provider: FimProvider) => {
     setProvider(provider)
     setView("custom-form")
   }
 
-  const handleDelete = (provider: TwinnyProvider) => {
+  const handleDelete = (provider: FimProvider) => {
     removeProvider(provider)
   }
 
-  const handleCopy = (provider: TwinnyProvider) => {
+  const handleCopy = (provider: FimProvider) => {
     copyProvider(provider)
   }
 
@@ -101,7 +101,7 @@ export const Providers = () => {
     resetProviders()
   }
 
-  const handleProviderSelect = (selectedProvider: TwinnyProvider) => {
+  const handleProviderSelect = (selectedProvider: FimProvider) => {
     const tempProvider = { ...selectedProvider }
     delete tempProvider.features
     delete tempProvider.logo
@@ -292,7 +292,7 @@ export const Providers = () => {
 
 interface ProviderFormProps {
   onClose: () => void
-  provider?: TwinnyProvider
+  provider?: FimProvider
   type: string
 }
 
@@ -301,7 +301,7 @@ function ProviderForm({ onClose, provider, type }: ProviderFormProps) {
   const isEditing = provider !== undefined
   const { models } = useOllamaModels()
   const { saveProvider, updateProvider } = useProviders()
-  const [formState, setFormState] = React.useState<TwinnyProvider>(
+  const [formState, setFormState] = React.useState<FimProvider>(
     provider || {
       ...DEFAULT_PROVIDER_FORM_VALUES,
       type

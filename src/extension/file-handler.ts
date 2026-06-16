@@ -117,7 +117,7 @@ export class FileHandler {
   public registerHandlers() {
     this._webview.onDidReceiveMessage(
       async (message: ServerMessage<string>) => {
-        if (message.type === EVENT_NAME.twinnyOpenFile) {
+        if (message.type === EVENT_NAME.fimOpenFile) {
           await this.handleOpenFile(message as ServerMessage<string>)
         }
       }

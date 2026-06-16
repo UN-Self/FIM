@@ -15,7 +15,7 @@ import {
   EVENT_NAME,
   EXTENSION_CONTEXT_NAME,
   EXTENSION_NAME,
-  TWINNY_COMMAND_NAME,
+  FIM_COMMAND_NAME,
   WEBUI_TABS
 } from "./common/constants"
 import { logger } from "./common/logger"
@@ -32,12 +32,12 @@ import { getLineBreakCount } from "./webview/utils"
 
 export async function activate(context: ExtensionContext) {
   setContext(context)
-  const config = workspace.getConfiguration("twinny")
+  const config = workspace.getConfiguration("fim")
   const statusBarItem = window.createStatusBarItem(StatusBarAlignment.Right)
 
-  logger.log("Twinny completion extension starting")
+  logger.log("Fim completion extension starting")
 
-  const templateDir = path.join(os.homedir(), ".twinny/templates")
+  const templateDir = path.join(os.homedir(), ".fim/templates")
   const templateProvider = new TemplateProvider(templateDir)
   const fileInteractionCache = new FileInteractionCache()
   const sessionManager = new SessionManager()
@@ -66,55 +66,55 @@ export async function activate(context: ExtensionContext) {
       { pattern: "**" },
       completionProvider
     ),
-    commands.registerCommand(TWINNY_COMMAND_NAME.enable, () => {
+    commands.registerCommand(FIM_COMMAND_NAME.enable, () => {
       statusBarItem.show()
     }),
-    commands.registerCommand(TWINNY_COMMAND_NAME.disable, () => {
+    commands.registerCommand(FIM_COMMAND_NAME.disable, () => {
       statusBarItem.hide()
     }),
-    commands.registerCommand(TWINNY_COMMAND_NAME.stopGeneration, () => {
+    commands.registerCommand(FIM_COMMAND_NAME.stopGeneration, () => {
       completionProvider.onError()
       sidebarProvider.destroyStream()
     }),
-    commands.registerCommand(TWINNY_COMMAND_NAME.manageProviders, async () => {
+    commands.registerCommand(FIM_COMMAND_NAME.manageProviders, async () => {
       await showSidebarTab(
         sidebarProvider,
-        EXTENSION_CONTEXT_NAME.twinnyManageProviders,
+        EXTENSION_CONTEXT_NAME.fimManageProviders,
         WEBUI_TABS.providers
       )
     }),
-    commands.registerCommand(TWINNY_COMMAND_NAME.manageTemplates, async () => {
+    commands.registerCommand(FIM_COMMAND_NAME.manageTemplates, async () => {
       await showSidebarTab(
         sidebarProvider,
-        EXTENSION_CONTEXT_NAME.twinnyManageTemplates,
+        EXTENSION_CONTEXT_NAME.fimManageTemplates,
         WEBUI_TABS.settings
       )
     }),
-    commands.registerCommand(TWINNY_COMMAND_NAME.embeddings, async () => {
+    commands.registerCommand(FIM_COMMAND_NAME.embeddings, async () => {
       await showSidebarTab(
         sidebarProvider,
-        EXTENSION_CONTEXT_NAME.twinnyEmbeddingsTab,
+        EXTENSION_CONTEXT_NAME.fimEmbeddingsTab,
         WEBUI_TABS.embeddings
       )
     }),
-    commands.registerCommand(TWINNY_COMMAND_NAME.hideBackButton, () => {
+    commands.registerCommand(FIM_COMMAND_NAME.hideBackButton, () => {
       commands.executeCommand(
         "setContext",
-        EXTENSION_CONTEXT_NAME.twinnyManageTemplates,
+        EXTENSION_CONTEXT_NAME.fimManageTemplates,
         false
       )
       commands.executeCommand(
         "setContext",
-        EXTENSION_CONTEXT_NAME.twinnyManageProviders,
+        EXTENSION_CONTEXT_NAME.fimManageProviders,
         false
       )
       commands.executeCommand(
         "setContext",
-        EXTENSION_CONTEXT_NAME.twinnyEmbeddingsTab,
+        EXTENSION_CONTEXT_NAME.fimEmbeddingsTab,
         false
       )
     }),
-    commands.registerCommand(TWINNY_COMMAND_NAME.settings, () => {
+    commands.registerCommand(FIM_COMMAND_NAME.settings, () => {
       vscode.commands.executeCommand(
         "workbench.action.openSettings",
         EXTENSION_NAME
@@ -147,7 +147,7 @@ export async function activate(context: ExtensionContext) {
       const currentCharacter = changes.range.start.character
       fileInteractionCache.incrementStrokes(currentLine, currentCharacter)
     }),
-    window.registerWebviewViewProvider("twinny.sidebar", sidebarProvider),
+    window.registerWebviewViewProvider("fim.sidebar", sidebarProvider),
     statusBarItem
   )
 
@@ -162,14 +162,14 @@ export async function activate(context: ExtensionContext) {
 
   statusBarItem.text = "$(code)"
 
-  logger.log("Twinny completion extension activation complete")
+  logger.log("Fim completion extension activation complete")
 }
 
 async function createEmbeddingDatabase(context: ExtensionContext) {
   const workspaceName = sanitizeWorkspaceName(workspace.name)
   if (!workspaceName) return undefined
 
-  const dbDir = path.join(os.homedir(), ".twinny/embeddings")
+  const dbDir = path.join(os.homedir(), ".fim/embeddings")
   const dbPath = path.join(dbDir, workspaceName)
 
   if (!fs.existsSync(dbDir)) fs.mkdirSync(dbDir, { recursive: true })
@@ -184,15 +184,15 @@ async function showSidebarTab(
   contextName: string,
   tab: string
 ) {
-  await commands.executeCommand(TWINNY_COMMAND_NAME.focusSidebar)
+  await commands.executeCommand(FIM_COMMAND_NAME.focusSidebar)
   await commands.executeCommand("setContext", contextName, true)
   await sidebarProvider.waitForSidebarReady()
   sidebarProvider.webView?.postMessage({
-    type: EVENT_NAME.twinnySetTab,
+    type: EVENT_NAME.fimSetTab,
     data: tab
   } as ServerMessage<string>)
 }
 
 export function deactivate() {
-  logger.log("Twinny completion extension deactivated")
+  logger.log("Fim completion extension deactivated")
 }

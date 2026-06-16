@@ -37,44 +37,44 @@ export const EmbeddingOptions = () => {
   const { context: rerankThreshold = 0.5, setContext: setRerankThreshold } =
     useStorageContext<number>(
       StorageType.Global,
-      EXTENSION_CONTEXT_NAME.twinnyRerankThreshold
+      EXTENSION_CONTEXT_NAME.fimRerankThreshold
     )
 
   const { context: maxChunkSize = "500", setContext: setMaxChunkSize } =
     useStorageContext<string>(
       StorageType.Global,
-      EXTENSION_CONTEXT_NAME.twinnyMaxChunkSize
+      EXTENSION_CONTEXT_NAME.fimMaxChunkSize
     )
 
   const { context: minChunkSize = "200", setContext: setMinChunkSize } =
     useStorageContext<string>(
       StorageType.Global,
-      EXTENSION_CONTEXT_NAME.twinnyMinChunkSize
+      EXTENSION_CONTEXT_NAME.fimMinChunkSize
     )
 
   const { context: overlap = "20", setContext: setOverlap } =
     useStorageContext<string>(
       StorageType.Global,
-      EXTENSION_CONTEXT_NAME.twinnyOverlapSize
+      EXTENSION_CONTEXT_NAME.fimOverlapSize
     )
 
   const { context: codeSnippets = "5", setContext: setRelevantCodeSnippets } =
     useStorageContext<string>(
       StorageType.Global,
-      EXTENSION_CONTEXT_NAME.twinnyRelevantCodeSnippets
+      EXTENSION_CONTEXT_NAME.fimRelevantCodeSnippets
     )
 
   const { context: filePaths = "10", setContext: setRelevantFilePaths } =
     useStorageContext<string>(
       StorageType.Global,
-      EXTENSION_CONTEXT_NAME.twinnyRelevantFilePaths
+      EXTENSION_CONTEXT_NAME.fimRelevantFilePaths
     )
 
   const embeddingProviders = Object.values(getProvidersByType("embedding"))
 
   const handleEmbedDocuments = () => {
     global.vscode.postMessage({
-      type: EVENT_NAME.twinnyEmbedDocuments
+      type: EVENT_NAME.fimEmbedDocuments
     } as ClientMessage<string[]>)
   }
 

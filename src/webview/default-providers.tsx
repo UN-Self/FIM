@@ -3,12 +3,13 @@ import { useTranslation } from "react-i18next"
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
 
 import { API_PROVIDERS } from "../common/constants"
-import { TwinnyProvider } from "../extension/provider-manager"
+import { FimProvider } from "../extension/provider-manager"
 
 import {
   SvgAnthropic,
   SvgCohere,
   SvgDeepseek,
+  SvgFim,
   SvgGemini,
   SvgGroq,
   SvgMistral,
@@ -16,24 +17,23 @@ import {
   SvgOpenAI,
   SvgOpenRouter,
   SvgPerplexity,
-  SvgTwinny,
 } from "./icons"
 
 import styles from "./styles/providers.module.css"
 
 interface ProviderSelectProps {
-  onSelect: (provider: TwinnyProvider) => void
+  onSelect: (provider: FimProvider) => void
 }
-const providers: TwinnyProvider[] = [
+const providers: FimProvider[] = [
   {
-    label: "providers-twinny-name",
-    apiHostname: "twinny.dev",
+    label: "providers-fim-name",
+    apiHostname: "localhost",
     apiPath: "/v1",
-    logo: <SvgTwinny />,
+    logo: <SvgFim />,
     apiProtocol: "https",
     modelName: "",
-    id: "twinny",
-    provider: API_PROVIDERS.Twinny,
+    id: "fim",
+    provider: API_PROVIDERS.Fim,
     type: "chat",
   },
   {
@@ -143,11 +143,11 @@ export const DefaultProviderSelect: React.FC<ProviderSelectProps> = ({
   const { t } = useTranslation()
   const [showDefaults, setShowDefaults] = useState<boolean>(false)
 
-  const handleProviderClick = (provider: TwinnyProvider) => {
+  const handleProviderClick = (provider: FimProvider) => {
     onSelect(provider)
   }
 
-  const renderProviderDefaults = (provider: TwinnyProvider) => {
+  const renderProviderDefaults = (provider: FimProvider) => {
     return (
       <div className={styles.defaults}>
         <h4 className={styles.defaultsTitle}>{t("default-settings")}</h4>

@@ -10,14 +10,14 @@ export const useLoading = () => {
   const [loader, setLoader] = useState<string | undefined>()
   const handler = (event: MessageEvent) => {
     const message: ServerMessage<string> = event.data
-    if (message?.type === EVENT_NAME.twinnySendLoader) {
+    if (message?.type === EVENT_NAME.fimSendLoader) {
       setLoader(message?.data)
     }
     return () => window.removeEventListener("message", handler)
   }
   useEffect(() => {
     global.vscode.postMessage({
-      type: EVENT_NAME.twinnySendLoader
+      type: EVENT_NAME.fimSendLoader
     })
     window.addEventListener("message", handler)
     return () => window.removeEventListener("message", handler)

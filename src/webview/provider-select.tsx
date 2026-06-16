@@ -74,7 +74,7 @@ export const ProviderSelect = () => {
   const providerModels =
     effectiveProvider?.provider === API_PROVIDERS.Ollama
       ? ollamaModels.models?.map(({ name }) => name) || []
-      : effectiveProvider?.provider === API_PROVIDERS.Twinny
+      : effectiveProvider?.provider === API_PROVIDERS.Fim
         ? symmetryProviders.map((provider: SymmetryModelProvider) => provider.model_name) || []
         : models[effectiveProvider?.provider as keyof typeof models]?.models || []
 
@@ -135,7 +135,7 @@ export const ProviderSelect = () => {
               </VSCodeOption>
             ))}
           </VSCodeDropdown>
-        ) : effectiveProvider?.provider === API_PROVIDERS.Twinny && symmetryProviders.length === 0 ? (
+        ) : effectiveProvider?.provider === API_PROVIDERS.Fim && symmetryProviders.length === 0 ? (
           <ModelLoader />
         ) : (
           <VSCodeTextField

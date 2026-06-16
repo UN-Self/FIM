@@ -106,7 +106,7 @@ export class GithubService extends ConversationHistory {
 
   private focusChatTab = () => {
     this.webView.postMessage({
-      type: EVENT_NAME.twinnySetTab,
+      type: EVENT_NAME.fimSetTab,
       data: WEBUI_TABS.chat
     } as ServerMessage<string>)
   }
@@ -146,17 +146,17 @@ export class GithubService extends ConversationHistory {
 
     setTimeout(async () => {
       this.webView?.postMessage({
-        type: EVENT_NAME.twinnyAddMessage,
+        type: EVENT_NAME.fimAddMessage,
         data: prompt
       })
 
       this.webView?.postMessage({
-        type: EVENT_NAME.twinnyOnLoading
+        type: EVENT_NAME.fimOnLoading
       })
 
       commands.executeCommand(
         "setContext",
-        EXTENSION_CONTEXT_NAME.twinnyReviewTab,
+        EXTENSION_CONTEXT_NAME.fimReviewTab,
         false
       )
 
@@ -170,7 +170,7 @@ export class GithubService extends ConversationHistory {
     this._controller?.abort()
     commands.executeCommand(
       "setContext",
-      EXTENSION_CONTEXT_NAME.twinnyGeneratingText,
+      EXTENSION_CONTEXT_NAME.fimGeneratingText,
       false
     )
   }
@@ -208,7 +208,7 @@ export class GithubService extends ConversationHistory {
       }
 
       this.webView.postMessage({
-        type: EVENT_NAME.twinnyOnCompletion,
+        type: EVENT_NAME.fimOnCompletion,
         data: {
           role: ASSISTANT,
           content: this._completion

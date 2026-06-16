@@ -1,7 +1,7 @@
 import { workspace } from "vscode"
 
 export class OllamaService {
-  private _config = workspace.getConfiguration("twinny")
+  private _config = workspace.getConfiguration("fim")
   private _baseUrl: string
 
   constructor() {

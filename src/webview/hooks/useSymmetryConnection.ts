@@ -30,7 +30,7 @@ export const useSymmetryConnection = () => {
     setContext: setSymmetryConnectionSession
   } = useStorageContext<SymmetryConnection | undefined>(
     StorageType.Session,
-    EXTENSION_SESSION_NAME.twinnySymmetryConnection
+    EXTENSION_SESSION_NAME.fimSymmetryConnection
   )
 
   const {
@@ -38,7 +38,7 @@ export const useSymmetryConnection = () => {
     setContext: setSymmetryProviderStatus
   } = useStorageContext<string>(
     StorageType.Session,
-    EXTENSION_SESSION_NAME.twinnySymmetryConnectionProvider
+    EXTENSION_SESSION_NAME.fimSymmetryConnectionProvider
   )
 
   const {
@@ -54,7 +54,7 @@ export const useSymmetryConnection = () => {
   const connectToSymmetry = () => {
     setConnecting(true)
     global.vscode.postMessage({
-      type: EVENT_NAME.twinnyConnectSymmetry,
+      type: EVENT_NAME.fimConnectSymmetry,
       data: selectedModel
     } as ClientMessage<SymmetryModelProvider>)
   }
@@ -62,25 +62,25 @@ export const useSymmetryConnection = () => {
   const disconnectSymmetry = () => {
     setConnecting(true)
     global.vscode.postMessage({
-      type: EVENT_NAME.twinnyDisconnectSymmetry
+      type: EVENT_NAME.fimDisconnectSymmetry
     } as ClientMessage)
   }
 
   const connectAsProvider = () => { // Removed useCallback
     global.vscode.postMessage({
-      type: EVENT_NAME.twinnyStartSymmetryProvider
+      type: EVENT_NAME.fimStartSymmetryProvider
     } as ClientMessage)
   }
 
   const disconnectAsProvider = () => {
     global.vscode.postMessage({
-      type: EVENT_NAME.twinnyStopSymmetryProvider
+      type: EVENT_NAME.fimStopSymmetryProvider
     } as ClientMessage)
   }
 
   const getModels = () => {
     global.vscode.postMessage({
-      type: EVENT_NAME.twinnyGetSymmetryModels
+      type: EVENT_NAME.fimGetSymmetryModels
     })
   }
 
@@ -88,19 +88,19 @@ export const useSymmetryConnection = () => {
     const message: ServerMessage<
       SymmetryConnection | string | SymmetryModelProvider[]
     > = event.data
-    if (message?.type === EVENT_NAME.twinnyConnectedToSymmetry) {
+    if (message?.type === EVENT_NAME.fimConnectedToSymmetry) {
       setConnecting(false)
       setSymmetryConnectionSession(message.data as SymmetryConnection)
     }
-    if (message?.type === EVENT_NAME.twinnyDisconnectedFromSymmetry) {
+    if (message?.type === EVENT_NAME.fimDisconnectedFromSymmetry) {
       setConnecting(false)
       setSymmetryConnectionSession(undefined)
     }
-    if (message?.type === EVENT_NAME.twinnySendSymmetryMessage) {
+    if (message?.type === EVENT_NAME.fimSendSymmetryMessage) {
       setSymmetryProviderStatus(message?.data as string)
     }
 
-    if (message?.type === EVENT_NAME.twinnySymmetryModels) {
+    if (message?.type === EVENT_NAME.fimSymmetryModels) {
       setModels(message?.data as SymmetryModelProvider[])
     }
   }

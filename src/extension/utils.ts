@@ -26,15 +26,14 @@ import {
   defaultChunkOptions,
   EVENT_NAME,
   EXTENSION_CONTEXT_NAME,
+  FIM,
   knownErrorMessages,
   MULTILINE_TYPES,
   NORMALIZE_REGEX,
   OPEN_AI_COMPATIBLE_PROVIDERS,
   OPENING_BRACKETS,
   QUOTES,
-  SKIP_DECLARATION_SYMBOLS,
-  TWINNY
-} from "../common/constants"
+  SKIP_DECLARATION_SYMBOLS} from "../common/constants"
 import { supportedLanguages } from "../common/languages"
 import { logger } from "../common/logger"
 import {
@@ -50,7 +49,7 @@ import {
 } from "../common/types"
 
 import { getParser } from "./parser"
-import { TwinnyProvider } from "./provider-manager"
+import { FimProvider } from "./provider-manager"
 
 const execAsync = util.promisify(exec)
 
@@ -417,7 +416,7 @@ export const getResponseData = (data: StreamResponse) => {
   }
 }
 
-export const getIsOpenAICompatible = (provider: TwinnyProvider) => {
+export const getIsOpenAICompatible = (provider: FimProvider) => {
   const providers = Object.values(OPEN_AI_COMPATIBLE_PROVIDERS) as string[]
   return providers.includes(provider.provider)
 }
@@ -518,9 +517,9 @@ export const getGitChanges = async (): Promise<string> => {
 }
 
 export const getTerminal = async (): Promise<Terminal | undefined> => {
-  const twinnyTerminal = window.terminals.find((t) => t.name === TWINNY)
-  if (twinnyTerminal) return twinnyTerminal
-  const terminal = window.createTerminal({ name: TWINNY })
+  const fimTerminal = window.terminals.find((t) => t.name === FIM)
+  if (fimTerminal) return fimTerminal
+  const terminal = window.createTerminal({ name: FIM })
   terminal.show()
   return terminal
 }
@@ -572,9 +571,9 @@ export const getChunkOptions = (
   context: ExtensionContext | undefined
 ): ChunkOptions => {
   if (!context) return defaultChunkOptions
-  const maxChunkSizeContext = `${EVENT_NAME.twinnyGlobalContext}-${EXTENSION_CONTEXT_NAME.twinnyMaxChunkSize}`
-  const minChunkSizeContext = `${EVENT_NAME.twinnyGlobalContext}-${EXTENSION_CONTEXT_NAME.twinnyMinChunkSize}`
-  const overlap = `${EVENT_NAME.twinnyGlobalContext}-${EXTENSION_CONTEXT_NAME.twinnyOverlapSize}`
+  const maxChunkSizeContext = `${EVENT_NAME.fimGlobalContext}-${EXTENSION_CONTEXT_NAME.fimMaxChunkSize}`
+  const minChunkSizeContext = `${EVENT_NAME.fimGlobalContext}-${EXTENSION_CONTEXT_NAME.fimMinChunkSize}`
+  const overlap = `${EVENT_NAME.fimGlobalContext}-${EXTENSION_CONTEXT_NAME.fimOverlapSize}`
 
   const options = {
     maxSize: Number(context.globalState.get(maxChunkSizeContext)) || 500,
@@ -676,7 +675,7 @@ export const updateLoadingMessage = (
   message: string
 ) => {
   webView?.postMessage({
-    type: EVENT_NAME.twinnySendLoader,
+    type: EVENT_NAME.fimSendLoader,
     data: message
   } as ServerMessage<string>)
 }
@@ -686,7 +685,7 @@ export const updateSymmetryStatus = (
   message: string
 ) => {
   webView?.postMessage({
-    type: EVENT_NAME.twinnySendSymmetryMessage,
+    type: EVENT_NAME.fimSendSymmetryMessage,
     data: message
   } as ServerMessage<string>)
 }
@@ -728,7 +727,7 @@ export async function getAllFilePaths(dirPath: string): Promise<string[]> {
   if (!dirPath) return []
 
   const rootPath = workspace.workspaceFolders?.[0]?.uri.fsPath || ""
-  const config = workspace.getConfiguration("twinny")
+  const config = workspace.getConfiguration("fim")
   const submodules = readGitSubmodulesFile()
 
   const ig = ignore()
@@ -815,7 +814,7 @@ export const logStreamOptions = (opts: any) => {
   const totalCharacters = calculateTotalCharacters(body.messages)
 
   const logMessage = `
-    ***Twinny Stream Debug***
+    ***Fim Stream Debug***
     Streaming response from ${hostname}${port ? `:${port}` : ""}.
     Request body:
     ${JSON.stringify(body, null, 2)}
@@ -845,7 +844,7 @@ export function notifyKnownErrors(error: Error) {
   if (knownErrorMessages.some((msg) => error.message.includes(msg))) {
     vscode.window
       .showInformationMessage(
-        "Besides Twinny, there may be other AI extensions being enabled (such as Fitten Code) that are affecting the behavior of the fetch API or ReadableStream used in the Twinny plugin. We recommend that you disable that AI plugin for the smooth use of Twinny",
+        "Besides Fim, there may be other AI extensions being enabled (such as Fitten Code) that are affecting the behavior of the fetch API or ReadableStream used in the Fim plugin. We recommend that you disable that AI plugin for the smooth use of Fim",
         "View extensions",
         "Restart Visual Studio Code (after disabling related extensions)"
       )

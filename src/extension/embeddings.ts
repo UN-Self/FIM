@@ -1,5 +1,5 @@
-import * as lancedb from "@lancedb/lancedb"
 import type { IntoVector } from "@lancedb/lancedb"
+import * as lancedb from "@lancedb/lancedb"
 import fs from "fs"
 import ignore from "ignore"
 import PQueue from "p-queue"
@@ -17,7 +17,7 @@ import {
 
 import { Base } from "./base"
 import { fetchEmbedding } from "./llm"
-import { TwinnyProvider } from "./provider-manager"
+import { FimProvider } from "./provider-manager"
 import {
   getDocumentSplitChunks,
   readGitSubmodulesFile,
@@ -326,7 +326,7 @@ export class EmbeddingDatabase extends Base {
   }
 
   private getEmbeddingFromResponse<T>(
-    provider: TwinnyProvider,
+    provider: FimProvider,
     response: T
   ): number[] {
     if (provider.provider === API_PROVIDERS.LMStudio) {

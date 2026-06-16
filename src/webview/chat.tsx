@@ -123,20 +123,20 @@ export const Chat = (props: ChatProps): JSX.Element => {
   const messageEventHandler = (event: MessageEvent) => {
     const message: ServerMessage = event.data
     switch (message.type) {
-      case EVENT_NAME.twinnyAddMessage: {
+      case EVENT_NAME.fimAddMessage: {
         generatingRef.current = true
         handleAddMessage(message as ServerMessage<ChatCompletionMessage>)
         break
       }
-      case EVENT_NAME.twinnyOnCompletion: {
+      case EVENT_NAME.fimOnCompletion: {
         handleCompletionMessage(message as ServerMessage<ChatCompletionMessage>)
         break
       }
-      case EVENT_NAME.twinnyOnLoading: {
+      case EVENT_NAME.fimOnLoading: {
         handleLoadingMessage()
         break
       }
-      case EVENT_NAME.twinnyNewConversation: {
+      case EVENT_NAME.fimNewConversation: {
         setMessages([])
         setCompletion(null)
         setActiveConversation({
@@ -152,7 +152,7 @@ export const Chat = (props: ChatProps): JSX.Element => {
         }, 1000)
         break
       }
-      case EVENT_NAME.twinnyStopGeneration: {
+      case EVENT_NAME.fimStopGeneration: {
         setIsLoading(false)
         setCompletion(null)
         stopRef.current = false
@@ -166,7 +166,7 @@ export const Chat = (props: ChatProps): JSX.Element => {
 
   const handleStopGeneration = useCallback(() => {
     global.vscode.postMessage({
-      type: EVENT_NAME.twinnyStopGeneration
+      type: EVENT_NAME.fimStopGeneration
     } as ClientMessage)
   }, [])
 
@@ -181,7 +181,7 @@ export const Chat = (props: ChatProps): JSX.Element => {
       const updatedMessages = prev.slice(0, index)
 
       global.vscode.postMessage({
-        type: EVENT_NAME.twinnyChatMessage,
+        type: EVENT_NAME.fimChatMessage,
         data: updatedMessages,
         meta: mentions,
         key: conversation?.id
@@ -234,7 +234,7 @@ export const Chat = (props: ChatProps): JSX.Element => {
       ]
 
       global.vscode.postMessage({
-        type: EVENT_NAME.twinnyChatMessage,
+        type: EVENT_NAME.fimChatMessage,
         data: updatedMessages,
         meta: mentions,
         key: conversation?.id
@@ -310,7 +310,7 @@ export const Chat = (props: ChatProps): JSX.Element => {
         ChatCompletionMessage[],
         MentionType[]
       > = {
-        type: EVENT_NAME.twinnyChatMessage,
+        type: EVENT_NAME.fimChatMessage,
         data: updatedMessages,
         meta: mentions,
         key: conversationId,
@@ -337,26 +337,26 @@ export const Chat = (props: ChatProps): JSX.Element => {
     });
 
     global.vscode.postMessage({
-      type: EVENT_NAME.twinnyNewConversation
+      type: EVENT_NAME.fimNewConversation
     })
   }, [setActiveConversation, t])
 
   const handleOpenFile = useCallback((filePath: string) => {
     global.vscode.postMessage({
-      type: EVENT_NAME.twinnyOpenFile,
+      type: EVENT_NAME.fimOpenFile,
       data: filePath
     })
   }, [])
 
   useEffect(() => {
     global.vscode.postMessage({
-      type: EVENT_NAME.twinnyHideBackButton
+      type: EVENT_NAME.fimHideBackButton
     })
   }, [])
 
   useEffect(() => {
     if (editorRef.current) {
-      global.vscode.postMessage({ type: EVENT_NAME.twinnySidebarReady })
+      global.vscode.postMessage({ type: EVENT_NAME.fimSidebarReady })
     }
   }, [editorRef.current])
 

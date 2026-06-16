@@ -60,7 +60,7 @@ export class SidebarProvider extends BaseProvider {
 
     this.registerWebView(webviewView.webview)
 
-    // Reset sidebar ready promise when the Twinny sidebar is hidden (user navigates away)
+    // Reset sidebar ready promise when the Fim sidebar is hidden (user navigates away)
     webviewView.onDidChangeVisibility(() => {
       if (!webviewView.visible) {
         this.resetSidebarReadyPromise()
@@ -101,7 +101,7 @@ export class SidebarProvider extends BaseProvider {
             script-src 'nonce-${nonce}';style-src vscode-resource: 'unsafe-inline' http: https: data:;"
           >
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>twinny</title>
+          <title>FIM</title>
           <style>
             body { padding: 10px }
           </style>

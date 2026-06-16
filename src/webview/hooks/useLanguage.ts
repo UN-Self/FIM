@@ -10,7 +10,7 @@ export const useLanguage = (): LanguageType | undefined => {
   const [language, setLanguage] = useState<LanguageType>()
   const handler = (event: MessageEvent) => {
     const message: ServerMessage<LanguageType> = event.data
-    if (message?.type === EVENT_NAME.twinnySendLanguage) {
+    if (message?.type === EVENT_NAME.fimSendLanguage) {
       const language = message.data
       if (language) {
         setLanguage(language)
@@ -20,7 +20,7 @@ export const useLanguage = (): LanguageType | undefined => {
   }
   useEffect(() => {
     global.vscode.postMessage({
-      type: EVENT_NAME.twinnySendLanguage
+      type: EVENT_NAME.fimSendLanguage
     })
     window.addEventListener("message", handler)
     return () => window.removeEventListener("message", handler)

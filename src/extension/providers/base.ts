@@ -2,7 +2,7 @@ import * as vscode from "vscode"
 
 import {
   EVENT_NAME,
-  TWINNY_COMMAND_NAME
+  FIM_COMMAND_NAME
 } from "../../common/constants"
 import { logger } from "../../common/logger"
 import {
@@ -77,27 +77,27 @@ export class BaseProvider {
       string,
       ((message: ClientMessage) => void | Promise<void>) | undefined
     > = {
-      [EVENT_NAME.twinnyEmbedDocuments]: this.embedDocuments,
-      [EVENT_NAME.twinnyFetchOllamaModels]: this.fetchOllamaModels,
-      [EVENT_NAME.twinnyGetConfigValue]: this.getConfigurationValue,
-      [EVENT_NAME.twinnyGetWorkspaceContext]: this.getTwinnyWorkspaceContext,
-      [EVENT_NAME.twinnyGlobalContext]: this.getGlobalContext,
-      [EVENT_NAME.twinnyHideBackButton]: this.twinnyHideBackButton,
-      [EVENT_NAME.twinnyListTemplates]: this.listTemplates,
-      [EVENT_NAME.twinnyNotification]: this.sendNotification,
-      [EVENT_NAME.twinnySendLanguage]: this.getCurrentLanguage,
-      [EVENT_NAME.twinnySendTheme]: this.getTheme,
-      [EVENT_NAME.twinnySessionContext]: this.getSessionContext,
-      [EVENT_NAME.twinnySetConfigValue]: this.setConfigurationValue,
-      [EVENT_NAME.twinnySetGlobalContext]: this.setGlobalContext,
-      [EVENT_NAME.twinnySetTab]: this.setTab,
-      [EVENT_NAME.twinnySetWorkspaceContext]: this.setWorkspaceContext,
-      [EVENT_NAME.twinnyFileListRequest]: this.fileListRequest,
-      [EVENT_NAME.twinnyEditDefaultTemplates]: this.editDefaultTemplates,
+      [EVENT_NAME.fimEmbedDocuments]: this.embedDocuments,
+      [EVENT_NAME.fimFetchOllamaModels]: this.fetchOllamaModels,
+      [EVENT_NAME.fimGetConfigValue]: this.getConfigurationValue,
+      [EVENT_NAME.fimGetWorkspaceContext]: this.getFimWorkspaceContext,
+      [EVENT_NAME.fimGlobalContext]: this.getGlobalContext,
+      [EVENT_NAME.fimHideBackButton]: this.fimHideBackButton,
+      [EVENT_NAME.fimListTemplates]: this.listTemplates,
+      [EVENT_NAME.fimNotification]: this.sendNotification,
+      [EVENT_NAME.fimSendLanguage]: this.getCurrentLanguage,
+      [EVENT_NAME.fimSendTheme]: this.getTheme,
+      [EVENT_NAME.fimSessionContext]: this.getSessionContext,
+      [EVENT_NAME.fimSetConfigValue]: this.setConfigurationValue,
+      [EVENT_NAME.fimSetGlobalContext]: this.setGlobalContext,
+      [EVENT_NAME.fimSetTab]: this.setTab,
+      [EVENT_NAME.fimSetWorkspaceContext]: this.setWorkspaceContext,
+      [EVENT_NAME.fimFileListRequest]: this.fileListRequest,
+      [EVENT_NAME.fimEditDefaultTemplates]: this.editDefaultTemplates,
       [EVENT_NAME.twinntGetLocale]: this.sendLocaleToWebView,
-      [EVENT_NAME.twinnyStopGeneration]: this.destroyStream,
-      [EVENT_NAME.twinnySidebarReady]: this._sidebarReadyHandler,
-      [TWINNY_COMMAND_NAME.settings]: this.openSettings
+      [EVENT_NAME.fimStopGeneration]: this.destroyStream,
+      [EVENT_NAME.fimSidebarReady]: this._sidebarReadyHandler,
+      [FIM_COMMAND_NAME.settings]: this.openSettings
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -107,21 +107,21 @@ export class BaseProvider {
     })
 
     vscode.workspace.onDidChangeConfiguration((event) => {
-      if (!event.affectsConfiguration("twinny")) return
+      if (!event.affectsConfiguration("fim")) return
       this.sendLocaleToWebView()
     })
   }
 
   private sendLocaleToWebView = () => {
     this.webView?.postMessage({
-      type: EVENT_NAME.twinnySetLocale,
-      data: vscode.workspace.getConfiguration("twinny").get("locale") as string
+      type: EVENT_NAME.fimSetLocale,
+      data: vscode.workspace.getConfiguration("fim").get("locale") as string
     })
   }
 
   private handleThemeChange = () => {
     this.webView?.postMessage({
-      type: EVENT_NAME.twinnySendTheme,
+      type: EVENT_NAME.fimSendTheme,
       data: getTheme()
     } as ServerMessage<ThemeType>)
   }
@@ -137,17 +137,17 @@ export class BaseProvider {
 
   public destroyStream = () => {
     this.webView?.postMessage({
-      type: EVENT_NAME.twinnyStopGeneration
+      type: EVENT_NAME.fimStopGeneration
     })
   }
 
   private openSettings = () => {
-    vscode.commands.executeCommand(TWINNY_COMMAND_NAME.settings)
+    vscode.commands.executeCommand(FIM_COMMAND_NAME.settings)
   }
 
   private setTab = (tab: ClientMessage) => {
     this.webView?.postMessage({
-      type: EVENT_NAME.twinnySetTab,
+      type: EVENT_NAME.fimSetTab,
       data: tab
     } as ServerMessage<string>)
   }
@@ -166,18 +166,18 @@ export class BaseProvider {
 
   private getConfigurationValue = (message: ClientMessage) => {
     if (!message.key) return
-    const config = vscode.workspace.getConfiguration("twinny")
+    const config = vscode.workspace.getConfiguration("fim")
     this.webView?.postMessage({
-      type: EVENT_NAME.twinnyGetConfigValue,
+      type: EVENT_NAME.fimGetConfigValue,
       data: config.get(message.key)
     } as ServerMessage<string>)
   }
 
   private fileListRequest = async (message: ClientMessage) => {
-    if (message.type === EVENT_NAME.twinnyFileListRequest) {
+    if (message.type === EVENT_NAME.fimFileListRequest) {
       const files = await this._fileTreeProvider?.getAllFiles()
       this.webView?.postMessage({
-        type: EVENT_NAME.twinnyFileListResponse,
+        type: EVENT_NAME.fimFileListResponse,
         data: files
       })
     }
@@ -185,7 +185,7 @@ export class BaseProvider {
 
   private setConfigurationValue = (message: ClientMessage) => {
     if (!message.key) return
-    const config = vscode.workspace.getConfiguration("twinny")
+    const config = vscode.workspace.getConfiguration("fim")
     config.update(message.key, message.data, vscode.ConfigurationTarget.Global)
   }
 
@@ -196,7 +196,7 @@ export class BaseProvider {
         return
       }
       this.webView?.postMessage({
-        type: EVENT_NAME.twinnyFetchOllamaModels,
+        type: EVENT_NAME.fimFetchOllamaModels,
         data: models
       } as ServerMessage<ApiModel[]>)
     } catch {
@@ -207,7 +207,7 @@ export class BaseProvider {
   private listTemplates = () => {
     const templates = this._templateProvider.listTemplates()
     this.webView?.postMessage({
-      type: EVENT_NAME.twinnyListTemplates,
+      type: EVENT_NAME.fimListTemplates,
       data: templates
     } as ServerMessage<string[]>)
   }
@@ -218,24 +218,24 @@ export class BaseProvider {
 
   private getGlobalContext = (message: ClientMessage) => {
     const storedData = this.context?.globalState.get(
-      `${EVENT_NAME.twinnyGlobalContext}-${message.key}`
+      `${EVENT_NAME.fimGlobalContext}-${message.key}`
     )
     this.webView?.postMessage({
-      type: `${EVENT_NAME.twinnyGlobalContext}-${message.key}`,
+      type: `${EVENT_NAME.fimGlobalContext}-${message.key}`,
       data: storedData
     })
   }
 
   private getTheme = () => {
     this.webView?.postMessage({
-      type: EVENT_NAME.twinnySendTheme,
+      type: EVENT_NAME.fimSendTheme,
       data: getTheme()
     } as ServerMessage<ThemeType>)
   }
 
   private getCurrentLanguage = () => {
     this.webView?.postMessage({
-      type: EVENT_NAME.twinnySendLanguage,
+      type: EVENT_NAME.fimSendLanguage,
       data: getLanguage()
     } as ServerMessage<LanguageType>)
   }
@@ -243,24 +243,24 @@ export class BaseProvider {
   private getSessionContext = (data: ClientMessage) => {
     if (!data.key) return undefined
     return this.webView?.postMessage({
-      type: `${EVENT_NAME.twinnySessionContext}-${data.key}`,
+      type: `${EVENT_NAME.fimSessionContext}-${data.key}`,
       data: this._sessionManager?.get(data.key)
     })
   }
 
   private setGlobalContext = (message: ClientMessage) => {
     this.context?.globalState.update(
-      `${EVENT_NAME.twinnyGlobalContext}-${message.key}`,
+      `${EVENT_NAME.fimGlobalContext}-${message.key}`,
       message.data
     )
   }
 
-  private getTwinnyWorkspaceContext = (message: ClientMessage) => {
+  private getFimWorkspaceContext = (message: ClientMessage) => {
     const storedData = this.context?.workspaceState.get(
-      `${EVENT_NAME.twinnyGetWorkspaceContext}-${message.key}`
+      `${EVENT_NAME.fimGetWorkspaceContext}-${message.key}`
     )
     this.webView?.postMessage({
-      type: `${EVENT_NAME.twinnyGetWorkspaceContext}-${message.key}`,
+      type: `${EVENT_NAME.fimGetWorkspaceContext}-${message.key}`,
       data: storedData
     } as ServerMessage)
   }
@@ -268,16 +268,16 @@ export class BaseProvider {
   private setWorkspaceContext = <T>(message: ClientMessage<T>) => {
     const data = message.data
     this.context.workspaceState.update(
-      `${EVENT_NAME.twinnyGetWorkspaceContext}-${message.key}`,
+      `${EVENT_NAME.fimGetWorkspaceContext}-${message.key}`,
       data
     )
     this.webView?.postMessage({
-      type: `${EVENT_NAME.twinnyGetWorkspaceContext}-${message.key}`,
+      type: `${EVENT_NAME.fimGetWorkspaceContext}-${message.key}`,
       data
     })
   }
 
-  private twinnyHideBackButton() {
-    vscode.commands.executeCommand(TWINNY_COMMAND_NAME.hideBackButton)
+  private fimHideBackButton() {
+    vscode.commands.executeCommand(FIM_COMMAND_NAME.hideBackButton)
   }
 }

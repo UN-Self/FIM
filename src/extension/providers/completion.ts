@@ -56,7 +56,7 @@ import {
 } from "../fim-templates"
 import { llm } from "../llm"
 import { getNodeAtPosition, getParser } from "../parser"
-import { TwinnyProvider } from "../provider-manager"
+import { FimProvider } from "../provider-manager"
 import { createStreamRequestBodyFim } from "../provider-options"
 import { TemplateProvider } from "../template-provider"
 import {
@@ -88,7 +88,7 @@ export class CompletionProvider
   private _parser: Parser | undefined
   private _position: Position | null
   private _prefixSuffix: PrefixSuffix = { prefix: "", suffix: "" }
-  private _provider: TwinnyProvider | undefined
+  private _provider: FimProvider | undefined
   private _statusBar: StatusBarItem
   private _templateProvider: TemplateProvider
   private _usingFimTemplate = false
@@ -110,7 +110,7 @@ export class CompletionProvider
     this._templateProvider = templateProvider
   }
 
-  private buildFimRequest(prompt: string, provider: TwinnyProvider) {
+  private buildFimRequest(prompt: string, provider: FimProvider) {
     const body = createStreamRequestBodyFim(provider.provider, prompt, {
       model: provider.modelName,
       numPredictFim: this.config.numPredictFim,
@@ -187,7 +187,7 @@ export class CompletionProvider
     this._position = position
     this._nonce = this._nonce + 1
     this._statusBar.text = "$(loading~spin)"
-    this._statusBar.command = "twinny.stopGeneration"
+    this._statusBar.command = "fim.stopGeneration"
     await this.tryParseDocument(document)
 
     this._isMultilineCompletion = getIsMultilineCompletion({
@@ -203,7 +203,7 @@ export class CompletionProvider
 
     return new Promise<ResolvedInlineCompletion>((resolve, reject) => {
       this._debouncer = setTimeout(() => {
-        this._lock.acquire("twinny.completion", async () => {
+        this._lock.acquire("fim.completion", async () => {
           const provider = this.getFimProvider()
           if (!provider) return
           const request = this.buildFimRequest(prompt, provider)
@@ -706,7 +706,7 @@ export class CompletionProvider
   private logCompletion(formattedCompletion: string) {
     logger.log(
       `
-      *** Twinny completion triggered for file: ${this._document?.uri} ***
+      *** Fim completion triggered for file: ${this._document?.uri} ***
       Original completion: ${this._completion}
       Formatted completion: ${formattedCompletion}
       Max Lines: ${this.config.maxLines}

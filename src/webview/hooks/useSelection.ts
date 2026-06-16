@@ -10,7 +10,7 @@ export const useSelection = (onSelect?: () => void) => {
   const [selection, setSelection] = useState("")
   const handler = (event: MessageEvent) => {
     const message: ServerMessage<string> = event.data
-    if (message?.type === EVENT_NAME.twinnyTextSelection) {
+    if (message?.type === EVENT_NAME.fimTextSelection) {
       const selection = message?.data?.trim()
       setSelection(selection || "")
       onSelect?.()
@@ -20,7 +20,7 @@ export const useSelection = (onSelect?: () => void) => {
   useEffect(() => {
     window.addEventListener("message", handler)
     global.vscode.postMessage({
-      type: EVENT_NAME.twinnyTextSelection
+      type: EVENT_NAME.fimTextSelection
     })
     return () => window.removeEventListener("message", handler)
   }, [])

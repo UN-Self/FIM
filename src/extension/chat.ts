@@ -50,7 +50,7 @@ import { kebabToSentence } from "../webview/utils"
 import { Base } from "./base"
 import { EmbeddingDatabase } from "./embeddings"
 import { FileHandler } from "./file-handler"
-import { TwinnyProvider } from "./provider-manager"
+import { FimProvider } from "./provider-manager"
 import { Reranker } from "./reranker"
 import { SessionManager } from "./session-manager"
 import { SymmetryService } from "./symmetry-service"
@@ -112,7 +112,7 @@ export class Chat extends Base {
       SYMMETRY_EMITTER_KEY.inference,
       (completion: string) => {
         this._webView?.postMessage({
-          type: EVENT_NAME.twinnyOnCompletion,
+          type: EVENT_NAME.fimOnCompletion,
           data: {
             content: completion.trimStart(),
             role: ASSISTANT
@@ -132,7 +132,7 @@ export class Chat extends Base {
       const embedding = await this._db.fetchModelEmbedding(text)
       if (!embedding) return []
 
-      const relevantFileCountContext = `${EVENT_NAME.twinnyGlobalContext}-${EXTENSION_CONTEXT_NAME.twinnyRelevantFilePaths}`
+      const relevantFileCountContext = `${EVENT_NAME.fimGlobalContext}-${EXTENSION_CONTEXT_NAME.fimRelevantFilePaths}`
       const stored = this.context?.globalState.get(
         relevantFileCountContext
       ) as number
@@ -153,7 +153,7 @@ export class Chat extends Base {
   }
 
   private getRerankThreshold() {
-    const rerankThresholdContext = `${EVENT_NAME.twinnyGlobalContext}-${EXTENSION_CONTEXT_NAME.twinnyRerankThreshold}`
+    const rerankThresholdContext = `${EVENT_NAME.fimGlobalContext}-${EXTENSION_CONTEXT_NAME.fimRerankThreshold}`
     const stored = this.context?.globalState.get(
       rerankThresholdContext
     ) as number
@@ -205,7 +205,7 @@ export class Chat extends Base {
     const rerankThreshold = this.getRerankThreshold()
 
     if (await this._db.hasEmbeddingTable(table)) {
-      const relevantCodeCountContext = `${EVENT_NAME.twinnyGlobalContext}-${EXTENSION_CONTEXT_NAME.twinnyRelevantCodeSnippets}`
+      const relevantCodeCountContext = `${EVENT_NAME.fimGlobalContext}-${EXTENSION_CONTEXT_NAME.fimRelevantCodeSnippets}`
       const stored = this.context?.globalState.get(
         relevantCodeCountContext
       ) as number
@@ -275,7 +275,7 @@ export class Chat extends Base {
         this._completion += delta.content
 
         await this._webView?.postMessage({
-          type: EVENT_NAME.twinnyOnCompletion,
+          type: EVENT_NAME.fimOnCompletion,
           data: {
             content: this._completion.trimStart() || " ",
             role: ASSISTANT
@@ -292,7 +292,7 @@ export class Chat extends Base {
     this._statusBar.text = "$(code)"
     commands.executeCommand(
       "setContext",
-      EXTENSION_CONTEXT_NAME.twinnyGeneratingText,
+      EXTENSION_CONTEXT_NAME.fimGeneratingText,
       false
     )
     this._controller?.abort()
@@ -333,11 +333,11 @@ export class Chat extends Base {
       const result = await this._tokenJs.chat.completions.create(requestBody)
 
       this._webView?.postMessage({
-        type: EVENT_NAME.twinnyStopGeneration
+        type: EVENT_NAME.fimStopGeneration
       } as ServerMessage<ChatCompletionMessage>)
 
       this._webView?.postMessage({
-        type: EVENT_NAME.twinnyAddMessage,
+        type: EVENT_NAME.fimAddMessage,
         data: {
           content: result.choices[0].message.content,
           role: ASSISTANT
@@ -346,11 +346,11 @@ export class Chat extends Base {
     } catch (error) {
       this._controller?.abort()
       this._webView?.postMessage({
-        type: EVENT_NAME.twinnyStopGeneration
+        type: EVENT_NAME.fimStopGeneration
       } as ServerMessage<ChatCompletionMessage>)
 
       this._webView?.postMessage({
-        type: EVENT_NAME.twinnyAddMessage,
+        type: EVENT_NAME.fimAddMessage,
         data: {
           content: error instanceof Error ? error.message : String(error),
           role: ASSISTANT
@@ -416,7 +416,7 @@ export class Chat extends Base {
       )
 
       await this._webView?.postMessage({
-        type: EVENT_NAME.twinnyAddMessage,
+        type: EVENT_NAME.fimAddMessage,
         data: {
           content: this._completion.trim(),
           role: ASSISTANT
@@ -424,18 +424,18 @@ export class Chat extends Base {
       } as ServerMessage<ChatCompletionMessage>)
 
       this._webView?.postMessage({
-        type: EVENT_NAME.twinnyStopGeneration
+        type: EVENT_NAME.fimStopGeneration
       } as ServerMessage<ChatCompletionMessage>)
 
       this._completion = ""
     } catch (error) {
       this._controller?.abort()
       this._webView?.postMessage({
-        type: EVENT_NAME.twinnyStopGeneration
+        type: EVENT_NAME.fimStopGeneration
       } as ServerMessage<ChatCompletionMessage>)
 
       this._webView?.postMessage({
-        type: EVENT_NAME.twinnyAddMessage,
+        type: EVENT_NAME.fimAddMessage,
         data: {
           content: error instanceof Error ? error.message : String(error),
           role: ASSISTANT
@@ -446,14 +446,14 @@ export class Chat extends Base {
 
   private sendEditorLanguage = () => {
     this._webView?.postMessage({
-      type: EVENT_NAME.twinnySendLanguage,
+      type: EVENT_NAME.fimSendLanguage,
       data: getLanguage()
     } as ServerMessage)
   }
 
   private focusChatTab = () => {
     this._webView?.postMessage({
-      type: EVENT_NAME.twinnySetTab,
+      type: EVENT_NAME.fimSetTab,
       data: WEBUI_TABS.chat
     } as ServerMessage<string>)
   }
@@ -480,7 +480,7 @@ export class Chat extends Base {
 
   public async getRagContext(text?: string): Promise<string | null> {
     const symmetryConnected = this._sessionManager?.get(
-      EXTENSION_SESSION_NAME.twinnySymmetryConnection
+      EXTENSION_SESSION_NAME.fimSymmetryConnection
     )
 
     let combinedContext = ""
@@ -585,7 +585,7 @@ export class Chat extends Base {
     return context
   }
 
-  private instantiateTokenJS(provider: TwinnyProvider) {
+  private instantiateTokenJS(provider: FimProvider) {
     this._tokenJs = new TokenJS({
       baseURL: this.getProviderBaseUrl(provider),
       apiKey: provider.apiKey
@@ -666,7 +666,7 @@ export class Chat extends Base {
     })
   }
 
-  private shouldUseStreaming(provider: TwinnyProvider): boolean {
+  private shouldUseStreaming(provider: FimProvider): boolean {
     const supportsStreaming =
       models[provider?.provider as keyof typeof models]?.supportsStreaming
     return Array.isArray(supportsStreaming)
@@ -675,7 +675,7 @@ export class Chat extends Base {
   }
 
   private getStreamOptions(
-    provider: TwinnyProvider,
+    provider: FimProvider,
     conversationId?: string
   ): CompletionStreamingWithId {
     const request = {
@@ -687,7 +687,7 @@ export class Chat extends Base {
       provider: this.getProviderType(provider) as any
     }
 
-    if (provider.provider !== API_PROVIDERS.Twinny) {
+    if (provider.provider !== API_PROVIDERS.Fim) {
       delete request.id
     }
 
@@ -695,7 +695,7 @@ export class Chat extends Base {
   }
 
   private getNoStreamOptions(
-    provider: TwinnyProvider
+    provider: FimProvider
   ): CompletionNonStreamingWithId {
     return {
       messages: this._conversation.filter((m) => m.role !== "system"),
@@ -705,7 +705,7 @@ export class Chat extends Base {
     }
   }
 
-  private getProviderType(provider: TwinnyProvider) {
+  private getProviderType(provider: FimProvider) {
     return getIsOpenAICompatible(provider)
       ? API_PROVIDERS.OpenAICompatible
       : provider.provider
@@ -733,7 +733,7 @@ export class Chat extends Base {
     this.focusChatTab()
 
     this._webView?.postMessage({
-      type: EVENT_NAME.twinnyAddMessage,
+      type: EVENT_NAME.fimAddMessage,
       data: {
         role: USER,
         content:

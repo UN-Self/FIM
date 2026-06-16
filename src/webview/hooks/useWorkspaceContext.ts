@@ -11,7 +11,7 @@ export const useWorkspaceContext = () => {
 
   const handler = (event: MessageEvent) => {
     const message: ServerMessage<AnyContextItem[]> = event.data
-    if (message?.type === EVENT_NAME.twinnyUpdateContextItems) {
+    if (message?.type === EVENT_NAME.fimUpdateContextItems) {
       setContextItems(message.data || [])
     }
   }
@@ -19,7 +19,7 @@ export const useWorkspaceContext = () => {
   const removeContextItem = (id: string) => {
     setContextItems((prev) => prev.filter((item) => item.id !== id))
     global.vscode.postMessage({
-      type: EVENT_NAME.twinnyRemoveContextItem,
+      type: EVENT_NAME.fimRemoveContextItem,
       data: id
     })
   }
@@ -27,7 +27,7 @@ export const useWorkspaceContext = () => {
   useEffect(() => {
     window.addEventListener("message", handler)
     global.vscode.postMessage({
-      type: EVENT_NAME.twinnyGetContextItems
+      type: EVENT_NAME.fimGetContextItems
     })
     return () => window.removeEventListener("message", handler)
   }, [])

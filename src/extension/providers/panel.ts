@@ -25,8 +25,8 @@ export class FullScreenProvider extends BaseProvider {
       this._panel.reveal(columnToShowIn)
     } else {
       this._panel = vscode.window.createWebviewPanel(
-        "twinnyFullScreenPanel",
-        "twinny",
+        "fimFullScreenPanel",
+        "FIM",
         columnToShowIn || vscode.ViewColumn.One,
         {
           enableScripts: true,
@@ -71,7 +71,7 @@ export class FullScreenProvider extends BaseProvider {
     return `<!DOCTYPE html>
     <html lang="en">
       <head>
-          <title>twinny</title>
+          <title>FIM</title>
           <link href="${codiconCssWebviewUri}" rel="stylesheet">
           <link href="${css}" rel="stylesheet">
           <meta charset="UTF-8">
@@ -83,7 +83,7 @@ export class FullScreenProvider extends BaseProvider {
             script-src 'nonce-${nonce}';style-src vscode-resource: 'unsafe-inline' http: https: data:;"
           >
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>twinny</title>
+          <title>FIM</title>
           <style>
             body { padding: 10px }
           </style>

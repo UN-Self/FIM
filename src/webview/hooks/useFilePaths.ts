@@ -13,7 +13,7 @@ export const useFilePaths = () => {
     const message: ServerMessage<string[]> = event.data
     if (
       !filePaths.current?.length &&
-      message?.type === EVENT_NAME.twinnyFileListResponse
+      message?.type === EVENT_NAME.fimFileListResponse
     ) {
       filePaths.current = message.data
     }
@@ -21,7 +21,7 @@ export const useFilePaths = () => {
 
   useEffect(() => {
     global.vscode.postMessage({
-      type: EVENT_NAME.twinnyFileListRequest
+      type: EVENT_NAME.fimFileListRequest
     })
 
     window.addEventListener("message", handler)

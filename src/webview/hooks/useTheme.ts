@@ -10,13 +10,13 @@ export const useTheme = () => {
   const [theme, setTheme] = useState<ThemeType>("Dark")
   const handler = (event: MessageEvent) => {
     const message: ServerMessage<ThemeType> = event.data
-    if (message?.type === EVENT_NAME.twinnySendTheme) {
+    if (message?.type === EVENT_NAME.fimSendTheme) {
       setTheme(message?.data)
     }
   }
   useEffect(() => {
     global.vscode.postMessage({
-      type: EVENT_NAME.twinnySendTheme
+      type: EVENT_NAME.fimSendTheme
     })
     window.addEventListener("message", handler)
     return () => window.removeEventListener("message", handler)

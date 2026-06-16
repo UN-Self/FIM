@@ -46,7 +46,7 @@ export class SymmetryWs {
 
   private sendUpdateToWebview = () => {
     this._webView?.postMessage({
-      type: EVENT_NAME.twinnySymmetryModels,
+      type: EVENT_NAME.fimSymmetryModels,
       data: this._modelData,
     });
   };
@@ -61,7 +61,7 @@ export class SymmetryWs {
 
   public registerHandlers() {
     this._webView?.onDidReceiveMessage((message: ServerMessage<string>) => {
-      if (message.type === EVENT_NAME.twinnyGetSymmetryModels) {
+      if (message.type === EVENT_NAME.fimGetSymmetryModels) {
         this.sendUpdateToWebview();
       }
     });

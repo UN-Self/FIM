@@ -11,7 +11,7 @@ export const useLocale = () => {
   const [renderKey, setRenderKey] = useState<number>(0)
   useEffect(() => {
     const messageHandler = (event: MessageEvent) => {
-      if (event.data.type === EVENT_NAME.twinnySetLocale) {
+      if (event.data.type === EVENT_NAME.fimSetLocale) {
         i18next.changeLanguage(event.data.data)
         setLocale(event.data.data)
         setRenderKey((prev: number) => prev + 1)

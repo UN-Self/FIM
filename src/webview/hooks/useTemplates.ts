@@ -10,7 +10,7 @@ export const useTemplates = () => {
   const [templates, setTemplates] = useState<string[]>()
   const handler = (event: MessageEvent) => {
     const message: ServerMessage<string[]> = event.data
-    if (message?.type === EVENT_NAME.twinnyListTemplates) {
+    if (message?.type === EVENT_NAME.fimListTemplates) {
       setTemplates(message?.data)
     }
     return () => window.removeEventListener("message", handler)
@@ -18,7 +18,7 @@ export const useTemplates = () => {
 
   const saveTemplates = (templates: string[]) => {
     global.vscode.postMessage({
-      type: EVENT_NAME.twinnySetWorkspaceContext,
+      type: EVENT_NAME.fimSetWorkspaceContext,
       key: WORKSPACE_STORAGE_KEY.selectedTemplates,
       data: templates
     } as ClientMessage<string[]>)
@@ -26,13 +26,13 @@ export const useTemplates = () => {
 
   const editDefaultTemplates = () => {
     global.vscode.postMessage({
-      type: EVENT_NAME.twinnyEditDefaultTemplates
+      type: EVENT_NAME.fimEditDefaultTemplates
     })
   }
 
   useEffect(() => {
     global.vscode.postMessage({
-      type: EVENT_NAME.twinnyListTemplates
+      type: EVENT_NAME.fimListTemplates
     })
     window.addEventListener("message", handler)
     return () => window.removeEventListener("message", handler)

@@ -12,7 +12,7 @@ import { ClientMessage, Conversation, ServerMessage } from "../common/types"
 
 import { Base } from "./base"
 import { Chat } from "./chat"
-import { TwinnyProvider } from "./provider-manager"
+import { FimProvider } from "./provider-manager"
 
 type Conversations = Record<string, Conversation> | undefined
 
@@ -57,7 +57,7 @@ export class ConversationHistory extends Base {
   }
 
   public getProvider = () => {
-    return this.context?.globalState.get<TwinnyProvider>(
+    return this.context?.globalState.get<FimProvider>(
       ACTIVE_CHAT_PROVIDER_STORAGE_KEY
     )
   }

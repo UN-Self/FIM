@@ -9,7 +9,7 @@ import DOMPurify from "dompurify"
 import remarkGfm from "remark-gfm"
 import { Markdown as TiptapMarkdown } from "tiptap-markdown"
 
-import { ASSISTANT, EVENT_NAME, TWINNY, YOU } from "../common/constants"
+import { ASSISTANT, EVENT_NAME, FIM, YOU } from "../common/constants"
 import { ChatCompletionMessage, ImageAttachment, MentionType, ThemeType } from "../common/types"
 
 import { useSuggestion } from "./hooks/useSuggestion"
@@ -221,7 +221,7 @@ export const Message: React.FC<MessageProps> = ({
 
   const handleOpenFile = useCallback((filePath: string) => {
     global.vscode.postMessage({
-      type: EVENT_NAME.twinnyOpenFile,
+      type: EVENT_NAME.fimOpenFile,
       data: filePath
     })
   }, [])
@@ -443,7 +443,7 @@ export const Message: React.FC<MessageProps> = ({
         />
       )}
       <div className={styles.messageRole}>
-        <span>{message.role === ASSISTANT ? TWINNY : YOU}</span>
+        <span>{message.role === ASSISTANT ? FIM : YOU}</span>
         <div className={styles.messageOptions}>
           <VSCodeButton
             title={t("copy-code")}

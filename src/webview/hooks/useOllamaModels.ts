@@ -10,7 +10,7 @@ export const useOllamaModels = () => {
   const [models, setModels] = useState<ApiModel[] | undefined>([])
   const handler = (event: MessageEvent) => {
     const message: ServerMessage<ApiModel[]> = event.data
-    if (message?.type === EVENT_NAME.twinnyFetchOllamaModels) {
+    if (message?.type === EVENT_NAME.fimFetchOllamaModels) {
       setModels(message?.data)
     }
     return () => window.removeEventListener("message", handler)
@@ -18,7 +18,7 @@ export const useOllamaModels = () => {
 
   useEffect(() => {
     global.vscode.postMessage({
-      type: EVENT_NAME.twinnyFetchOllamaModels
+      type: EVENT_NAME.fimFetchOllamaModels
     })
     window.addEventListener("message", handler)
     return () => window.removeEventListener("message", handler)

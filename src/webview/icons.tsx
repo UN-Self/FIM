@@ -271,7 +271,7 @@ export const SvgSymmetry = () => {
   )
 }
 
-export const SvgTwinny = () => (
+export const SvgFim = () => (
   <svg
     width="157.3401mm"
     height="135.14787mm"

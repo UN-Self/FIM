@@ -24,19 +24,19 @@ export const useStorageContext = <T>(storageType: StorageType, key: string) => {
   const eventNames = useMemo((): StorageEventNames => {
     const eventMap = {
       [StorageType.Global]: {
-        listen: `${EVENT_NAME.twinnyGlobalContext}-${key}`,
-        fetch: EVENT_NAME.twinnyGlobalContext,
-        store: EVENT_NAME.twinnySetGlobalContext
+        listen: `${EVENT_NAME.fimGlobalContext}-${key}`,
+        fetch: EVENT_NAME.fimGlobalContext,
+        store: EVENT_NAME.fimSetGlobalContext
       },
       [StorageType.Session]: {
-        listen: `${EVENT_NAME.twinnySessionContext}-${key}`,
-        fetch: EVENT_NAME.twinnySessionContext,
-        store: EVENT_NAME.twinnySetSessionContext
+        listen: `${EVENT_NAME.fimSessionContext}-${key}`,
+        fetch: EVENT_NAME.fimSessionContext,
+        store: EVENT_NAME.fimSetSessionContext
       },
       [StorageType.Workspace]: {
-        listen: `${EVENT_NAME.twinnyGetWorkspaceContext}-${key}`,
-        fetch: EVENT_NAME.twinnyGetWorkspaceContext,
-        store: EVENT_NAME.twinnySetWorkspaceContext
+        listen: `${EVENT_NAME.fimGetWorkspaceContext}-${key}`,
+        fetch: EVENT_NAME.fimGetWorkspaceContext,
+        store: EVENT_NAME.fimSetWorkspaceContext
       }
     }
     return eventMap[storageType]

@@ -28,7 +28,7 @@ export const ConversationHistory = ({ onSelect }: ConversationHistoryProps) => {
     setActiveConversation(conversation)
     onSelect()
     global.vscode.postMessage({
-      type: EVENT_NAME.twinnyHideBackButton
+      type: EVENT_NAME.fimHideBackButton
     })
   }
 

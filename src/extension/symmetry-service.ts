@@ -35,7 +35,7 @@ import {
   SymmetryModelProvider
 } from "../common/types"
 
-import { TwinnyProvider } from "./provider-manager"
+import { FimProvider } from "./provider-manager"
 import { SessionManager } from "./session-manager"
 import { SymmetryWs } from "./symmetry-ws"
 import {
@@ -45,7 +45,7 @@ import {
 } from "./utils"
 
 export class SymmetryService extends EventEmitter {
-  private _config = workspace.getConfiguration("twinny")
+  private _config = workspace.getConfiguration("fim")
   private _completion = ""
   private _context: ExtensionContext
   private _client: SymmetryClient | undefined
@@ -69,12 +69,12 @@ export class SymmetryService extends EventEmitter {
     this._sessionManager = sessionManager
     this._context = context
     const autoConnectProvider = this._context.globalState.get(
-      `${EVENT_NAME.twinnyGlobalContext}-${GLOBAL_STORAGE_KEY.autoConnectSymmetryProvider}`
+      `${EVENT_NAME.fimGlobalContext}-${GLOBAL_STORAGE_KEY.autoConnectSymmetryProvider}`
     )
     if (autoConnectProvider) this.startSymmetryProvider()
 
     workspace.onDidChangeConfiguration((event) => {
-      if (!event.affectsConfiguration("twinny")) return
+      if (!event.affectsConfiguration("fim")) return
       this.updateConfig()
     })
 
@@ -86,10 +86,10 @@ export class SymmetryService extends EventEmitter {
   private setupEventListeners() {
     this._webView?.onDidReceiveMessage((message) => {
       const eventHandlers = {
-        [EVENT_NAME.twinnyConnectSymmetry]: this.connect,
-        [EVENT_NAME.twinnyDisconnectSymmetry]: this.disconnect,
-        [EVENT_NAME.twinnyStartSymmetryProvider]: this.startSymmetryProvider,
-        [EVENT_NAME.twinnyStopSymmetryProvider]: this.stopSymmetryProvider
+        [EVENT_NAME.fimConnectSymmetry]: this.connect,
+        [EVENT_NAME.fimDisconnectSymmetry]: this.disconnect,
+        [EVENT_NAME.fimStartSymmetryProvider]: this.startSymmetryProvider,
+        [EVENT_NAME.fimStopSymmetryProvider]: this.stopSymmetryProvider
       }
       eventHandlers[message.type as string]?.(message)
     })
@@ -144,13 +144,13 @@ export class SymmetryService extends EventEmitter {
 
   public disconnect = async () => {
     this._sessionManager?.set(
-      EXTENSION_SESSION_NAME.twinnySymmetryConnection,
+      EXTENSION_SESSION_NAME.fimSymmetryConnection,
       undefined
     )
     this._serverSwarm?.destroy()
     this._providerSwarm?.destroy()
     this._webView?.postMessage({
-      type: EVENT_NAME.twinnyDisconnectedFromSymmetry
+      type: EVENT_NAME.fimDisconnectedFromSymmetry
     } as ServerMessage)
   }
 
@@ -169,19 +169,19 @@ export class SymmetryService extends EventEmitter {
   private handleProviderConnection(peer: Peer, connection: SymmetryConnection) {
     this._providerPeer = peer
     this.setupProviderListeners(peer)
-    this.notifyWebView(EVENT_NAME.twinnyConnectedToSymmetry, {
+    this.notifyWebView(EVENT_NAME.fimConnectedToSymmetry, {
       modelName: connection.modelName,
       name: connection.name,
       provider: connection.provider
     })
-    this.notifyWebView(EVENT_NAME.twinnySetTab, WEBUI_TABS.chat)
+    this.notifyWebView(EVENT_NAME.fimSetTab, WEBUI_TABS.chat)
     this._sessionManager?.set(
-      EXTENSION_SESSION_NAME.twinnySymmetryConnection,
+      EXTENSION_SESSION_NAME.fimSymmetryConnection,
       connection
     )
     commands.executeCommand(
       "setContext",
-      EXTENSION_CONTEXT_NAME.twinnySymmetryTab,
+      EXTENSION_CONTEXT_NAME.fimSymmetryTab,
       false
     )
   }
@@ -205,13 +205,13 @@ export class SymmetryService extends EventEmitter {
   private handleInferenceEnd() {
     commands.executeCommand(
       "setContext",
-      EXTENSION_CONTEXT_NAME.twinnyGeneratingText,
+      EXTENSION_CONTEXT_NAME.fimGeneratingText,
       false
     )
     if (!this._completion) return
 
     this._webView?.postMessage({
-      type: EVENT_NAME.twinnyAddMessage,
+      type: EVENT_NAME.fimAddMessage,
       data: {
         role: ASSISTANT,
         content: this._completion.trimStart()
@@ -219,7 +219,7 @@ export class SymmetryService extends EventEmitter {
     } as ServerMessage<ChatCompletionMessage>)
 
     this._webView?.postMessage({
-      type: EVENT_NAME.twinnyStopGeneration
+      type: EVENT_NAME.fimStopGeneration
     } as ServerMessage<ChatCompletionMessage>)
     this._completion = ""
   }
@@ -229,7 +229,7 @@ export class SymmetryService extends EventEmitter {
     return path.join(homeDir, ".config", "symmetry", "provider.yaml")
   }
 
-  private createProviderConfig(provider: TwinnyProvider): ProviderConfig {
+  private createProviderConfig(provider: FimProvider): ProviderConfig {
     const configPath = this.getSymmetryConfigPath()
     const configDir = path.dirname(configPath)
 
@@ -273,7 +273,7 @@ export class SymmetryService extends EventEmitter {
   }
 
   private updateProviderConfig = async (
-    provider: TwinnyProvider
+    provider: FimProvider
   ): Promise<void> => {
     const configPath = this.getSymmetryConfigPath()
     const configDir = path.dirname(configPath)
@@ -302,7 +302,7 @@ export class SymmetryService extends EventEmitter {
         )
       } else {
         config = this.createProviderConfig(
-          this.getChatProvider() as TwinnyProvider
+          this.getChatProvider() as FimProvider
         )
         await fs.promises.writeFile(configPath, yaml.dump(config), "utf8")
       }
@@ -321,10 +321,10 @@ export class SymmetryService extends EventEmitter {
 
       this._client = new SymmetryClient(this.getSymmetryConfigPath())
 
-      const sessionKey = EXTENSION_SESSION_NAME.twinnySymmetryConnectionProvider
+      const sessionKey = EXTENSION_SESSION_NAME.fimSymmetryConnectionProvider
       this._sessionManager?.set(sessionKey, "connecting")
 
-      const sessionTypeName = `${EVENT_NAME.twinnySessionContext}-${sessionKey}`
+      const sessionTypeName = `${EVENT_NAME.fimSessionContext}-${sessionKey}`
       this._webView?.postMessage({
         type: sessionTypeName,
         data: "connecting"
@@ -340,7 +340,7 @@ export class SymmetryService extends EventEmitter {
     } catch (error) {
       console.error("Failed to start provider:", error)
       this._sessionManager?.set(
-        EXTENSION_SESSION_NAME.twinnySymmetryConnectionProvider,
+        EXTENSION_SESSION_NAME.fimSymmetryConnectionProvider,
         "error"
       )
     }
@@ -351,7 +351,7 @@ export class SymmetryService extends EventEmitter {
   }
 
   public getChatProvider() {
-    const provider = this._context?.globalState.get<TwinnyProvider>(
+    const provider = this._context?.globalState.get<FimProvider>(
       ACTIVE_CHAT_PROVIDER_STORAGE_KEY
     )
     return provider
@@ -360,7 +360,7 @@ export class SymmetryService extends EventEmitter {
   public stopSymmetryProvider = async () => {
     await this._client?.destroySwarms()
     updateSymmetryStatus(this._webView, "disconnected")
-    const sessionKey = EXTENSION_SESSION_NAME.twinnySymmetryConnectionProvider
+    const sessionKey = EXTENSION_SESSION_NAME.fimSymmetryConnectionProvider
     this._sessionManager?.set(sessionKey, "disconnected")
   }
 
@@ -369,6 +369,6 @@ export class SymmetryService extends EventEmitter {
   }
 
   private updateConfig() {
-    this._config = workspace.getConfiguration("twinny")
+    this._config = workspace.getConfiguration("fim")
   }
 }
