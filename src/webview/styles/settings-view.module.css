@@ -1,0 +1,245 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  padding: 16px 12px;
+}
+
+.sectionLabel {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--vscode-descriptionForeground);
+  margin: 8px 4px 10px;
+}
+
+.loading {
+  color: var(--vscode-descriptionForeground);
+  font-size: 12px;
+  padding: 12px 4px;
+}
+
+/* ── Master bar ── */
+.masterBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: var(--vscode-editor-background);
+  border: 1px solid var(--vscode-editorWidget-border);
+  border-left: 3px solid var(--vscode-terminal-ansiGreen, #4ec9b0);
+  border-radius: 6px;
+  margin-bottom: 16px;
+}
+
+.masterBarOff {
+  border-left-color: var(--vscode-descriptionForeground);
+}
+
+.masterLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.masterDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--vscode-terminal-ansiGreen, #4ec9b0);
+  box-shadow: 0 0 0 3px rgba(78, 201, 176, 0.18);
+  flex-shrink: 0;
+}
+
+.masterBarOff .masterDot {
+  background: var(--vscode-descriptionForeground);
+  box-shadow: none;
+}
+
+.masterName {
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.masterMeta {
+  font-size: 11px;
+  color: var(--vscode-descriptionForeground);
+  margin-top: 1px;
+}
+
+.masterMetaButton {
+  background: none;
+  border: none;
+  color: var(--vscode-textLink-foreground);
+  font-size: 11px;
+  padding: 1px 0;
+  cursor: pointer;
+  text-decoration: underline;
+  margin-top: 1px;
+}
+
+/* ── Accordion group ── */
+.group {
+  border: 1px solid var(--vscode-editorWidget-border);
+  border-radius: 6px;
+  margin-bottom: 8px;
+  overflow: hidden;
+  background: var(--vscode-editor-background);
+}
+
+.groupHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 14px;
+  height: 38px;
+  cursor: pointer;
+  user-select: none;
+  background: transparent;
+  border: none;
+  width: 100%;
+  text-align: left;
+  color: var(--vscode-foreground);
+  font-family: inherit;
+  font-size: 13px;
+}
+
+.groupHead:hover {
+  background: var(--vscode-list-hoverBackground);
+}
+
+.groupHead:focus-visible {
+  outline: 1px solid var(--vscode-focusBorder);
+  outline-offset: -1px;
+}
+
+.groupTitle {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.groupTitle i {
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.groupChevron {
+  font-size: 14px;
+  opacity: 0.55;
+  transition: transform 0.18s ease;
+}
+
+.groupOpen .groupChevron {
+  transform: rotate(90deg);
+}
+
+.groupBody {
+  border-top: 1px solid var(--vscode-editorWidget-border);
+}
+
+.groupInner {
+  padding: 6px 14px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* ── Setting row ── */
+.row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.rowText {
+  flex: 1;
+  min-width: 0;
+}
+
+.rowTitle {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.rowDesc {
+  font-size: 11px;
+  color: var(--vscode-descriptionForeground);
+  margin-top: 2px;
+  line-height: 1.45;
+}
+
+.rowControl {
+  display: flex;
+  align-items: center;
+  padding-top: 2px;
+  flex-shrink: 0;
+}
+
+/* ── Toggle ── */
+.toggle {
+  width: 38px;
+  height: 20px;
+  background: var(--vscode-input-background);
+  border: 1px solid var(--vscode-input-border, var(--vscode-checkbox-border));
+  border-radius: 10px;
+  position: relative;
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.toggle::after {
+  content: "";
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  background: var(--vscode-descriptionForeground);
+  border-radius: 50%;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), background 0.15s ease;
+}
+
+.toggleOn {
+  background: var(--vscode-checkbox-background);
+  border-color: transparent;
+}
+
+.toggleOn::after {
+  transform: translateX(18px);
+  background: #fff;
+}
+
+/* ── Number input ── */
+.numInput {
+  display: flex;
+  align-items: center;
+  background: var(--vscode-input-background);
+  border: 1px solid var(--vscode-input-border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.numInput vscode-text-field {
+  background: transparent;
+  border: none;
+  width: 60px;
+}
+
+.unit {
+  font-size: 11px;
+  color: var(--vscode-descriptionForeground);
+  padding-right: 8px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .groupChevron,
+  .toggle,
+  .toggle::after {
+    transition: none !important;
+  }
+}
