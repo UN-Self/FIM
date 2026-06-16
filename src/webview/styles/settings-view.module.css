@@ -67,6 +67,12 @@
   margin-top: 1px;
 }
 
+/* ── MasterBar provider dropdown ── */
+.masterSelect {
+  margin-top: 1px;
+  min-width: 160px;
+}
+
 .masterMetaButton {
   background: none;
   border: none;

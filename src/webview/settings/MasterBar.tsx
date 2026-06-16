@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next"
+import { VSCodeDropdown, VSCodeOption } from "@vscode/webview-ui-toolkit/react"
 
 import { EVENT_NAME } from "../../common/constants"
 import { useProviders } from "../hooks/useProviders"
@@ -17,15 +18,9 @@ interface MasterBarProps {
 
 export const MasterBar = ({ enabled, onToggleEnabled }: MasterBarProps) => {
   const { t } = useTranslation()
-  const { fimProvider } = useProviders()
+  const { fimProvider, setActiveFimProvider, getProvidersByType } = useProviders()
+  const fimProviders = Object.values(getProvidersByType("fim"))
   const modelName = fimProvider?.modelName
-  const providerLabel = fimProvider?.label
-
-  const meta = modelName
-    ? providerLabel
-      ? `${modelName} · ${providerLabel}`
-      : modelName
-    : t("settings.masterBar.noProvider")
 
   const goToProviders = () => {
     global.vscode.postMessage({
@@ -34,21 +29,40 @@ export const MasterBar = ({ enabled, onToggleEnabled }: MasterBarProps) => {
     })
   }
 
+  const handleProviderChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const id = e.target.value
+    if (id === "__manage") {
+      goToProviders()
+      return
+    }
+    const selected = fimProviders.find((p) => p.id === id)
+    if (selected) setActiveFimProvider(selected)
+  }
+
   return (
     <div className={`${styles.masterBar} ${enabled ? "" : styles.masterBarOff}`}>
       <div className={styles.masterLeft}>
         <span className={styles.masterDot} />
         <div>
           <div className={styles.masterName}>FIM</div>
-          {modelName ? (
-            <div className={styles.masterMeta}>{meta}</div>
-          ) : (
-            <button
-              type="button"
-              className={styles.masterMetaButton}
-              onClick={goToProviders}
+          {fimProviders.length > 0 ? (
+            <VSCodeDropdown
+              className={styles.masterSelect}
+              value={fimProvider?.id || ""}
+              onChange={handleProviderChange}
             >
-              {meta}
+              {fimProviders.map((p) => (
+                <VSCodeOption key={p.id} value={p.id}>
+                  {p.label} · {p.modelName}
+                </VSCodeOption>
+              ))}
+              <VSCodeOption value="__manage">
+                {t("settings.masterBar.manageProviders")}
+              </VSCodeOption>
+            </VSCodeDropdown>
+          ) : (
+            <button type="button" className={styles.masterMetaButton} onClick={goToProviders}>
+              {t("settings.masterBar.noProvider")}
             </button>
           )}
         </div>
