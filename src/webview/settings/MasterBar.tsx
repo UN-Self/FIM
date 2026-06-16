@@ -20,7 +20,6 @@ export const MasterBar = ({ enabled, onToggleEnabled }: MasterBarProps) => {
   const { t } = useTranslation()
   const { fimProvider, setActiveFimProvider, getProvidersByType } = useProviders()
   const fimProviders = Object.values(getProvidersByType("fim"))
-  const modelName = fimProvider?.modelName
 
   const goToProviders = () => {
     global.vscode.postMessage({
@@ -29,8 +28,8 @@ export const MasterBar = ({ enabled, onToggleEnabled }: MasterBarProps) => {
     })
   }
 
-  const handleProviderChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const id = e.target.value
+  const handleProviderChange = (e: unknown) => {
+    const id = (e as React.ChangeEvent<HTMLSelectElement>).target.value
     if (id === "__manage") {
       goToProviders()
       return
