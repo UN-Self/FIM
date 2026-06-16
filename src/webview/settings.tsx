@@ -13,6 +13,7 @@ import {
 import { useTemplates } from "./hooks/useTemplates"
 import { AccordionSection } from "./settings/AccordionSection"
 import { SettingsView } from "./settings/SettingsView"
+import { EmbeddingOptions } from "./embedding-options"
 import { kebabToSentence } from "./utils"
 
 import styles from "./styles/settings.module.css"
@@ -67,6 +68,15 @@ export const Settings = () => {
   return (
     <div className={styles.settingsContainer}>
       <SettingsView />
+      <AccordionSection
+        icon="beaker"
+        titleKey="settings.group.advanced"
+        defaultOpen={false}
+      >
+        <div className={styles.groupInner}>
+          <EmbeddingOptions />
+        </div>
+      </AccordionSection>
       <AccordionSection
         icon="note"
         titleKey="settings.group.templates"
