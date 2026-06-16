@@ -5,6 +5,7 @@ import {
   FIM_COMMAND_NAME
 } from "../../common/constants"
 import { logger } from "../../common/logger"
+import { getConfigKey, SETTING_DEFS } from "../../common/settings-schema"
 import {
   ApiModel,
   ClientMessage,
@@ -80,6 +81,7 @@ export class BaseProvider {
       [EVENT_NAME.fimEmbedDocuments]: this.embedDocuments,
       [EVENT_NAME.fimFetchOllamaModels]: this.fetchOllamaModels,
       [EVENT_NAME.fimGetConfigValue]: this.getConfigurationValue,
+      [EVENT_NAME.fimGetAllConfigValues]: this.getAllConfigValues,
       [EVENT_NAME.fimGetWorkspaceContext]: this.getFimWorkspaceContext,
       [EVENT_NAME.fimGlobalContext]: this.getGlobalContext,
       [EVENT_NAME.fimHideBackButton]: this.fimHideBackButton,
@@ -162,6 +164,21 @@ export class BaseProvider {
     for (const dir of dirs) {
       await this._embeddingDatabase.injestDocuments(dir.uri.fsPath)
     }
+  }
+
+  private getAllConfigValues = () => {
+    const config = vscode.workspace.getConfiguration("fim")
+    const data: Record<string, unknown> = {}
+    for (const def of SETTING_DEFS) {
+      const bareKey = getConfigKey(def)
+      data[bareKey] = config.get(bareKey)
+    }
+    // master bar reads "enabled" separately (not in SETTING_DEFS)
+    data.enabled = config.get("enabled")
+    this.webView?.postMessage({
+      type: EVENT_NAME.fimGetAllConfigValues,
+      data
+    } as ServerMessage)
   }
 
   private getConfigurationValue = (message: ClientMessage) => {

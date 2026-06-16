@@ -16,6 +16,7 @@ export const EVENT_NAME = {
   fimFileListRequest: "fim-file-list-request",
   fimFileListResponse: "fim-file-list-response",
   fimGetConfigValue: "fim-get-config-value",
+  fimGetAllConfigValues: "fim-get-all-config-values",
   fimGetGitChanges: "fim-get-git-changes",
   fimGetWorkspaceContext: "fim-workspace-context",
   fimGithhubReview: "fim-githhub-review",
