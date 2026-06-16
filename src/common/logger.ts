@@ -12,7 +12,7 @@ export class Logger {
   }
 
   private constructor() {
-    this.outputChannel = vscode.window.createOutputChannel("Twinny")
+    this.outputChannel = vscode.window.createOutputChannel("Fim")
   }
 
   public static getInstance(): Logger {
@@ -23,13 +23,13 @@ export class Logger {
   }
 
   public log = (message: string) => {
-    console.log(`[twinny] ${message}`)
+    console.log(`[fim] ${message}`)
     this.outputChannel.appendLine(`[INFO] ${message}`)
   }
 
   public error = (error: Error | string) => {
     const errorMessage = error instanceof Error ? error.message : error
-    console.error(`[twinny:ERROR] ${errorMessage}`)
+    console.error(`[fim:ERROR] ${errorMessage}`)
     this.outputChannel.appendLine(`[ERROR] ${errorMessage}`)
   }
 
@@ -56,7 +56,7 @@ export class Logger {
   ) {
     const errorName = error instanceof Error ? error.name : "Unknown Error"
     const errorMessage = error instanceof Error ? error.message : error
-    const coloredMessage = `\x1b[${colorCode}m [ERROR_twinny] \x1b[32m Message: ${message} \n \x1b[${colorCode}m Error Type: ${errorName} \n  Error Message: ${errorMessage} \n \x1b[31m`
+    const coloredMessage = `\x1b[${colorCode}m [ERROR_fim] \x1b[32m Message: ${message} \n \x1b[${colorCode}m Error Type: ${errorName} \n  Error Message: ${errorMessage} \n \x1b[31m`
     return coloredMessage
   }
 }
