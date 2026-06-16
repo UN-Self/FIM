@@ -98,8 +98,7 @@ export class BaseProvider {
       [EVENT_NAME.fimEditDefaultTemplates]: this.editDefaultTemplates,
       [EVENT_NAME.fimGetLocale]: this.sendLocaleToWebView,
       [EVENT_NAME.fimStopGeneration]: this.destroyStream,
-      [EVENT_NAME.fimSidebarReady]: this._sidebarReadyHandler,
-      [FIM_COMMAND_NAME.settings]: this.openSettings
+      [EVENT_NAME.fimSidebarReady]: this._sidebarReadyHandler
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -141,10 +140,6 @@ export class BaseProvider {
     this.webView?.postMessage({
       type: EVENT_NAME.fimStopGeneration
     })
-  }
-
-  private openSettings = () => {
-    vscode.commands.executeCommand(FIM_COMMAND_NAME.settings)
   }
 
   private setTab = (tab: ClientMessage) => {

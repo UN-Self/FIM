@@ -71,17 +71,6 @@
           "command": "fim.manageTemplates",
           "group": "navigation@2",
           "when": "view == fim.sidebar"
-        },
-        {
-          "command": "fim.embeddings",
-          "when": "view == fim.sidebar",
-          "group": "navigation@3",
-          "icon": "$(database)"
-        },
-        {
-          "command": "fim.settings",
-          "when": "view == fim.sidebar",
-          "group": "navigation@4"
         }
       ]
     },

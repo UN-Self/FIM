@@ -115,10 +115,7 @@ export async function activate(context: ExtensionContext) {
       )
     }),
     commands.registerCommand(FIM_COMMAND_NAME.settings, () => {
-      vscode.commands.executeCommand(
-        "workbench.action.openSettings",
-        EXTENSION_NAME
-      )
+      vscode.commands.executeCommand("workbench.view.extension.fim-sidebar-view")
     }),
     workspace.onDidCloseTextDocument((document) => {
       const filePath = document.uri.fsPath
