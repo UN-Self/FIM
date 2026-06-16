@@ -17,7 +17,7 @@ const tabs: Record<string, JSX.Element> = {
 }
 
 export const Main = () => {
-  const [tab, setTab] = useState<string | undefined>(WEBUI_TABS.providers)
+  const [tab, setTab] = useState<string | undefined>(WEBUI_TABS.settings)
   const { locale, renderKey } = useLocale()
 
   const handler = (event: MessageEvent) => {
