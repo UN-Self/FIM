@@ -295,7 +295,7 @@
           "order": 15,
           "type": "string",
           "default": "0.0.0.0",
-          "markdownDescription": "Specifies the hostname for the Ollama API. Use `0.0.0.0` for localhost or provide a specific IP address or domain name.",
+          "markdownDescription": "[deprecated] Use the provider system instead. Legacy Ollama hostname. Specifies the hostname for the Ollama API. Use `0.0.0.0` for localhost or provide a specific IP address or domain name.",
           "required": true
         },
         "fim.ollamaApiPort": {
@@ -305,7 +305,7 @@
             "null"
           ],
           "default": 11434,
-          "markdownDescription": "Sets the port number for the Ollama API. The default is `11434`, but you can change it if your Ollama instance uses a different port.",
+          "markdownDescription": "[deprecated] Use the provider system instead. Legacy Ollama API port. Sets the port number for the Ollama API. The default is `11434`, but you can change it if your Ollama instance uses a different port.",
           "required": false
         },
         "fim.keepAlive": {
@@ -318,7 +318,7 @@
           "order": 18,
           "type": "boolean",
           "default": false,
-          "markdownDescription": "When `true`, FIM will use TLS encryption for connections to the Ollama API. Ensure your Ollama instance is configured for TLS before enabling this option."
+          "markdownDescription": "[deprecated] Use the provider system instead. Legacy Ollama TLS flag. When `true`, FIM will use TLS encryption for connections to the Ollama API. Ensure your Ollama instance is configured for TLS before enabling this option."
         },
         "fim.enableLogging": {
           "order": 19,
