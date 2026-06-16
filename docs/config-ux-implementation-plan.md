@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** 把 twinny 的全部可见 VS Code 设置搬进 webview 的 Settings tab，用 codicon 手风琴分组组织，顶部加一个状态指挥栏，消除配置入口割裂。
+**Goal:** 把 FIM 的全部可见 VS Code 设置搬进 webview 的 Settings tab，用 codicon 手风琴分组组织，顶部加一个状态指挥栏，消除配置入口割裂。
 
-**Architecture:** 共享 schema（`src/common/`，纯数据无依赖）作为唯一真相源，extension 端和 webview 端都引用。webview 用 `useTwinnyConfig` hook 一次批量读取全部配置、单项写入。设置项用 schema 驱动渲染：boolean→Toggle、number→输入框、select→下拉。
+**Architecture:** 共享 schema（`src/common/`，纯数据无依赖）作为唯一真相源，extension 端和 webview 端都引用。webview 用 `useFimConfig` hook 一次批量读取全部配置、单项写入。设置项用 schema 驱动渲染：boolean→Toggle、number→输入框、select→下拉。
 
 **Tech Stack:** React 18 + `@vscode/webview-ui-toolkit/react` + codicon 图标 + CSS Modules + i18next + Mocha(TDD) 测试。
 
@@ -35,7 +35,7 @@
 
 **新建：**
 - `src/common/settings-schema.ts` — 设置 schema 定义 + `coerceValue`/`getConfigKey`/`getSettingsByGroup` 纯函数（唯一真相源，无 VS Code 依赖）
-- `src/webview/hooks/useTwinnyConfig.ts` — 批量读取 + 单项写入 hook
+- `src/webview/hooks/useFimConfig.ts` — 批量读取 + 单项写入 hook
 - `src/webview/settings/Toggle.tsx` — 滑动开关组件
 - `src/webview/settings/AccordionSection.tsx` — 手风琴折叠分组容器
 - `src/webview/settings/SettingRow.tsx` — 单设置行（标题 + 说明 + 控件）
@@ -45,7 +45,7 @@
 - `src/test/suite/settings-schema.test.ts` — schema + coerceValue 单元测试
 
 **修改：**
-- `src/common/constants/events.ts` — 新增 `twinnyGetAllConfigValues` 事件
+- `src/common/constants/events.ts` — 新增 `fimGetAllConfigValues` 事件
 - `src/extension/providers/base.ts` — 新增批量读取 handler
 - `src/webview/settings.tsx` — 改为渲染 `SettingsView`，保留模板管理逻辑
 - `src/webview/assets/locales/en.json` — 新增 i18n key
@@ -105,9 +105,9 @@ suite("Settings schema", () => {
     }
   })
 
-  test("getConfigKey strips twinny prefix", () => {
-    assert.strictEqual(getConfigKey({ key: "twinny.debounceWait" } as any), "debounceWait")
-    assert.strictEqual(getConfigKey({ key: "twinny.locale" } as any), "locale")
+  test("getConfigKey strips fim prefix", () => {
+    assert.strictEqual(getConfigKey({ key: "fim.debounceWait" } as any), "debounceWait")
+    assert.strictEqual(getConfigKey({ key: "fim.locale" } as any), "locale")
   })
 
   test("coerceValue boolean coerces truthy/falsy", () => {
@@ -169,7 +169,7 @@ export interface SelectOption {
 }
 
 export interface SettingDef {
-  /** Full setting id, e.g. "twinny.debounceWait" */
+  /** Full setting id, e.g. "fim.debounceWait" */
   key: string
   group: SettingGroupId
   type: SettingType
@@ -204,14 +204,14 @@ export const SETTING_GROUPS: SettingGroupDef[] = [
 export const SETTING_DEFS: SettingDef[] = [
   // ── completion ──
   {
-    key: "twinny.autoSuggestEnabled",
+    key: "fim.autoSuggestEnabled",
     group: "completion",
     type: "boolean",
     titleKey: "settings.autoSuggest.title",
     descKey: "settings.autoSuggest.desc"
   },
   {
-    key: "twinny.debounceWait",
+    key: "fim.debounceWait",
     group: "completion",
     type: "number",
     unit: "ms",
@@ -222,21 +222,21 @@ export const SETTING_DEFS: SettingDef[] = [
     descKey: "settings.debounce.desc"
   },
   {
-    key: "twinny.enableSubsequentCompletions",
+    key: "fim.enableSubsequentCompletions",
     group: "completion",
     type: "boolean",
     titleKey: "settings.subsequent.title",
     descKey: "settings.subsequent.desc"
   },
   {
-    key: "twinny.multilineCompletionsEnabled",
+    key: "fim.multilineCompletionsEnabled",
     group: "completion",
     type: "boolean",
     titleKey: "settings.multiline.title",
     descKey: "settings.multiline.desc"
   },
   {
-    key: "twinny.completionCacheEnabled",
+    key: "fim.completionCacheEnabled",
     group: "completion",
     type: "boolean",
     titleKey: "settings.cache.title",
@@ -244,7 +244,7 @@ export const SETTING_DEFS: SettingDef[] = [
   },
   // ── model ──
   {
-    key: "twinny.temperature",
+    key: "fim.temperature",
     group: "model",
     type: "number",
     min: 0,
@@ -254,7 +254,7 @@ export const SETTING_DEFS: SettingDef[] = [
     descKey: "settings.temperature.desc"
   },
   {
-    key: "twinny.numPredictFim",
+    key: "fim.numPredictFim",
     group: "model",
     type: "number",
     min: 1,
@@ -264,7 +264,7 @@ export const SETTING_DEFS: SettingDef[] = [
     descKey: "settings.numPredict.desc"
   },
   {
-    key: "twinny.maxLines",
+    key: "fim.maxLines",
     group: "model",
     type: "number",
     min: 1,
@@ -274,7 +274,7 @@ export const SETTING_DEFS: SettingDef[] = [
     descKey: "settings.maxLines.desc"
   },
   {
-    key: "twinny.contextLength",
+    key: "fim.contextLength",
     group: "model",
     type: "number",
     unit: "行",
@@ -285,7 +285,7 @@ export const SETTING_DEFS: SettingDef[] = [
     descKey: "settings.contextLength.desc"
   },
   {
-    key: "twinny.keepAlive",
+    key: "fim.keepAlive",
     group: "model",
     type: "select",
     options: [
@@ -298,7 +298,7 @@ export const SETTING_DEFS: SettingDef[] = [
   },
   // ── context ──
   {
-    key: "twinny.fileContextEnabled",
+    key: "fim.fileContextEnabled",
     group: "context",
     type: "boolean",
     titleKey: "settings.fileContext.title",
@@ -306,7 +306,7 @@ export const SETTING_DEFS: SettingDef[] = [
   },
   // ── general ──
   {
-    key: "twinny.locale",
+    key: "fim.locale",
     group: "general",
     type: "select",
     // MUST match the 13 locales loaded in src/webview/i18n.ts resources
@@ -329,14 +329,14 @@ export const SETTING_DEFS: SettingDef[] = [
     descKey: "settings.locale.desc"
   },
   {
-    key: "twinny.enableLogging",
+    key: "fim.enableLogging",
     group: "general",
     type: "boolean",
     titleKey: "settings.logging.title",
     descKey: "settings.logging.desc"
   },
   {
-    key: "twinny.providerStorageLocation",
+    key: "fim.providerStorageLocation",
     group: "general",
     type: "select",
     options: [
@@ -348,9 +348,9 @@ export const SETTING_DEFS: SettingDef[] = [
   }
 ]
 
-/** Strip the "twinny." prefix to get the bare config key used by the VS Code config protocol. */
+/** Strip the "fim." prefix to get the bare config key used by the VS Code config protocol. */
 export const getConfigKey = (def: Pick<SettingDef, "key">): string =>
-  def.key.replace(/^twinny\./, "")
+  def.key.replace(/^fim\./, "")
 
 export const getSettingsByGroup = (groupId: SettingGroupId): SettingDef[] =>
   SETTING_DEFS.filter((def) => def.group === groupId)
@@ -399,11 +399,11 @@ git commit -m "feat: add settings schema + coerceValue helpers with tests"
 
 - [ ] **Step 1: 新增事件常量**
 
-在 `src/common/constants/events.ts` 的 `EVENT_NAME` 对象里，`twinnyGetConfigValue` 那行之后加一行：
+在 `src/common/constants/events.ts` 的 `EVENT_NAME` 对象里，`fimGetConfigValue` 那行之后加一行：
 
 ```typescript
-  twinnyGetConfigValue: "twinny-get-config-value",
-  twinnyGetAllConfigValues: "twinny-get-all-config-values",
+  fimGetConfigValue: "fim-get-config-value",
+  fimGetAllConfigValues: "fim-get-all-config-values",
 ```
 
 - [ ] **Step 2: 在 base.ts 加 handler 方法**
@@ -418,7 +418,7 @@ import { SETTING_DEFS, getConfigKey } from "../../common/settings-schema"
 
 ```typescript
   private getAllConfigValues = () => {
-    const config = vscode.workspace.getConfiguration("twinny")
+    const config = vscode.workspace.getConfiguration("fim")
     const data: Record<string, unknown> = {}
     for (const def of SETTING_DEFS) {
       const bareKey = getConfigKey(def)
@@ -427,7 +427,7 @@ import { SETTING_DEFS, getConfigKey } from "../../common/settings-schema"
     // master bar reads "enabled" separately (not in SETTING_DEFS)
     data.enabled = config.get("enabled")
     this.webView?.postMessage({
-      type: EVENT_NAME.twinnyGetAllConfigValues,
+      type: EVENT_NAME.fimGetAllConfigValues,
       data
     } as ServerMessage)
   }
@@ -435,11 +435,11 @@ import { SETTING_DEFS, getConfigKey } from "../../common/settings-schema"
 
 - [ ] **Step 3: 注册 handler 到事件表**
 
-在同一个文件的 `registerEventListeners()` 方法的 `eventHandlers` 对象里加一行（紧跟 `twinnyGetConfigValue`）：
+在同一个文件的 `registerEventListeners()` 方法的 `eventHandlers` 对象里加一行（紧跟 `fimGetConfigValue`）：
 
 ```typescript
-      [EVENT_NAME.twinnyGetConfigValue]: this.getConfigurationValue,
-      [EVENT_NAME.twinnyGetAllConfigValues]: this.getAllConfigValues,
+      [EVENT_NAME.fimGetConfigValue]: this.getConfigurationValue,
+      [EVENT_NAME.fimGetAllConfigValues]: this.getAllConfigValues,
 ```
 
 - [ ] **Step 4: 编译验证**
@@ -451,19 +451,19 @@ Expected: 编译成功，无 TS 错误。
 
 ```bash
 git add src/common/constants/events.ts src/extension/providers/base.ts
-git commit -m "feat: add twinnyGetAllConfigValues batch read event + handler"
+git commit -m "feat: add fimGetAllConfigValues batch read event + handler"
 ```
 
 ---
 
-## Task 3: useTwinnyConfig hook
+## Task 3: useFimConfig hook
 
 **Files:**
-- Create: `src/webview/hooks/useTwinnyConfig.ts`
+- Create: `src/webview/hooks/useFimConfig.ts`
 
 - [ ] **Step 1: 创建 hook**
 
-创建 `src/webview/hooks/useTwinnyConfig.ts`：
+创建 `src/webview/hooks/useFimConfig.ts`：
 
 ```typescript
 import { useCallback, useEffect, useState } from "react"
@@ -474,37 +474,37 @@ import { ServerMessage } from "../../common/types"
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const global = globalThis as any
 
-export interface TwinnyConfig {
+export interface FIMConfig {
   [bareKey: string]: unknown
 }
 
 /**
- * Reads all twinny.* config values in one batch on mount, and provides an
+ * Reads all fim.* config values in one batch on mount, and provides an
  * `update(bareKey, value)` that optimistically updates local state and posts
- * a twinnySetConfigValue message. Keys are BARE (e.g. "debounceWait", not
- * "twinny.debounceWait") to match the VS Code config protocol.
+ * a fimSetConfigValue message. Keys are BARE (e.g. "debounceWait", not
+ * "fim.debounceWait") to match the VS Code config protocol.
  */
-export const useTwinnyConfig = () => {
-  const [config, setConfig] = useState<TwinnyConfig>({})
+export const useFimConfig = () => {
+  const [config, setConfig] = useState<FIMConfig>({})
   const [loaded, setLoaded] = useState(false)
 
   useEffect(() => {
     const handler = (event: MessageEvent) => {
-      const message: ServerMessage<TwinnyConfig> = event.data
-      if (message?.type === EVENT_NAME.twinnyGetAllConfigValues) {
+      const message: ServerMessage<FIMConfig> = event.data
+      if (message?.type === EVENT_NAME.fimGetAllConfigValues) {
         setConfig(message.data || {})
         setLoaded(true)
       }
     }
     window.addEventListener("message", handler)
-    global.vscode.postMessage({ type: EVENT_NAME.twinnyGetAllConfigValues })
+    global.vscode.postMessage({ type: EVENT_NAME.fimGetAllConfigValues })
     return () => window.removeEventListener("message", handler)
   }, [])
 
   const update = useCallback((bareKey: string, value: unknown) => {
     setConfig((prev) => ({ ...prev, [bareKey]: value }))
     global.vscode.postMessage({
-      type: EVENT_NAME.twinnySetConfigValue,
+      type: EVENT_NAME.fimSetConfigValue,
       key: bareKey,
       data: value
     })
@@ -522,8 +522,8 @@ Expected: 编译成功。
 - [ ] **Step 3: Commit**
 
 ```bash
-git add src/webview/hooks/useTwinnyConfig.ts
-git commit -m "feat: add useTwinnyConfig hook for batch config read + write"
+git add src/webview/hooks/useFimConfig.ts
+git commit -m "feat: add useFimConfig hook for batch config read + write"
 ```
 
 ---
@@ -743,7 +743,7 @@ export const MasterBar = ({ enabled, onToggleEnabled }: MasterBarProps) => {
 
   const goToProviders = () => {
     global.vscode.postMessage({
-      type: EVENT_NAME.twinnySetTab,
+      type: EVENT_NAME.fimSetTab,
       data: "providers"
     })
   }
@@ -755,7 +755,7 @@ export const MasterBar = ({ enabled, onToggleEnabled }: MasterBarProps) => {
       <div className={styles.masterLeft}>
         <span className={styles.masterDot} />
         <div>
-          <div className={styles.masterName}>Twinny</div>
+          <div className={styles.masterName}>FIM</div>
           {modelName ? (
             <div className={styles.masterMeta}>{meta}</div>
           ) : (
@@ -801,7 +801,7 @@ git commit -m "feat: add MasterBar command bar with provider status"
 import { useTranslation } from "react-i18next"
 
 import { SETTING_GROUPS, getSettingsByGroup } from "../../common/settings-schema"
-import { useTwinnyConfig } from "../hooks/useTwinnyConfig"
+import { useFimConfig } from "../hooks/useFimConfig"
 import styles from "../styles/settings-view.module.css"
 
 import { AccordionSection } from "./AccordionSection"
@@ -810,7 +810,7 @@ import { SettingRow } from "./SettingRow"
 
 export const SettingsView = () => {
   const { t } = useTranslation()
-  const { config, loaded, update } = useTwinnyConfig()
+  const { config, loaded, update } = useFimConfig()
 
   const enabled = Boolean(config.enabled)
 
@@ -833,7 +833,7 @@ export const SettingsView = () => {
               <SettingRow
                 key={def.key}
                 def={def}
-                value={config[def.key.replace(/^twinny\./, "")]}
+                value={config[def.key.replace(/^fim\./, "")]}
                 onUpdate={update}
               />
             ))}
@@ -1305,7 +1305,7 @@ git commit -m "feat: add settings accordion + master bar styles"
   "settings.locale.zhCN": "中文 (简体)",
   "settings.locale.zhHK": "中文 (繁體)",
   "settings.logging.title": "Enable logging",
-  "settings.logging.desc": "Write completion requests, latency, and cache hits to the Twinny output channel",
+  "settings.logging.desc": "Write completion requests, latency, and cache hits to the FIM output channel",
   "settings.storage.title": "Provider storage location",
   "settings.storage.desc": "globalState uses VS Code built-in; file uses a local JSON file",
   "settings.storage.globalState": "VS Code globalState",
@@ -1336,17 +1336,17 @@ git commit -m "feat: add settings i18n keys (en) + verify fallback"
 
 - [ ] **Step 1: 给 3 个 Ollama 设置加 deprecated 提示**
 
-在 `package.json` 的 `contributes.configuration.properties` 里，找到 `twinny.ollamaHostname`、`twinny.ollamaApiPort`、`twinny.ollamaUseTls` 三项，把各自 `description` 字段前面加上 `[deprecated] ` 前缀。
+在 `package.json` 的 `contributes.configuration.properties` 里，找到 `fim.ollamaHostname`、`fim.ollamaApiPort`、`fim.ollamaUseTls` 三项，把各自 `description` 字段前面加上 `[deprecated] ` 前缀。
 
-例如 `twinny.ollamaHostname` 的 description 改为：
+例如 `fim.ollamaHostname` 的 description 改为：
 ```
 "[deprecated] Use the provider system instead. Legacy Ollama hostname."
 ```
-`twinny.ollamaApiPort`：
+`fim.ollamaApiPort`：
 ```
 "[deprecated] Use the provider system instead. Legacy Ollama API port."
 ```
-`twinny.ollamaUseTls`：
+`fim.ollamaUseTls`：
 ```
 "[deprecated] Use the provider system instead. Legacy Ollama TLS flag."
 ```
@@ -1388,14 +1388,14 @@ Expected: `Settings schema` suite 全部 PASS。
 
 - [ ] **Step 4: 手动验证（在 VS Code Extension Development Host 里）**
 
-按 `F5` 启动 Extension Development Host，打开 Twinny 侧边栏 → Settings tab，逐项验证：
+按 `F5` 启动 Extension Development Host，打开 FIM 侧边栏 → Settings tab，逐项验证：
 
-1. 顶部指挥栏显示 "Twinny" + 当前 FIM provider 的 model name + provider label + 绿色状态点
-2. 点击指挥栏 toggle，状态点变灰，`workspace.getConfiguration("twinny").enabled` 变为 false
+1. 顶部指挥栏显示 "FIM" + 当前 FIM provider 的 model name + provider label + 绿色状态点
+2. 点击指挥栏 toggle，状态点变灰，`workspace.getConfiguration("fim").enabled` 变为 false
 3. 未配置 FIM provider 时，meta 行显示可点击的 "No FIM provider configured"，点击跳到 Provider tab
 4. "补全行为" 分组默认展开，其余默认折叠
 5. 展开各分组，控件显示当前配置值（与 VS Code Settings 里的值一致）
-6. 修改任一 toggle / 数字 / 下拉 → 检查 `workspace.getConfiguration("twinny")` 实际更新（在 VS Code Settings UI 搜 twinny 对照）
+6. 修改任一 toggle / 数字 / 下拉 → 检查 `workspace.getConfiguration("fim")` 实际更新（在 VS Code Settings UI 搜 fim 对照）
 7. 数字输入超范围时被 clamp（如温度输 99 变 2，输 -1 变 0）
 8. 修改设置后 Reload Window（Ctrl+Shift+P → Reload Window），值持久化
 9. 切换 locale（通用分组下拉），分组标题/设置标题正确切换语言（英文兜底的 key 显示英文）

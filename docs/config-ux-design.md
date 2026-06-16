@@ -2,7 +2,7 @@
 
 ## 1. 背景与目标
 
-当前 twinny 的配置体验有两个痛点：
+当前 FIM 的配置体验有两个痛点：
 
 1. **配置入口割裂** — 20 个设置分散在 VS Code Settings（`Ctrl+,`）里，用户需要离开侧边栏去配置补全行为；而侧边栏的 Settings tab 只管模板。
 2. **配置碎片化** — Provider、模板、设置分散在不同地方，配置步骤多。
@@ -31,58 +31,58 @@
 
 | 设置键 | 类型 | 默认值 | 说明 |
 |---|---|---|---|
-| `twinny.enabled` | boolean | true | 总开关（顶部独立展示，见 §4） |
-| `twinny.autoSuggestEnabled` | boolean | true | 输入时自动触发，否则需手动 |
-| `twinny.debounceWait` | number | 300 | 触发延迟（ms） |
-| `twinny.enableSubsequentCompletions` | boolean | true | 接受后是否继续补全 |
-| `twinny.multilineCompletionsEnabled` | boolean | true | 是否允许多行补全 |
-| `twinny.completionCacheEnabled` | boolean | false | 缓存相同上下文的结果 |
+| `fim.enabled` | boolean | true | 总开关（顶部独立展示，见 §4） |
+| `fim.autoSuggestEnabled` | boolean | true | 输入时自动触发，否则需手动 |
+| `fim.debounceWait` | number | 300 | 触发延迟（ms） |
+| `fim.enableSubsequentCompletions` | boolean | true | 接受后是否继续补全 |
+| `fim.multilineCompletionsEnabled` | boolean | true | 是否允许多行补全 |
+| `fim.completionCacheEnabled` | boolean | false | 缓存相同上下文的结果 |
 
 ### 3.2 模型参数（codicon `target`）
 控制模型输出质量和长度。
 
 | 设置键 | 类型 | 默认值 | 说明 |
 |---|---|---|---|
-| `twinny.temperature` | number | 0.2 | 采样温度 |
-| `twinny.numPredictFim` | number | 512 | 最大输出 token 数 |
-| `twinny.maxLines` | number | 40 | 最大输出行数 |
-| `twinny.contextLength` | number | 100 | 上下文行数 |
-| `twinny.keepAlive` | string | "5m" | 模型保活时间 |
+| `fim.temperature` | number | 0.2 | 采样温度 |
+| `fim.numPredictFim` | number | 512 | 最大输出 token 数 |
+| `fim.maxLines` | number | 40 | 最大输出行数 |
+| `fim.contextLength` | number | 100 | 上下文行数 |
+| `fim.keepAlive` | string | "5m" | 模型保活时间 |
 
 ### 3.3 语言与上下文（codicon `file-code`）
 控制哪些文件参与补全。
 
 | 设置键 | 类型 | 默认值 | 说明 |
 |---|---|---|---|
-| `twinny.enabledLanguages` | object | `{"*": true}` | 启用的语言（key 为 languageId 或 `*`） |
-| `twinny.fileContextEnabled` | boolean | false | 是否使用相关文件作为上下文 |
+| `fim.enabledLanguages` | object | `{"*": true}` | 启用的语言（key 为 languageId 或 `*`） |
+| `fim.fileContextEnabled` | boolean | false | 是否使用相关文件作为上下文 |
 
 ### 3.4 通用（codicon `settings-gear`）
 
 | 设置键 | 类型 | 默认值 | 说明 |
 |---|---|---|---|
-| `twinny.locale` | string | "en" | 界面语言（下拉：13 个 locale） |
-| `twinny.enableLogging` | boolean | true | 日志开关 |
-| `twinny.providerStorageLocation` | string | "globalState" | provider 存储方式（globalState / file） |
+| `fim.locale` | string | "en" | 界面语言（下拉：13 个 locale） |
+| `fim.enableLogging` | boolean | true | 日志开关 |
+| `fim.providerStorageLocation` | string | "globalState" | provider 存储方式（globalState / file） |
 
 ### 3.5 模板（codicon `note`）
 保留原 Settings tab 的模板管理功能（编辑默认模板、勾选 action 模板），作为独立分组放在最底部。
 
 ### 3.6 移到 Embeddings tab
-- `twinny.embeddingIgnoredGlobs` — 语义上属于 embeddings，从设置移到 Embeddings tab。
+- `fim.embeddingIgnoredGlobs` — 语义上属于 embeddings，从设置移到 Embeddings tab。
 
 ### 3.7 Deprecated（UI 隐藏，代码保留）
 被新 provider 系统取代，UI 不再展示，`package.json` 加 `deprecated` 提示，代码路径保留向后兼容：
-- `twinny.ollamaHostname`
-- `twinny.ollamaApiPort`
-- `twinny.ollamaUseTls`
+- `fim.ollamaHostname`
+- `fim.ollamaApiPort`
+- `fim.ollamaUseTls`
 
 ## 4. UI 设计
 
 ### 4.1 布局
 ```
 ┌─────────────────────────────────────┐
-│ [✓] Twinny                    [ON]  │  ← 总开关栏（enabled）
+│ [✓] FIM                    [ON]  │  ← 总开关栏（enabled）
 ├─────────────────────────────────────┤
 │ ▼ [zap]    补全行为                  │  ← 手风琴分组（可展开/折叠）
 │   ┌─────────────────────────────┐   │
@@ -104,7 +104,7 @@
 ```
 
 ### 4.2 交互规则
-- **总开关**：顶部独立展示 `twinny.enabled`，使用 toggle，与第一个分组分离。
+- **总开关**：顶部独立展示 `fim.enabled`，使用 toggle，与第一个分组分离。
 - **手风琴**：每个分组独立展开/折叠，可同时展开多个。默认全部折叠。
 - **设置行**：每行包含标题（12px）、灰色说明（11px, 50% opacity）、控件。控件类型：
   - boolean → toggle（`VSCodeCheckbox` 或自定义 toggle）
@@ -137,20 +137,20 @@
 
 **读取**：
 ```
-webview → postMessage({ type: twinnyGetConfigValue, key: "debounceWait" })
-extension → workspace.getConfiguration("twinny").get("debounceWait")
-extension → postMessage({ type: twinnyGetConfigValue, data: 300 })
+webview → postMessage({ type: fimGetConfigValue, key: "debounceWait" })
+extension → workspace.getConfiguration("fim").get("debounceWait")
+extension → postMessage({ type: fimGetConfigValue, data: 300 })
 ```
 
 **写入**：
 ```
-webview → postMessage({ type: twinnySetConfigValue, key: "debounceWait", data: 350 })
-extension → workspace.getConfiguration("twinny").update("debounceWait", 350, ConfigurationTarget.Global)
+webview → postMessage({ type: fimSetConfigValue, key: "debounceWait", data: 350 })
+extension → workspace.getConfiguration("fim").update("debounceWait", 350, ConfigurationTarget.Global)
 ```
 
-`useConfig(key)` hook 封装：内部维护 state，初始化时发读请求，变更时发写请求。响应式更新通过现有 `twinnyGetConfigValue` 回包实现。
+`useConfig(key)` hook 封装：内部维护 state，初始化时发读请求，变更时发写请求。响应式更新通过现有 `fimGetConfigValue` 回包实现。
 
-> 注意：现有机制是"一问一答"，写操作无显式回包确认。hook 写入后乐观更新本地 state 即可；若需可靠确认，可在 extension 写入后回包 `twinnySetConfigValue`（可选增强）。
+> 注意：现有机制是"一问一答"，写操作无显式回包确认。hook 写入后乐观更新本地 state 即可；若需可靠确认，可在 extension 写入后回包 `fimSetConfigValue`（可选增强）。
 
 ### 5.3 已存在的依赖
 - `@vscode/webview-ui-toolkit/react`：`VSCodeButton`, `VSCodeCheckbox`, `VSCodeTextField`, `VSCodeDropdown`, `VSCodeOption` 已在用。
@@ -171,7 +171,7 @@ extension → workspace.getConfiguration("twinny").update("debounceWait", 350, C
 - **手动验证清单**：
   1. 打开 Settings tab，看到总开关 + 5 个折叠分组
   2. 展开各组，控件正确显示当前值
-  3. 修改任一设置，验证 `workspace.getConfiguration("twinny")` 实际更新
+  3. 修改任一设置，验证 `workspace.getConfiguration("fim")` 实际更新
   4. 修改后重启 reload window，值持久化
   5. 切换 locale，标题/说明正确切换
   6. 旧 Ollama 设置不出现在 UI

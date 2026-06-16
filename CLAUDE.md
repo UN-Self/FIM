@@ -4,11 +4,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## TOP RULES
 
-- DONT USE `superpowers/` DIRECT YOU MUST USE `DOCS/` IS OK
+- WHEN WRITE PLAN AND SPEC DONT USE `superpowers/` DIRECT YOU MUST USE `DOCS/` IS OK
 
 ## Project Overview
 
-**twinny** is a locally-hosted AI code completion and chat VS Code extension. The repo directory is named "FIM" (Fill-in-the-Middle). It supports 15+ AI providers (Ollama, OpenAI, Anthropic, Mistral, Groq, Gemini, etc.) for inline code completions and chat with RAG.
+**FIM** is a locally-hosted AI code completion and chat VS Code extension. The repo directory is named "FIM" (Fill-in-the-Middle). It supports 15+ AI providers (Ollama, OpenAI, Anthropic, Mistral, Groq, Gemini, etc.) for inline code completions and chat with RAG.
 
 ## Commands
 
@@ -79,7 +79,7 @@ Three provider slots: **FIM** (completion), **Chat**, **Embeddings**. Most provi
 
 ### User Data
 
-Templates at `~/.twinny/templates/` (Handlebars `.hbs`). Embeddings DB at `~/.twinny/embeddings/<workspace>` (LanceDB tables: `<name>-documents` and `<name>-file-paths`). Symmetry config at `~/.config/symmetry/provider.yaml`.
+Templates at `~/.fim/templates/` (Handlebars `.hbs`). Embeddings DB at `~/.fim/embeddings/<workspace>` (LanceDB tables: `<name>-documents` and `<name>-file-paths`). Symmetry config at `~/.config/symmetry/provider.yaml`.
 
 ## Code Style
 
