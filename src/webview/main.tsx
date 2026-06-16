@@ -22,7 +22,7 @@ export const Main = () => {
 
   const handler = (event: MessageEvent) => {
     const message: ServerMessage<string | undefined> = event.data
-    if (message?.type === EVENT_NAME.fimSetTab) {
+    if (message?.type === EVENT_NAME.fimSetTab && message?.data && tabs[message.data]) {
       setTab(message?.data)
     }
     return () => window.removeEventListener("message", handler)
