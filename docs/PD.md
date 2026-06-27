@@ -462,23 +462,6 @@ provideInlineCompletionItems
   -> 返回 InlineCompletionItem
 ```
 
-### 8.1 与 Twinny 的关系
-
-本仓库中的 `twinny/` 可以作为 VS Code 插件参考。
-
-重点学习：
-
-- 如何注册 `InlineCompletionItemProvider`。
-- 如何从 `TextDocument` 和 `Position` 获取 prefix/suffix。
-- 如何处理 debounce、abort、cache。
-- 如何将模型返回结果转换为 `InlineCompletionItem`。
-
-不要直接继承的问题：
-
-- VS Code 类型和核心逻辑耦合过深。
-- provider、prompt、UI、completion 逻辑混在一起后不利于跨平台。
-- 服务端边界不够清晰。
-
 ## 9. Zed 适配方案
 
 Zed 不应以“移植 VS Code 插件”的方式作为第一目标。
