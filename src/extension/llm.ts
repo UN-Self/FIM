@@ -126,39 +126,3 @@ export async function llm(request: LlmRequest) {
     }
   }
 }
-
-export async function fetchEmbedding(request: LlmRequest) {
-  const { body, options, onData } = request
-  const controller = new AbortController()
-
-  try {
-    const url = `${options.protocol}://${options.hostname}${
-      options.port ? `:${options.port}` : ""
-    }${options.path}`
-    const fetchOptions = {
-      method: options.method,
-      headers: options.headers,
-      body: JSON.stringify(body),
-      signal: controller.signal
-    }
-
-    const response = await fetch(url, fetchOptions)
-
-    if (!response.ok) {
-      throw new Error(`Server responded with status code: ${response.status}`)
-    }
-
-    if (!response.body) {
-      throw new Error("Failed to get a ReadableStream from the response")
-    }
-
-    const data = await response.json()
-
-    onData(data)
-  } catch (error: unknown) {
-    if (error instanceof Error) {
-      log.logError("fetch_error", "Fetch error", error)
-      notifyKnownErrors(error)
-    }
-  }
-}

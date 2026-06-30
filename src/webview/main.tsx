@@ -6,14 +6,12 @@ import { EVENT_NAME, WEBUI_TABS } from "../common/constants"
 import { ServerMessage } from "../common/types"
 
 import { useLocale } from "./hooks/useLocale"
-import { EmbeddingOptions } from "./embedding-options"
 import { Providers } from "./providers"
 import { Settings } from "./settings"
 
 const tabs: Record<string, JSX.Element> = {
   [WEBUI_TABS.settings]: <Settings />,
-  [WEBUI_TABS.providers]: <Providers />,
-  [WEBUI_TABS.embeddings]: <EmbeddingOptions />
+  [WEBUI_TABS.providers]: <Providers />
 }
 
 export const Main = () => {

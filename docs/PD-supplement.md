@@ -1,3 +1,4 @@
+
 # FIM: Fill-in-the-Middle 补全系统 — PD 补充与难点清单
 
 > 本文档是对 `docs/PD.md` 的增量补充，基于对现有代码（`src/extension/providers/completion.ts` 等）的深入分析和现有方案（GitHub Copilot、vLLM、Ollama、Zed、tree-sitter）的文献调研。

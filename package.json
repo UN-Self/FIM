@@ -330,16 +330,16 @@
   },
   "scripts": {
     "build": "node scripts/build.mjs",
-    "build-tests": "tsc -p . --outDir out",
+    "build-tests": "tsc -p ts-test/tsconfig.json --outDir out",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
     "package": "node scripts/build.mjs",
     "pretest": "npm run build-tests && npm run build && npm run lint",
-    "test": "node ./out/test/runTest.js",
+    "test": "node ./out/ts-test/runTest.js",
     "vscode:package": "npm exec vsce package",
     "vscode:prepublish": "npm run package",
     "vscode:publish": "npm exec vsce publish",
-    "watch-tests": "tsc -p . -w --outDir out",
+    "watch-tests": "tsc -p ts-test/tsconfig.json -w --outDir out",
     "watch": "node scripts/build.mjs --watch"
   },
   "devDependencies": {

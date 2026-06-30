@@ -4,5 +4,10 @@ node_modules
 .vscode-test/
 *.vsix
 
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+
 # Visual companion mockups (brainstorming)
 .superpowers/
