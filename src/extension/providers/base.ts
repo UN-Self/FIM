@@ -13,7 +13,6 @@ import {
   ServerMessage,
   ThemeType
 } from "../../common/types"
-import { EmbeddingDatabase } from "../embeddings"
 import { OllamaService } from "../ollama"
 import { ProviderManager } from "../provider-manager"
 import { SessionManager } from "../session-manager"
@@ -25,7 +24,6 @@ import {
 } from "../utils"
 
 export class BaseProvider {
-  private _embeddingDatabase: EmbeddingDatabase | undefined
   private _fileTreeProvider: FileTreeProvider
   private _ollamaService: OllamaService | undefined
   private _sessionManager: SessionManager | undefined
@@ -44,12 +42,10 @@ export class BaseProvider {
     context: vscode.ExtensionContext,
     templateDir: string,
     _statusBar: vscode.StatusBarItem,
-    db?: EmbeddingDatabase,
     sessionManager?: SessionManager
   ) {
     this.context = context
     this._fileTreeProvider = new FileTreeProvider()
-    this._embeddingDatabase = db
     this._ollamaService = new OllamaService()
     this._sessionManager = sessionManager
     this._templateDir = templateDir
@@ -78,7 +74,6 @@ export class BaseProvider {
       string,
       ((message: ClientMessage) => void | Promise<void>) | undefined
     > = {
-      [EVENT_NAME.fimEmbedDocuments]: this.embedDocuments,
       [EVENT_NAME.fimFetchOllamaModels]: this.fetchOllamaModels,
       [EVENT_NAME.fimGetConfigValue]: this.getConfigurationValue,
       [EVENT_NAME.fimGetAllConfigValues]: this.getAllConfigValues,
@@ -147,18 +142,6 @@ export class BaseProvider {
       type: EVENT_NAME.fimSetTab,
       data: tab
     } as ServerMessage<string>)
-  }
-
-  private embedDocuments = async () => {
-    const dirs = vscode.workspace.workspaceFolders
-    if (!dirs?.length) {
-      vscode.window.showErrorMessage("No workspace loaded.")
-      return
-    }
-    if (!this._embeddingDatabase) return
-    for (const dir of dirs) {
-      await this._embeddingDatabase.injestDocuments(dir.uri.fsPath)
-    }
   }
 
   private getAllConfigValues = () => {

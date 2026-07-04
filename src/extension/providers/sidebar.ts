@@ -1,7 +1,6 @@
 import * as vscode from "vscode"
 
 import { logger } from "../../common/logger"
-import { EmbeddingDatabase } from "../embeddings"
 import { SessionManager } from "../session-manager"
 import { getNonce } from "../utils"
 
@@ -15,10 +14,9 @@ export class SidebarProvider extends BaseProvider {
     statusBarItem: vscode.StatusBarItem,
     context: vscode.ExtensionContext,
     templateDir: string,
-    db: EmbeddingDatabase | undefined,
     sessionManager: SessionManager
   ) {
-    super(context, templateDir, statusBarItem, db, sessionManager)
+    super(context, templateDir, statusBarItem, sessionManager)
     this.context = context
     this.registerSidebarReadyHandler(this.handleSidebarReady)
   }

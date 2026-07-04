@@ -1,4 +1,3 @@
-import * as fs from "fs"
 import * as os from "os"
 import * as path from "path"
 import {
@@ -20,13 +19,12 @@ import {
 import { logger } from "./common/logger"
 import { ServerMessage } from "./common/types"
 import { setContext } from "./extension/context"
-import { EmbeddingDatabase } from "./extension/embeddings"
 import { FileInteractionCache } from "./extension/file-interaction"
 import { CompletionProvider } from "./extension/providers/completion"
 import { SidebarProvider } from "./extension/providers/sidebar"
 import { SessionManager } from "./extension/session-manager"
 import { TemplateProvider } from "./extension/template-provider"
-import { delayExecution, sanitizeWorkspaceName } from "./extension/utils"
+import { delayExecution } from "./extension/utils"
 import { getLineBreakCount } from "./webview/utils"
 
 export async function activate(context: ExtensionContext) {
@@ -41,13 +39,10 @@ export async function activate(context: ExtensionContext) {
   const fileInteractionCache = new FileInteractionCache()
   const sessionManager = new SessionManager()
 
-  const db = await createEmbeddingDatabase(context)
-
   const sidebarProvider = new SidebarProvider(
     statusBarItem,
     context,
     templateDir,
-    db,
     sessionManager
   )
 
@@ -159,20 +154,6 @@ export async function activate(context: ExtensionContext) {
   statusBarItem.text = "$(code)"
 
   logger.log("Fim completion extension activation complete")
-}
-
-async function createEmbeddingDatabase(context: ExtensionContext) {
-  const workspaceName = sanitizeWorkspaceName(workspace.name)
-  if (!workspaceName) return undefined
-
-  const dbDir = path.join(os.homedir(), ".fim/embeddings")
-  const dbPath = path.join(dbDir, workspaceName)
-
-  if (!fs.existsSync(dbDir)) fs.mkdirSync(dbDir, { recursive: true })
-
-  const db = new EmbeddingDatabase(dbPath, context)
-  await db.connect()
-  return db
 }
 
 async function showSidebarTab(
