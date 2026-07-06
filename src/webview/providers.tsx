@@ -56,11 +56,6 @@ export const Providers = () => {
     setProvider(undefined)
   }
 
-  const handleAdd = () => {
-    setView("defaults")
-    setProvider(undefined)
-  }
-
   const handleCustom = () => {
     setView("custom-form")
     setProvider({

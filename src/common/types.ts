@@ -1,6 +1,5 @@
 import { ChatCompletionMessageParam } from "fluency.js"
 import { CompletionNonStreaming, CompletionStreaming, LLMProvider } from "fluency.js/dist/chat"
-import { serverMessageKeys } from "symmetry-core"
 import { InlineCompletionItem, InlineCompletionList, Uri } from "vscode"
 
 import { ALL_BRACKETS, API_PROVIDERS } from "./constants"
@@ -273,8 +272,6 @@ export interface SymmetryMessage<T> {
   key: string
   data: T
 }
-
-export type ServerMessageKey = keyof typeof serverMessageKeys
 
 export interface SymmetryConnection {
   sessionToken?: string

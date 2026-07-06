@@ -43,7 +43,6 @@ import {
   LanguageType,
   PrefixSuffix,
   ServerMessage,
-  ServerMessageKey,
   StreamResponse,
   Theme
 } from "../common/types"
@@ -530,13 +529,6 @@ export const getTerminalExists = (): boolean => {
     return false
   }
   return true
-}
-
-export function createSymmetryMessage<T>(
-  key: ServerMessageKey,
-  data?: T
-): string {
-  return JSON.stringify({ key, data })
 }
 
 export const getNormalisedText = (text: string) =>
