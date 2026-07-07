@@ -135,7 +135,6 @@
   "share-gpu-resources": "You can also share your GPU resources by connecting to Symmetry as a provider using your active FIM provider configuration. All connections are peer to peer, encrypted end-to-end and secure.",
   "settings.sectionLabel": "Settings",
   "settings.loading": "Loading…",
-  "settings.masterBar.manageProviders": "Manage providers...",
   "settings.masterBar.noProvider": "No FIM provider configured — click to set up",
   "settings.group.completion": "Completion",
   "settings.group.model": "Model parameters",

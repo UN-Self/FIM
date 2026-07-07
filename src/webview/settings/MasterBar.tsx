@@ -30,10 +30,6 @@ export const MasterBar = ({ enabled, onToggleEnabled }: MasterBarProps) => {
 
   const handleProviderChange = (e: unknown) => {
     const id = (e as React.ChangeEvent<HTMLSelectElement>).target.value
-    if (id === "__manage") {
-      goToProviders()
-      return
-    }
     const selected = fimProviders.find((p) => p.id === id)
     if (selected) setActiveFimProvider(selected)
   }
@@ -55,9 +51,6 @@ export const MasterBar = ({ enabled, onToggleEnabled }: MasterBarProps) => {
                   {p.label} · {p.modelName}
                 </VSCodeOption>
               ))}
-              <VSCodeOption value="__manage">
-                {t("settings.masterBar.manageProviders")}
-              </VSCodeOption>
             </VSCodeDropdown>
           ) : (
             <button type="button" className={styles.masterMetaButton} onClick={goToProviders}>
