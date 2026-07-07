@@ -13,10 +13,9 @@ export class SidebarProvider extends BaseProvider {
   constructor(
     statusBarItem: vscode.StatusBarItem,
     context: vscode.ExtensionContext,
-    templateDir: string,
     sessionManager: SessionManager
   ) {
-    super(context, templateDir, statusBarItem, sessionManager)
+    super(context, statusBarItem, sessionManager)
     this.context = context
     this.registerSidebarReadyHandler(this.handleSidebarReady)
   }

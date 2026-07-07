@@ -25,7 +25,7 @@ def test_ollama_options_structure(run_node_module):
     result = run_node_module("provider-options", "createStreamRequestBodyFim", args=[
         "ollama",
         "test",
-        {"temperature": 0.2, "numPredictFim": 128, "model": "codellama:7b", "keepAlive": "5m"},
+        {"temperature": 0.2, "numPredictFim": 128, "model": "codellama:7b"},
     ])
     assert "options" in result
     assert result["options"]["temperature"] == 0.2
@@ -36,7 +36,7 @@ def test_litellm_messages_structure(run_node_module):
     result = run_node_module("provider-options", "createStreamRequestBodyFim", args=[
         "litellm",
         "test prompt",
-        {"temperature": 0.5, "numPredictFim": 100, "model": "gpt-4", "keepAlive": "5m"},
+        {"temperature": 0.5, "numPredictFim": 100, "model": "gpt-4"},
     ])
     assert "messages" in result
     assert isinstance(result["messages"], list)

@@ -26,7 +26,6 @@ function buildPromptAndRequest(params) {
     temperature: config.temperature || 0.2,
     numPredictFim: config.numPredictFim || 128,
     model: fimModel,
-    keepAlive: config.keepAlive || "5m",
   })
 
   return { prompt, stopWords, body }

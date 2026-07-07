@@ -11,3 +11,6 @@ __pycache__/
 
 # Visual companion mockups (brainstorming)
 .superpowers/
+
+.codex
+.agents

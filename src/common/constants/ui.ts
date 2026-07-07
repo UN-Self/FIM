@@ -1,5 +1,5 @@
 export const WEBUI_TABS = {
   providers: "providers",
-  settings: "templates",
+  settings: "settings",
   embeddings: "embeddings"
 }

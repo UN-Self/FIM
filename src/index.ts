@@ -1,5 +1,3 @@
-import * as os from "os"
-import * as path from "path"
 import {
   commands,
   ExtensionContext,
@@ -23,7 +21,6 @@ import { FileInteractionCache } from "./extension/file-interaction"
 import { CompletionProvider } from "./extension/providers/completion"
 import { SidebarProvider } from "./extension/providers/sidebar"
 import { SessionManager } from "./extension/session-manager"
-import { TemplateProvider } from "./extension/template-provider"
 import { delayExecution } from "./extension/utils"
 import { getLineBreakCount } from "./webview/utils"
 
@@ -34,26 +31,20 @@ export async function activate(context: ExtensionContext) {
 
   logger.log("Fim completion extension starting")
 
-  const templateDir = path.join(os.homedir(), ".fim/templates")
-  const templateProvider = new TemplateProvider(templateDir)
   const fileInteractionCache = new FileInteractionCache()
   const sessionManager = new SessionManager()
 
   const sidebarProvider = new SidebarProvider(
     statusBarItem,
     context,
-    templateDir,
     sessionManager
   )
 
   const completionProvider = new CompletionProvider(
     statusBarItem,
     fileInteractionCache,
-    templateProvider,
     context
   )
-
-  templateProvider.init()
 
   context.subscriptions.push(
     languages.registerInlineCompletionItemProvider(
@@ -77,13 +68,6 @@ export async function activate(context: ExtensionContext) {
         WEBUI_TABS.providers
       )
     }),
-    commands.registerCommand(FIM_COMMAND_NAME.manageTemplates, async () => {
-      await showSidebarTab(
-        sidebarProvider,
-        EXTENSION_CONTEXT_NAME.fimManageTemplates,
-        WEBUI_TABS.settings
-      )
-    }),
     commands.registerCommand(FIM_COMMAND_NAME.embeddings, async () => {
       await showSidebarTab(
         sidebarProvider,
@@ -92,11 +76,6 @@ export async function activate(context: ExtensionContext) {
       )
     }),
     commands.registerCommand(FIM_COMMAND_NAME.hideBackButton, () => {
-      commands.executeCommand(
-        "setContext",
-        EXTENSION_CONTEXT_NAME.fimManageTemplates,
-        false
-      )
       commands.executeCommand(
         "setContext",
         EXTENSION_CONTEXT_NAME.fimManageProviders,
