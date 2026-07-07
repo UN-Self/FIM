@@ -25,7 +25,7 @@ export const SettingsView = () => {
         onToggleEnabled={(next) => update("enabled", next)}
       />
       <div className={styles.sectionLabel}>{t("settings.sectionLabel")}</div>
-      {SETTING_GROUPS.filter((g) => g.id !== "templates").map((group) => (
+      {SETTING_GROUPS.map((group) => (
         <AccordionSection
           key={group.id}
           icon={group.icon}

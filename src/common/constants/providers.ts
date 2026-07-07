@@ -22,16 +22,20 @@ export const API_PROVIDERS = {
   ...OPEN_AI_COMPATIBLE_PROVIDERS
 }
 
+export const DEEPSEEK_DEFAULT_BASE_URL =
+  "https://api.deepseek.com/beta/completions"
+
+export const DEEPSEEK_DEFAULT_MODEL = "deepseek-chat"
+
 export const DEFAULT_PROVIDER_FORM_VALUES = {
-  apiHostname: "0.0.0.0",
+  apiHostname: "api.deepseek.com",
   apiKey: "",
-  apiPath: "",
-  apiPort: 11434,
-  apiProtocol: "http",
-  id: "",
-  label: "",
-  modelName: "",
-  name: "",
-  provider: "ollama",
-  type: "chat"
+  apiPath: "/beta/completions",
+  apiProtocol: "https",
+  id: "deepseek-default",
+  label: "DeepSeek",
+  modelName: DEEPSEEK_DEFAULT_MODEL,
+  name: "DeepSeek",
+  provider: API_PROVIDERS.Deepseek,
+  type: "fim"
 }

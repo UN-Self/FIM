@@ -12,7 +12,7 @@ def test_completion_chain_end_to_end(run_node_module, case):
         "provider": case["provider"],
         "mockChunks": case["mockChunks"],
         "contextLength": 100,
-        "config": {"temperature": 0.2, "numPredictFim": 128, "keepAlive": "5m"},
+        "config": {"temperature": 0.2, "numPredictFim": 128},
     }])
 
     assert result is not None, "runCompletionChain returned null"
@@ -48,7 +48,7 @@ def test_completion_chain_prompt_contains_fim_tokens(run_node_module):
         },
         "mockChunks": [{"response": "return true;\n}"}],
         "contextLength": 100,
-        "config": {"temperature": 0.2, "numPredictFim": 128, "keepAlive": "5m"},
+        "config": {"temperature": 0.2, "numPredictFim": 128},
     }])
 
     assert "<PRE>" in result["prompt"], "Codellama prompt should contain <PRE>"
@@ -77,7 +77,7 @@ def test_completion_chain_stop_word_truncation(run_node_module):
             {"response": "should_not_appear"},
         ],
         "contextLength": 100,
-        "config": {"temperature": 0.2, "numPredictFim": 128, "keepAlive": "5m"},
+        "config": {"temperature": 0.2, "numPredictFim": 128},
     }])
 
     assert result["stopped"] == "stop_word", "Should have stopped at stop word"
@@ -103,7 +103,7 @@ def test_completion_chain_qwen_template(run_node_module):
         },
         "mockChunks": [{"response": "    return 1"}],
         "contextLength": 100,
-        "config": {"temperature": 0.2, "numPredictFim": 128, "keepAlive": "5m"},
+        "config": {"temperature": 0.2, "numPredictFim": 128},
     }])
 
     assert "<|fim_prefix|>" in result["prompt"], "Qwen prompt should contain <|fim_prefix|>"
@@ -130,7 +130,7 @@ def test_completion_chain_prefix_suffix_split(run_node_module):
         },
         "mockChunks": [{"response": "x"}],
         "contextLength": 5,
-        "config": {"temperature": 0.2, "numPredictFim": 128, "keepAlive": "5m"},
+        "config": {"temperature": 0.2, "numPredictFim": 128},
     }])
 
     ps = result["prefixSuffix"]
@@ -157,7 +157,7 @@ def test_completion_chain_formatter_applied(run_node_module):
         },
         "mockChunks": [{"response": "  const x = 1;"}],
         "contextLength": 100,
-        "config": {"temperature": 0.2, "numPredictFim": 128, "keepAlive": "5m"},
+        "config": {"temperature": 0.2, "numPredictFim": 128},
     }])
 
     assert result["formattedCompletion"] == "const x = 1;", (

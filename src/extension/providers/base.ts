@@ -13,10 +13,10 @@ import {
   ServerMessage,
   ThemeType
 } from "../../common/types"
+import { getMessagesForConfigUpdate } from "../config-messages"
 import { OllamaService } from "../ollama"
 import { ProviderManager } from "../provider-manager"
 import { SessionManager } from "../session-manager"
-import { TemplateProvider } from "../template-provider"
 import { FileTreeProvider } from "../tree"
 import {
   getLanguage,
@@ -27,8 +27,6 @@ export class BaseProvider {
   private _fileTreeProvider: FileTreeProvider
   private _ollamaService: OllamaService | undefined
   private _sessionManager: SessionManager | undefined
-  private _templateDir: string | undefined
-  private _templateProvider: TemplateProvider
   public context: vscode.ExtensionContext
   public webView?: vscode.Webview
 
@@ -40,7 +38,6 @@ export class BaseProvider {
 
   constructor(
     context: vscode.ExtensionContext,
-    templateDir: string,
     _statusBar: vscode.StatusBarItem,
     sessionManager?: SessionManager
   ) {
@@ -48,8 +45,6 @@ export class BaseProvider {
     this._fileTreeProvider = new FileTreeProvider()
     this._ollamaService = new OllamaService()
     this._sessionManager = sessionManager
-    this._templateDir = templateDir
-    this._templateProvider = new TemplateProvider(templateDir)
   }
 
   public registerWebView(webView: vscode.Webview) {
@@ -80,7 +75,6 @@ export class BaseProvider {
       [EVENT_NAME.fimGetWorkspaceContext]: this.getFimWorkspaceContext,
       [EVENT_NAME.fimGlobalContext]: this.getGlobalContext,
       [EVENT_NAME.fimHideBackButton]: this.fimHideBackButton,
-      [EVENT_NAME.fimListTemplates]: this.listTemplates,
       [EVENT_NAME.fimNotification]: this.sendNotification,
       [EVENT_NAME.fimSendLanguage]: this.getCurrentLanguage,
       [EVENT_NAME.fimSendTheme]: this.getTheme,
@@ -90,7 +84,6 @@ export class BaseProvider {
       [EVENT_NAME.fimSetTab]: this.setTab,
       [EVENT_NAME.fimSetWorkspaceContext]: this.setWorkspaceContext,
       [EVENT_NAME.fimFileListRequest]: this.fileListRequest,
-      [EVENT_NAME.fimEditDefaultTemplates]: this.editDefaultTemplates,
       [EVENT_NAME.fimGetLocale]: this.sendLocaleToWebView,
       [EVENT_NAME.fimStopGeneration]: this.destroyStream,
       [EVENT_NAME.fimSidebarReady]: this._sidebarReadyHandler
@@ -120,15 +113,6 @@ export class BaseProvider {
       type: EVENT_NAME.fimSendTheme,
       data: getTheme()
     } as ServerMessage<ThemeType>)
-  }
-
-  public editDefaultTemplates = async () => {
-    if (!this._templateDir) return
-    await vscode.commands.executeCommand(
-      "vscode.openFolder",
-      vscode.Uri.file(this._templateDir),
-      true
-    )
   }
 
   public destroyStream = () => {
@@ -182,6 +166,9 @@ export class BaseProvider {
     if (!message.key) return
     const config = vscode.workspace.getConfiguration("fim")
     config.update(message.key, message.data, vscode.ConfigurationTarget.Global)
+    getMessagesForConfigUpdate(message.key, message.data).forEach(
+      (serverMessage) => this.webView?.postMessage(serverMessage)
+    )
   }
 
   private fetchOllamaModels = async () => {
@@ -197,14 +184,6 @@ export class BaseProvider {
     } catch {
       return
     }
-  }
-
-  private listTemplates = () => {
-    const templates = this._templateProvider.listTemplates()
-    this.webView?.postMessage({
-      type: EVENT_NAME.fimListTemplates,
-      data: templates
-    } as ServerMessage<string[]>)
   }
 
   private sendNotification = (message: ClientMessage) => {

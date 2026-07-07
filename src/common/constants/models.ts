@@ -1,5 +1,3 @@
-import { defaultTemplates } from "../../extension/templates"
-
 export const FIM_TEMPLATE_FORMAT = {
   automatic: "automatic",
   codegemma: "codegemma",
@@ -45,10 +43,6 @@ export const STOP_QWEN = [
 export const STOP_CODEGEMMA = ["<|file_separator|>", "<|end_of_turn|>", "<eos>"]
 
 export const STOP_CODESTRAL = ["[PREFIX]", "[SUFFIX]"]
-
-export const DEFAULT_TEMPLATE_NAMES = defaultTemplates.map(({ name }) => name)
-
-export const DEFAULT_ACTION_TEMPLATES = []
 
 export const WASM_LANGUAGES: { [key: string]: string } = {
   "php-s": "php",

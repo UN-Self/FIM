@@ -37,7 +37,6 @@ import { supportedLanguages } from "../../common/languages"
 import { logger } from "../../common/logger"
 import {
   Bracket,
-  FimTemplateData,
   PrefixSuffix,
   RepositoryLevelData as RepositoryDocment,
   ResolvedInlineCompletion,
@@ -58,7 +57,6 @@ import { llm } from "../llm"
 import { getNodeAtPosition, getParser } from "../parser"
 import { FimProvider } from "../provider-manager"
 import { createStreamRequestBodyFim } from "../provider-options"
-import { TemplateProvider } from "../template-provider"
 import {
   getCurrentLineText,
   getFimDataFromProvider,
@@ -90,14 +88,11 @@ export class CompletionProvider
   private _prefixSuffix: PrefixSuffix = { prefix: "", suffix: "" }
   private _provider: FimProvider | undefined
   private _statusBar: StatusBarItem
-  private _templateProvider: TemplateProvider
-  private _usingFimTemplate = false
   public lastCompletionText = ""
 
   constructor(
     statusBar: StatusBarItem,
     fileInteractionCache: FileInteractionCache,
-    templateProvider: TemplateProvider,
     context: ExtensionContext
   ) {
     super(context)
@@ -107,15 +102,13 @@ export class CompletionProvider
     this._position = null
     this._statusBar = statusBar
     this._fileInteractionCache = fileInteractionCache
-    this._templateProvider = templateProvider
   }
 
   private buildFimRequest(prompt: string, provider: FimProvider) {
     const body = createStreamRequestBodyFim(provider.provider, prompt, {
       model: provider.modelName,
       numPredictFim: this.config.numPredictFim,
-      temperature: this.config.temperature,
-      keepAlive: this.config.keepAlive
+      temperature: this.config.temperature
     })
 
     const options: StreamRequestOptions = {
@@ -648,26 +641,6 @@ export class CompletionProvider
     const documentLanguage = this._document.languageId
     const fileInteractionContext = await this.getFileInteractionContext()
 
-    if (this._provider.fimTemplate === FIM_TEMPLATE_FORMAT.custom) {
-      const systemMessage =
-        await this._templateProvider.readSystemMessageTemplate("fim-system.hbs")
-
-      const fimTemplate =
-        await this._templateProvider.readTemplate<FimTemplateData>("fim", {
-          prefix: prefixSuffix.prefix,
-          suffix: prefixSuffix.suffix,
-          systemMessage,
-          context: fileInteractionContext || "",
-          fileName: this._document.uri.fsPath,
-          language: documentLanguage
-        })
-
-      if (fimTemplate) {
-        this._usingFimTemplate = true
-        return fimTemplate
-      }
-    }
-
     if (this._provider.repositoryLevel) {
       const repositoryLevelData = await this.getRelevantDocuments()
       const repoName = sanitizeWorkspaceName(workspace.name)
@@ -712,7 +685,6 @@ export class CompletionProvider
       Max Lines: ${this.config.maxLines}
       Use file context: ${this.config.fileContextEnabled}
       Completed lines count ${getLineBreakCount(formattedCompletion)}
-      Using custom FIM template fim.bhs?: ${this._usingFimTemplate}
     `.trim()
     )
   }

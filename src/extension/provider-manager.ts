@@ -2,7 +2,6 @@ import { ReactNode } from "react"
 import { TokenJS } from "fluency.js"
 import { CompletionNonStreaming, LLMProvider } from "fluency.js/dist/chat"
 import { TextEncoder } from "util"
-import { v4 as uuidv4 } from "uuid"
 import { ExtensionContext, Uri, Webview, window, workspace } from "vscode"
 
 import {
@@ -10,12 +9,16 @@ import {
   ACTIVE_EMBEDDINGS_PROVIDER_STORAGE_KEY,
   ACTIVE_FIM_PROVIDER_STORAGE_KEY,
   API_PROVIDERS,
+  buildProviderBaseUrl,
+  DEEPSEEK_DEFAULT_MODEL,
+  DEFAULT_PROVIDER_FORM_VALUES,
   EVENT_NAME,
   FIM_PROVIDERS_FILENAME,
   FIM_TEMPLATE_FORMAT,
   GLOBAL_STORAGE_KEY,
   INFERENCE_PROVIDERS_STORAGE_KEY,
   OPEN_AI_COMPATIBLE_PROVIDERS,
+  parseProviderBaseUrl,
   PROVIDER_EVENT_NAME,
   WEBUI_TABS
 } from "../common/constants"
@@ -42,6 +45,8 @@ export interface FimProvider {
 
 type Providers = Record<string, FimProvider> | undefined
 
+const DEEPSEEK_PROVIDER_ID = "deepseek-default"
+
 export class ProviderManager {
   _context: ExtensionContext
   _webView: Webview
@@ -53,40 +58,77 @@ export class ProviderManager {
     this._storageLocation =
       workspace.getConfiguration("fim").get("providerStorageLocation") ||
       "globalState"
-    this._initializeProviders()
+    void this._initializeProviders()
     this.setUpEventListeners()
   }
 
   private async _initializeProviders(): Promise<void> {
-    if (this._storageLocation === "file") {
-      const fileProviders = await this._getProvidersFromFile()
-      if (!fileProviders || Object.keys(fileProviders).length === 0) {
-        const globalStateProviders = this._context.globalState.get<Providers>(
-          INFERENCE_PROVIDERS_STORAGE_KEY
-        )
-        if (
-          globalStateProviders &&
-          Object.keys(globalStateProviders).length > 0
-        ) {
-          await this._saveProvidersToFile(globalStateProviders)
-          // Optional: Consider clearing globalStateProviders here
-          // await this._context.globalState.update(INFERENCE_PROVIDERS_STORAGE_KEY, undefined);
-        } else {
-          await this.addDefaultProviders()
-        }
-      }
-    } else {
-      const globalStateProviders = this._context.globalState.get<Providers>(
-        INFERENCE_PROVIDERS_STORAGE_KEY
-      )
-      if (
-        !globalStateProviders ||
-        Object.keys(globalStateProviders).length === 0
-      ) {
-        await this.addDefaultProviders()
-      }
-    }
+    await this.ensureDeepSeekOnlyProvider()
     await this.getAllProviders()
+  }
+
+  private normalizeDeepSeekProvider(provider?: Partial<FimProvider>): FimProvider {
+    const baseUrl = this._buildProviderBaseUrl({
+      ...DEFAULT_PROVIDER_FORM_VALUES,
+      ...provider
+    } as FimProvider)
+    const url = parseProviderBaseUrl(baseUrl)
+
+    return {
+      ...DEFAULT_PROVIDER_FORM_VALUES,
+      ...provider,
+      ...url,
+      apiKey: provider?.apiKey || "",
+      fimTemplate: FIM_TEMPLATE_FORMAT.deepseek,
+      id: provider?.id || DEEPSEEK_PROVIDER_ID,
+      label: "DeepSeek",
+      modelName: provider?.modelName || DEEPSEEK_DEFAULT_MODEL,
+      provider: API_PROVIDERS.Deepseek,
+      repositoryLevel: provider?.repositoryLevel,
+      type: "fim"
+    } as FimProvider
+  }
+
+  private async ensureDeepSeekOnlyProvider() {
+    const providers = await this.getProviders()
+    const existingDeepSeek = Object.values(providers || {}).find(
+      (provider) => provider.provider === API_PROVIDERS.Deepseek
+    )
+    const deepSeekProvider = this.normalizeDeepSeekProvider(
+      existingDeepSeek || this.getDefaultFimProvider()
+    )
+    const nextProviders = {
+      [deepSeekProvider.id]: deepSeekProvider
+    }
+    const activeFimProvider = this._context.globalState.get<FimProvider>(
+      ACTIVE_FIM_PROVIDER_STORAGE_KEY
+    )
+    const providerStorageChanged =
+      JSON.stringify(providers || {}) !== JSON.stringify(nextProviders)
+    const activeFimProviderChanged =
+      JSON.stringify(activeFimProvider) !== JSON.stringify(deepSeekProvider)
+
+    await Promise.all([
+      providerStorageChanged ? this._saveProviders(nextProviders) : undefined,
+      this._context.globalState.get(ACTIVE_CHAT_PROVIDER_STORAGE_KEY)
+        ? this._context.globalState.update(
+            ACTIVE_CHAT_PROVIDER_STORAGE_KEY,
+            undefined
+          )
+        : undefined,
+      this._context.globalState.get(ACTIVE_EMBEDDINGS_PROVIDER_STORAGE_KEY)
+        ? this._context.globalState.update(
+            ACTIVE_EMBEDDINGS_PROVIDER_STORAGE_KEY,
+            undefined
+          )
+        : undefined,
+      activeFimProviderChanged
+        ? this._context.globalState.update(
+            ACTIVE_FIM_PROVIDER_STORAGE_KEY,
+            deepSeekProvider
+          )
+        : undefined
+    ])
   }
 
   setUpEventListeners() {
@@ -103,7 +145,7 @@ export class ProviderManager {
       case PROVIDER_EVENT_NAME.addProvider:
         return await this.addProvider(provider)
       case PROVIDER_EVENT_NAME.removeProvider:
-        return await this.removeProvider(provider)
+        return await this.removeProvider()
       case PROVIDER_EVENT_NAME.updateProvider:
         return await this.updateProvider(provider)
       case PROVIDER_EVENT_NAME.getActiveChatProvider:
@@ -196,8 +238,13 @@ export class ProviderManager {
       }
 
       const validatedProviders = importedProvidersData as Providers
+      const importedDeepSeek = Object.values(validatedProviders || {}).find(
+        (provider) => provider.provider === API_PROVIDERS.Deepseek
+      )
+      const deepSeekProvider = this.normalizeDeepSeekProvider(importedDeepSeek)
 
-      await this._saveProviders(validatedProviders)
+      await this._saveProviders({ [deepSeekProvider.id]: deepSeekProvider })
+      this.setActiveFimProvider(deepSeekProvider)
       await this.getAllProviders()
       window.showInformationMessage("Providers imported successfully.")
     } catch {
@@ -238,133 +285,12 @@ export class ProviderManager {
     } as ServerMessage<string>)
   }
 
-  getFimProvider() {
-    return {
-      apiHostname: "localhost",
-      apiPath: "/v1",
-      apiProtocol: "https",
-      id: "symmetry-default",
-      label: "FIM (Symmetry)",
-      modelName: "llama3.2:latest",
-      provider: API_PROVIDERS.Fim,
-      type: "chat"
-    } as FimProvider
-  }
-
-  getDefaultLocalProvider() {
-    return {
-      apiHostname: "localhost",
-      apiPath: "/v1",
-      apiPort: 11434,
-      apiProtocol: "http",
-      id: "openai-compatible-default",
-      label: "Ollama",
-      modelName: "codellama:7b-instruct",
-      provider: API_PROVIDERS.Ollama,
-      type: "chat"
-    }
-  }
-
-  getDefaultEmbeddingsProvider() {
-    return {
-      apiHostname: "0.0.0.0",
-      apiPath: "/api/embed",
-      apiPort: 11434,
-      apiProtocol: "http",
-      id: uuidv4(),
-      label: "Ollama Embedding",
-      modelName: "all-minilm:latest",
-      provider: API_PROVIDERS.Ollama,
-      type: "embedding"
-    } as FimProvider
-  }
-
   getDefaultFimProvider() {
-    return {
-      apiHostname: "0.0.0.0",
-      apiPath: "/api/generate",
-      apiPort: 11434,
-      apiProtocol: "http",
-      fimTemplate: FIM_TEMPLATE_FORMAT.codellama,
-      label: "Ollama FIM",
-      id: uuidv4(),
-      modelName: "codellama:7b-code",
-      provider: API_PROVIDERS.Ollama,
-      type: "fim"
-    } as FimProvider
+    return this.normalizeDeepSeekProvider()
   }
 
   async addDefaultProviders() {
-    await this.addDefaultChatProvider()
-    await this.addDefaultFimProvider()
-    await this.addDefaultEmbeddingsProvider()
-    await this.addFimProvider()
-  }
-
-  async addDefaultLocalProvider(): Promise<FimProvider> {
-    const provider = this.getDefaultLocalProvider()
-    if (!this._context.globalState.get(ACTIVE_CHAT_PROVIDER_STORAGE_KEY)) {
-      await this.addDefaultProvider(provider)
-    }
-    return provider
-  }
-
-  async addDefaultChatProvider(): Promise<FimProvider> {
-    const provider = this.getDefaultLocalProvider()
-    if (!this._context.globalState.get(ACTIVE_CHAT_PROVIDER_STORAGE_KEY)) {
-      await this.addDefaultProvider(provider)
-    }
-    return provider
-  }
-
-  async addDefaultFimProvider(): Promise<FimProvider> {
-    const provider = this.getDefaultFimProvider()
-    if (!this._context.globalState.get(ACTIVE_FIM_PROVIDER_STORAGE_KEY)) {
-      await this.addDefaultProvider(provider)
-    }
-    return provider
-  }
-
-  async addDefaultEmbeddingsProvider(): Promise<FimProvider> {
-    const provider = this.getDefaultEmbeddingsProvider()
-
-    if (
-      !this._context.globalState.get(ACTIVE_EMBEDDINGS_PROVIDER_STORAGE_KEY)
-    ) {
-      await this.addDefaultProvider(provider)
-    }
-    return provider
-  }
-
-  async addFimProvider(): Promise<FimProvider | null> {
-    const provider = this.getFimProvider()
-    const providers = await this.getProviders()
-    if (!providers) return await this.addProvider(provider)
-    const fimSymmetryProvider = Object.values(providers).find(
-      (p) => p.apiHostname === "localhost"
-    )
-    if (!fimSymmetryProvider) await this.addProvider(provider)
-    return provider
-  }
-
-  async addDefaultProvider(provider: FimProvider): Promise<void> {
-    if (provider.type === "chat") {
-      this._context.globalState.update(
-        ACTIVE_CHAT_PROVIDER_STORAGE_KEY,
-        provider
-      )
-    } else if (provider.type === "fim") {
-      this._context.globalState.update(
-        ACTIVE_FIM_PROVIDER_STORAGE_KEY,
-        provider
-      )
-    } else {
-      this._context.globalState.update(
-        ACTIVE_EMBEDDINGS_PROVIDER_STORAGE_KEY,
-        provider
-      )
-    }
-    await this.addProvider(provider)
+    await this.ensureDeepSeekOnlyProvider()
   }
 
   private async _saveProviders(providers: Providers): Promise<void> {
@@ -451,98 +377,33 @@ export class ProviderManager {
   }
 
   async addProvider(provider?: FimProvider): Promise<FimProvider | null> {
-    const providers = (await this.getProviders()) || {}
     if (!provider) return null
-    provider.id = uuidv4()
-    providers[provider.id] = provider
-    await this._saveProviders(providers)
-
-    if (provider.type === "chat") {
-      this._context.globalState.update(
-        `${EVENT_NAME.fimGlobalContext}-${GLOBAL_STORAGE_KEY.selectedModel}`,
-        provider?.modelName
-      )
-      if (!this._context.globalState.get(ACTIVE_CHAT_PROVIDER_STORAGE_KEY)) {
-        this._context.globalState.update(
-          ACTIVE_CHAT_PROVIDER_STORAGE_KEY,
-          provider
-        )
-      }
-    } else if (provider.type === "fim") {
-      if (!this._context.globalState.get(ACTIVE_FIM_PROVIDER_STORAGE_KEY)) {
-        this._context.globalState.update(
-          ACTIVE_FIM_PROVIDER_STORAGE_KEY,
-          provider
-        )
-      }
-    } else if (provider.type === "embedding") {
-      if (
-        !this._context.globalState.get(ACTIVE_EMBEDDINGS_PROVIDER_STORAGE_KEY)
-      ) {
-        this._context.globalState.update(
-          ACTIVE_EMBEDDINGS_PROVIDER_STORAGE_KEY,
-          provider
-        )
-      }
-    }
-
+    provider = this.normalizeDeepSeekProvider(provider)
+    await this._saveProviders({ [provider.id]: provider })
+    this._context.globalState.update(ACTIVE_FIM_PROVIDER_STORAGE_KEY, provider)
+    this._context.globalState.update(
+      `${EVENT_NAME.fimGlobalContext}-${GLOBAL_STORAGE_KEY.selectedModel}`,
+      provider.modelName
+    )
     await this.getAllProviders()
     return provider
   }
 
   async copyProvider(provider?: FimProvider) {
     if (!provider) return
-    provider.id = uuidv4()
-    provider.label = `${provider.label}-copy`
     await this.addProvider(provider)
   }
 
-  async removeProvider(provider?: FimProvider) {
-    const providers = (await this.getProviders()) || {}
-    if (!provider) return
-
-    const activeFimProvider = this.getActiveFimProvider()
-    const activeChatProvider = this.getActiveChatProvider()
-    const activeEmbeddingsProvider = this.getActiveEmbeddingsProvider()
-
-    if (provider.id === activeFimProvider?.id) {
-      this._context.globalState.update(
-        ACTIVE_FIM_PROVIDER_STORAGE_KEY,
-        undefined
-      )
-    }
-    if (provider.id === activeChatProvider?.id) {
-      this._context.globalState.update(
-        ACTIVE_CHAT_PROVIDER_STORAGE_KEY,
-        undefined
-      )
-    }
-    if (provider.id === activeEmbeddingsProvider?.id) {
-      this._context.globalState.update(
-        ACTIVE_EMBEDDINGS_PROVIDER_STORAGE_KEY,
-        undefined
-      )
-    }
-
-    delete providers[provider.id]
-    await this._saveProviders(providers)
+  async removeProvider() {
+    await this.ensureDeepSeekOnlyProvider()
     await this.getAllProviders()
   }
 
   async updateProvider(provider?: FimProvider) {
-    const providers = (await this.getProviders()) || {}
-    const activeFimProvider = this.getActiveFimProvider()
-    const activeChatProvider = this.getActiveChatProvider()
-    const activeEmbeddingsProvider = this.getActiveEmbeddingsProvider()
     if (!provider) return
-    providers[provider.id] = provider
-    await this._saveProviders(providers)
-    if (provider.id === activeFimProvider?.id)
-      this.setActiveFimProvider(provider)
-    if (provider.id === activeChatProvider?.id)
-      this.setActiveChatProvider(provider)
-    if (provider.id === activeEmbeddingsProvider?.id)
-      this.setActiveEmbeddingsProvider(provider)
+    provider = this.normalizeDeepSeekProvider(provider)
+    await this._saveProviders({ [provider.id]: provider })
+    this.setActiveFimProvider(provider)
     await this.getAllProviders()
   }
 
@@ -569,16 +430,12 @@ export class ProviderManager {
       )
     }
 
-    const chatProvider = await this.addDefaultChatProvider()
-    const fimProvider = await this.addDefaultFimProvider()
-    const embeddingsProvider = await this.addDefaultEmbeddingsProvider()
-    await this.addProvider(this.getFimProvider())
+    await this.ensureDeepSeekOnlyProvider()
+    const fimProvider = this.getActiveFimProvider()
 
     this.focusProviderTab()
 
-    this.setActiveChatProvider(chatProvider)
     this.setActiveFimProvider(fimProvider)
-    this.setActiveEmbeddingsProvider(embeddingsProvider)
     await this.getAllProviders()
   }
 
@@ -610,13 +467,7 @@ export class ProviderManager {
   }
 
   private _buildProviderBaseUrl(provider: FimProvider): string {
-    const { apiProtocol, apiHostname, apiPort, apiPath = "" } = provider
-    let baseUrl = `${apiProtocol || "http"}://${apiHostname}`
-    if (apiPort) {
-      baseUrl += `:${apiPort}`
-    }
-    baseUrl += apiPath
-    return baseUrl
+    return buildProviderBaseUrl(provider)
   }
 
   private _getProviderTypeForFluency(provider: FimProvider): LLMProvider {

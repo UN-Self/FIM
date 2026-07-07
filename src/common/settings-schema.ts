@@ -4,7 +4,6 @@ export type SettingGroupId =
   | "model"
   | "context"
   | "general"
-  | "templates"
 
 export interface SelectOption {
   value: string
@@ -40,8 +39,7 @@ export const SETTING_GROUPS: SettingGroupDef[] = [
   { id: "completion", icon: "zap", titleKey: "settings.group.completion" },
   { id: "model", icon: "target", titleKey: "settings.group.model" },
   { id: "context", icon: "file-code", titleKey: "settings.group.context" },
-  { id: "general", icon: "settings-gear", titleKey: "settings.group.general" },
-  { id: "templates", icon: "note", titleKey: "settings.group.templates" }
+  { id: "general", icon: "settings-gear", titleKey: "settings.group.general" }
 ]
 
 export const SETTING_DEFS: SettingDef[] = [
@@ -127,18 +125,6 @@ export const SETTING_DEFS: SettingDef[] = [
     titleKey: "settings.contextLength.title",
     descKey: "settings.contextLength.desc"
   },
-  {
-    key: "fim.keepAlive",
-    group: "model",
-    type: "select",
-    options: [
-      { value: "5m", labelKey: "settings.keepAlive.5m" },
-      { value: "30m", labelKey: "settings.keepAlive.30m" },
-      { value: "-1", labelKey: "settings.keepAlive.always" }
-    ],
-    titleKey: "settings.keepAlive.title",
-    descKey: "settings.keepAlive.desc"
-  },
   // ── context ──
   {
     key: "fim.fileContextEnabled",
@@ -154,18 +140,7 @@ export const SETTING_DEFS: SettingDef[] = [
     type: "select",
     options: [
       { value: "en", labelKey: "settings.locale.en" },
-      { value: "de", labelKey: "settings.locale.de" },
-      { value: "es", labelKey: "settings.locale.es" },
-      { value: "esCL", labelKey: "settings.locale.esCL" },
-      { value: "fr", labelKey: "settings.locale.fr" },
-      { value: "it", labelKey: "settings.locale.it" },
-      { value: "ja", labelKey: "settings.locale.ja" },
-      { value: "ko", labelKey: "settings.locale.ko" },
-      { value: "nl", labelKey: "settings.locale.nl" },
-      { value: "pt", labelKey: "settings.locale.pt" },
-      { value: "ru", labelKey: "settings.locale.ru" },
-      { value: "zh-CN", labelKey: "settings.locale.zhCN" },
-      { value: "zh-HK", labelKey: "settings.locale.zhHK" }
+      { value: "zh-CN", labelKey: "settings.locale.zhCN" }
     ],
     titleKey: "settings.locale.title",
     descKey: "settings.locale.desc"

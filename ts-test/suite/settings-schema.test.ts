@@ -15,8 +15,7 @@ suite("Settings schema", () => {
   })
 
   test("every setting group has at least one visible setting", () => {
-    const visibleGroups = SETTING_GROUPS.filter((g) => g.id !== "templates")
-    for (const group of visibleGroups) {
+    for (const group of SETTING_GROUPS) {
       const settings = getSettingsByGroup(group.id)
       assert.ok(
         settings.length > 0,
@@ -74,5 +73,23 @@ suite("Settings schema", () => {
     } as any
     assert.strictEqual(coerceValue(def, "30m"), "30m")
     assert.strictEqual(coerceValue(def, "bogus"), "5m") // fallback
+  })
+
+  test("locale setting only exposes English and simplified Chinese", () => {
+    const localeDef = SETTING_DEFS.find((def) => def.key === "fim.locale")
+
+    assert.ok(localeDef, "fim.locale setting should exist")
+    assert.deepStrictEqual(
+      localeDef?.options?.map((option) => option.value),
+      ["en", "zh-CN"]
+    )
+  })
+
+  test("removed DeepSeek-only options are not exposed", () => {
+    const settingKeys = SETTING_DEFS.map((def) => def.key)
+    const groupIds = SETTING_GROUPS.map((group) => group.id)
+
+    assert.ok(!settingKeys.includes("fim.keepAlive"))
+    assert.ok(!groupIds.includes("templates" as any))
   })
 })

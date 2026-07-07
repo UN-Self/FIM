@@ -12,7 +12,6 @@ export function createStreamRequestBodyFim(
     temperature: number
     numPredictFim: number
     model: string
-    keepAlive?: string | number
   }
 ): RequestBodyBase | RequestOptionsOllama | StreamBodyOpenAI {
   switch (provider) {
@@ -23,9 +22,6 @@ export function createStreamRequestBodyFim(
         model: options.model,
         prompt,
         stream: true,
-        keep_alive: options.keepAlive === "-1"
-          ? -1
-          : options.keepAlive,
         options: {
           temperature: options.temperature,
           num_predict: options.numPredictFim,

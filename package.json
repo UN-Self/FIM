@@ -66,11 +66,6 @@
           "command": "fim.manageProviders",
           "group": "navigation@1",
           "when": "view == fim.sidebar"
-        },
-        {
-          "command": "fim.manageTemplates",
-          "group": "navigation@2",
-          "when": "view == fim.sidebar"
         }
       ]
     },
@@ -99,12 +94,6 @@
         "shortTitle": "FIM settings",
         "title": "Open FIM settings",
         "icon": "$(gear)"
-      },
-      {
-        "command": "fim.manageTemplates",
-        "shortTitle": "Manage FIM templates",
-        "title": "Manage FIM templates",
-        "icon": "$(book)"
       },
       {
         "command": "fim.manageProviders",
@@ -176,33 +165,11 @@
           "type": "string",
           "enum": [
             "en",
-            "zh-CN",
-            "zh-HK",
-            "de",
-            "es",
-            "es-CL",
-            "ja",
-            "fr",
-            "it",
-            "pt",
-            "ru",
-            "ko",
-            "nl"
+            "zh-CN"
           ],
           "enumDescriptions": [
             "English",
-            "Chinese (Simplified)",
-            "Chinese (Hong Kong)",
-            "German",
-            "Spanish",
-            "Spanish (Colombia)",
-            "Japanese",
-            "French",
-            "Italian",
-            "Portuguese",
-            "Russian",
-            "Korean",
-            "Dutch"
+            "Chinese (Simplified)"
           ],
           "default": "en",
           "markdownDescription": "Sets the locale for FIM. The default is `en` (English)."
@@ -296,12 +263,6 @@
           "default": 11434,
           "markdownDescription": "[deprecated] Use the provider system instead. Legacy Ollama API port. Sets the port number for the Ollama API. The default is `11434`, but you can change it if your Ollama instance uses a different port.",
           "required": false
-        },
-        "fim.keepAlive": {
-          "order": 17,
-          "type": "string",
-          "default": "5m",
-          "markdownDescription": "Sets the duration to keep models in memory for Ollama API. Use formats like `5m` for 5 minutes or `1h` for 1 hour. Set to `-1` to keep models in memory indefinitely."
         },
         "fim.ollamaUseTls": {
           "order": 18,
