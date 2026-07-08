@@ -125,7 +125,7 @@
         {
           "id": "fim-sidebar-view",
           "title": "FIM",
-          "icon": "assets/fim.svg"
+          "icon": "assets/fim.png"
         }
       ]
     },
@@ -135,7 +135,7 @@
           "type": "webview",
           "id": "fim.sidebar",
           "name": "FIM",
-          "icon": "assets/fim.svg",
+          "icon": "assets/fim.png",
           "contextualTitle": "FIM"
         }
       ]
