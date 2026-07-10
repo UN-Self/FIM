@@ -8,16 +8,17 @@ import {
 } from "@vscode/webview-ui-toolkit/react"
 
 import {
-  buildProviderBaseUrl,
   DEEPSEEK_DEFAULT_BASE_URL,
-  DEFAULT_PROVIDER_FORM_VALUES,
   EVENT_NAME,
-  parseProviderBaseUrl,
   PROVIDER_EVENT_NAME
 } from "../common/constants"
-import { FimProvider } from "../extension/provider-manager"
+import type { FimProvider } from "../common/deepseek"
 
 import { useProviders } from "./hooks/useProviders"
+import {
+  buildDeepSeekProviderFromForm,
+  getDeepSeekProviderFormState
+} from "./provider-form"
 
 import styles from "./styles/providers.module.css"
 
@@ -68,16 +69,23 @@ function ProviderForm({
   updateProvider
 }: ProviderFormProps) {
   const { t } = useTranslation()
-  const [apiKey, setApiKey] = React.useState<string>(provider?.apiKey || "")
+  const initialFormState = getDeepSeekProviderFormState(provider)
+  const [modelName, setModelName] = React.useState<string>(
+    initialFormState.modelName
+  )
+  const [apiKey, setApiKey] = React.useState<string>(
+    initialFormState.apiKey
+  )
   const [baseUrl, setBaseUrl] = React.useState<string>(
-    getProviderBaseUrl(provider || DEFAULT_PROVIDER_FORM_VALUES)
+    initialFormState.baseUrl
   )
   const [testStatus, setTestStatus] = React.useState<string | null>(null)
 
   React.useEffect(() => {
-    const nextProvider = provider || DEFAULT_PROVIDER_FORM_VALUES
-    setApiKey(nextProvider.apiKey || "")
-    setBaseUrl(getProviderBaseUrl(nextProvider))
+    const nextFormState = getDeepSeekProviderFormState(provider)
+    setModelName(nextFormState.modelName)
+    setApiKey(nextFormState.apiKey)
+    setBaseUrl(nextFormState.baseUrl)
   }, [provider])
 
   React.useEffect(() => {
@@ -101,31 +109,48 @@ function ProviderForm({
     setTestStatus("Testing...")
     global.vscode.postMessage({
       type: PROVIDER_EVENT_NAME.testProvider,
-      data: getProviderFromBaseUrl(getFormProvider(), baseUrl)
+      data: buildDeepSeekProviderFromForm(provider, {
+        apiKey,
+        baseUrl,
+        modelName
+      })
     })
   }
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    const provider = getProviderFromBaseUrl(getFormProvider(), baseUrl)
+    const nextProvider = buildDeepSeekProviderFromForm(provider, {
+      apiKey,
+      baseUrl,
+      modelName
+    })
 
-    if (provider.id) {
-      updateProvider(provider)
+    if (nextProvider.id) {
+      updateProvider(nextProvider)
     } else {
-      saveProvider(provider)
+      saveProvider(nextProvider)
     }
   }
-
-  const getFormProvider = (): FimProvider => ({
-    ...DEFAULT_PROVIDER_FORM_VALUES,
-    ...provider,
-    apiKey
-  })
 
   return (
     <>
       <VSCodeDivider />
       <form onSubmit={handleSubmit} className={styles.providerForm}>
+        <div>
+          <div>
+            <label htmlFor="modelName">Model</label>
+          </div>
+          <VSCodeTextField
+            name="modelName"
+            onChange={(event) => {
+              const target = event.target as HTMLInputElement
+              setModelName(target.value.trim())
+            }}
+            value={modelName}
+            placeholder="deepseek-chat"
+          ></VSCodeTextField>
+        </div>
+
         <div>
           <div>
             <label htmlFor="baseUrl">BaseURL</label>
@@ -168,18 +193,4 @@ function ProviderForm({
       </form>
     </>
   )
-}
-
-function getProviderBaseUrl(provider: Partial<FimProvider>): string {
-  return buildProviderBaseUrl(provider)
-}
-
-function getProviderFromBaseUrl(
-  provider: FimProvider,
-  baseUrl: string
-): FimProvider {
-  return {
-    ...provider,
-    ...parseProviderBaseUrl(baseUrl)
-  }
 }

@@ -1,13 +1,12 @@
 import * as vscode from "vscode"
 
 import {
-  ACTIVE_CHAT_PROVIDER_STORAGE_KEY,
-  ACTIVE_EMBEDDINGS_PROVIDER_STORAGE_KEY,
   ACTIVE_FIM_PROVIDER_STORAGE_KEY
 } from "../common/constants"
-
-import { FimProvider } from "./provider-manager"
-import { getIsOpenAICompatible } from "./utils"
+import {
+  DEFAULT_PROVIDER_FORM_VALUES,
+  FimProvider
+} from "../common/deepseek"
 
 export class Base {
   public config = vscode.workspace.getConfiguration("fim")
@@ -28,31 +27,13 @@ export class Base {
     const provider = this.context?.globalState.get<FimProvider>(
       ACTIVE_FIM_PROVIDER_STORAGE_KEY
     )
-    return provider
+    return provider || DEFAULT_PROVIDER_FORM_VALUES
   }
 
   public getProviderBaseUrl = (provider: FimProvider) => {
-    if (getIsOpenAICompatible(provider)) {
-      return `${provider.apiProtocol}://${provider.apiHostname}${
-        provider.apiPort ? `:${provider.apiPort}` : ""
-      }${provider.apiPath ? provider.apiPath : ""}`
-    } else {
-      return ""
-    }
-  }
-
-  public getProvider = () => {
-    const provider = this.context?.globalState.get<FimProvider>(
-      ACTIVE_CHAT_PROVIDER_STORAGE_KEY
-    )
-    return provider
-  }
-
-  public getEmbeddingProvider = () => {
-    const provider = this.context?.globalState.get<FimProvider>(
-      ACTIVE_EMBEDDINGS_PROVIDER_STORAGE_KEY
-    )
-    return provider
+    return `${provider.apiProtocol}://${provider.apiHostname}${
+      provider.apiPort ? `:${provider.apiPort}` : ""
+    }${provider.apiPath ? provider.apiPath : ""}`
   }
 
   public updateConfig() {

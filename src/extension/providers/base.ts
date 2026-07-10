@@ -1,22 +1,22 @@
 import * as vscode from "vscode"
 
 import {
+  ACTIVE_FIM_PROVIDER_STORAGE_KEY,
+  DEFAULT_PROVIDER_FORM_VALUES,
   EVENT_NAME,
-  FIM_COMMAND_NAME
+  FIM_COMMAND_NAME,
+  PROVIDER_EVENT_NAME
 } from "../../common/constants"
+import type { FimProvider } from "../../common/deepseek"
 import { logger } from "../../common/logger"
 import { getConfigKey, SETTING_DEFS } from "../../common/settings-schema"
 import {
-  ApiModel,
   ClientMessage,
   LanguageType,
   ServerMessage,
   ThemeType
 } from "../../common/types"
 import { getMessagesForConfigUpdate } from "../config-messages"
-import { OllamaService } from "../ollama"
-import { ProviderManager } from "../provider-manager"
-import { SessionManager } from "../session-manager"
 import { FileTreeProvider } from "../tree"
 import {
   getLanguage,
@@ -25,8 +25,6 @@ import {
 
 export class BaseProvider {
   private _fileTreeProvider: FileTreeProvider
-  private _ollamaService: OllamaService | undefined
-  private _sessionManager: SessionManager | undefined
   public context: vscode.ExtensionContext
   public webView?: vscode.Webview
 
@@ -38,28 +36,18 @@ export class BaseProvider {
 
   constructor(
     context: vscode.ExtensionContext,
-    _statusBar: vscode.StatusBarItem,
-    sessionManager?: SessionManager
+    _statusBar: vscode.StatusBarItem
   ) {
+    void _statusBar
     this.context = context
     this._fileTreeProvider = new FileTreeProvider()
-    this._ollamaService = new OllamaService()
-    this._sessionManager = sessionManager
   }
 
   public registerWebView(webView: vscode.Webview) {
     this.webView = webView
-    this.initializeServices()
     this.registerEventListeners()
+    this.ensureDeepSeekProvider()
     logger.log("Webview registered successfully")
-  }
-
-  private initializeServices() {
-    if (!this.webView) return
-
-    new ProviderManager(this.context, this.webView)
-
-    logger.log("Provider management initialized successfully")
   }
 
   private registerEventListeners() {
@@ -69,7 +57,6 @@ export class BaseProvider {
       string,
       ((message: ClientMessage) => void | Promise<void>) | undefined
     > = {
-      [EVENT_NAME.fimFetchOllamaModels]: this.fetchOllamaModels,
       [EVENT_NAME.fimGetConfigValue]: this.getConfigurationValue,
       [EVENT_NAME.fimGetAllConfigValues]: this.getAllConfigValues,
       [EVENT_NAME.fimGetWorkspaceContext]: this.getFimWorkspaceContext,
@@ -78,7 +65,6 @@ export class BaseProvider {
       [EVENT_NAME.fimNotification]: this.sendNotification,
       [EVENT_NAME.fimSendLanguage]: this.getCurrentLanguage,
       [EVENT_NAME.fimSendTheme]: this.getTheme,
-      [EVENT_NAME.fimSessionContext]: this.getSessionContext,
       [EVENT_NAME.fimSetConfigValue]: this.setConfigurationValue,
       [EVENT_NAME.fimSetGlobalContext]: this.setGlobalContext,
       [EVENT_NAME.fimSetTab]: this.setTab,
@@ -86,7 +72,12 @@ export class BaseProvider {
       [EVENT_NAME.fimFileListRequest]: this.fileListRequest,
       [EVENT_NAME.fimGetLocale]: this.sendLocaleToWebView,
       [EVENT_NAME.fimStopGeneration]: this.destroyStream,
-      [EVENT_NAME.fimSidebarReady]: this._sidebarReadyHandler
+      [EVENT_NAME.fimSidebarReady]: this._sidebarReadyHandler,
+      [PROVIDER_EVENT_NAME.addProvider]: this.updateFimProvider,
+      [PROVIDER_EVENT_NAME.getActiveFimProvider]: this.getActiveFimProvider,
+      [PROVIDER_EVENT_NAME.getAllProviders]: this.getAllProviders,
+      [PROVIDER_EVENT_NAME.testProvider]: this.testProvider,
+      [PROVIDER_EVENT_NAME.updateProvider]: this.updateFimProvider
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -171,21 +162,6 @@ export class BaseProvider {
     )
   }
 
-  private fetchOllamaModels = async () => {
-    try {
-      const models = await this._ollamaService?.fetchModels()
-      if (!models?.length) {
-        return
-      }
-      this.webView?.postMessage({
-        type: EVENT_NAME.fimFetchOllamaModels,
-        data: models
-      } as ServerMessage<ApiModel[]>)
-    } catch {
-      return
-    }
-  }
-
   private sendNotification = (message: ClientMessage) => {
     vscode.window.showInformationMessage(message.data as string)
   }
@@ -212,14 +188,6 @@ export class BaseProvider {
       type: EVENT_NAME.fimSendLanguage,
       data: getLanguage()
     } as ServerMessage<LanguageType>)
-  }
-
-  private getSessionContext = (data: ClientMessage) => {
-    if (!data.key) return undefined
-    return this.webView?.postMessage({
-      type: `${EVENT_NAME.fimSessionContext}-${data.key}`,
-      data: this._sessionManager?.get(data.key)
-    })
   }
 
   private setGlobalContext = (message: ClientMessage) => {
@@ -253,5 +221,90 @@ export class BaseProvider {
 
   private fimHideBackButton() {
     vscode.commands.executeCommand(FIM_COMMAND_NAME.hideBackButton)
+  }
+
+  private ensureDeepSeekProvider() {
+    const provider = this.context.globalState.get<FimProvider>(
+      ACTIVE_FIM_PROVIDER_STORAGE_KEY
+    )
+    if (provider) return provider
+
+    this.context.globalState.update(
+      ACTIVE_FIM_PROVIDER_STORAGE_KEY,
+      DEFAULT_PROVIDER_FORM_VALUES
+    )
+    return DEFAULT_PROVIDER_FORM_VALUES
+  }
+
+  private getActiveFimProvider = () => {
+    const provider = this.ensureDeepSeekProvider()
+    this.webView?.postMessage({
+      type: PROVIDER_EVENT_NAME.getActiveFimProvider,
+      data: provider
+    } as ServerMessage<FimProvider>)
+  }
+
+  private getAllProviders = () => {
+    const provider = this.ensureDeepSeekProvider()
+    this.webView?.postMessage({
+      type: PROVIDER_EVENT_NAME.getAllProviders,
+      data: { [provider.id]: provider }
+    } as ServerMessage<Record<string, FimProvider>>)
+  }
+
+  private updateFimProvider = (message: ClientMessage) => {
+    const provider = {
+      ...DEFAULT_PROVIDER_FORM_VALUES,
+      ...(message.data as Partial<FimProvider>),
+      label: "DeepSeek",
+      provider: DEFAULT_PROVIDER_FORM_VALUES.provider,
+      type: "fim"
+    }
+    this.context.globalState.update(ACTIVE_FIM_PROVIDER_STORAGE_KEY, provider)
+    this.getActiveFimProvider()
+    this.getAllProviders()
+  }
+
+  private testProvider = async (message: ClientMessage) => {
+    const provider = {
+      ...DEFAULT_PROVIDER_FORM_VALUES,
+      ...(message.data as Partial<FimProvider>)
+    }
+    const url = `${provider.apiProtocol}://${provider.apiHostname}${
+      provider.apiPort ? `:${provider.apiPort}` : ""
+    }${provider.apiPath || ""}`
+
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          ...(provider.apiKey
+            ? { authorization: `Bearer ${provider.apiKey}` }
+            : {})
+        },
+        body: JSON.stringify({
+          max_tokens: 1,
+          model: provider.modelName,
+          prompt: "hi",
+          stream: false
+        })
+      })
+
+      this.webView?.postMessage({
+        type: PROVIDER_EVENT_NAME.testProviderResult,
+        data: response.ok
+          ? { success: true }
+          : { success: false, error: await response.text() }
+      } as ServerMessage<{ success: boolean; error?: string }>)
+    } catch (error) {
+      this.webView?.postMessage({
+        type: PROVIDER_EVENT_NAME.testProviderResult,
+        data: {
+          success: false,
+          error: error instanceof Error ? error.message : String(error)
+        }
+      } as ServerMessage<{ success: boolean; error?: string }>)
+    }
   }
 }

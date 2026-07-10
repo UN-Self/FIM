@@ -21,7 +21,6 @@ import { SyntaxNode } from "web-tree-sitter"
 
 import {
   ALL_BRACKETS,
-  API_PROVIDERS,
   CLOSING_BRACKETS,
   defaultChunkOptions,
   EVENT_NAME,
@@ -30,7 +29,6 @@ import {
   knownErrorMessages,
   MULTILINE_TYPES,
   NORMALIZE_REGEX,
-  OPEN_AI_COMPATIBLE_PROVIDERS,
   OPENING_BRACKETS,
   QUOTES,
   SKIP_DECLARATION_SYMBOLS} from "../common/constants"
@@ -48,7 +46,6 @@ import {
 } from "../common/types"
 
 import { getParser } from "./parser"
-import { FimProvider } from "./provider-manager"
 
 const execAsync = util.promisify(exec)
 
@@ -415,31 +412,16 @@ export const getResponseData = (data: StreamResponse) => {
   }
 }
 
-export const getIsOpenAICompatible = (provider: FimProvider) => {
-  const providers = Object.values(OPEN_AI_COMPATIBLE_PROVIDERS) as string[]
-  return providers.includes(provider.provider)
-}
-
 export const getFimDataFromProvider = (
-  provider: string,
+  _provider: string,
   data: StreamResponse | undefined
 ) => {
-  switch (provider) {
-    case API_PROVIDERS.OpenAICompatible:
-    case API_PROVIDERS.Ollama:
-    case API_PROVIDERS.OpenWebUI:
-      return data?.response
-    case API_PROVIDERS.LlamaCpp:
-      return data?.content
-    case API_PROVIDERS.LiteLLM:
-      return data?.choices[0].delta.content
-    default:
-      if (!data?.choices.length) return
-      if (data?.choices[0].text === "undefined") {
-        return ""
-      }
-      return data?.choices[0].text ? data?.choices[0].text : ""
+  void _provider
+  if (!data?.choices.length) return
+  if (data?.choices[0].text === "undefined") {
+    return ""
   }
+  return data?.choices[0].text ? data?.choices[0].text : ""
 }
 
 export function isStreamWithDataPrefix(stringBuffer: string) {

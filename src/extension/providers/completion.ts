@@ -33,6 +33,7 @@ import {
   MULTILINE_OUTSIDE,
   OPENING_BRACKETS
 } from "../../common/constants"
+import type { FimProvider } from "../../common/deepseek"
 import { supportedLanguages } from "../../common/languages"
 import { logger } from "../../common/logger"
 import {
@@ -55,8 +56,6 @@ import {
 } from "../fim-templates"
 import { llm } from "../llm"
 import { getNodeAtPosition, getParser } from "../parser"
-import { FimProvider } from "../provider-manager"
-import { createStreamRequestBodyFim } from "../provider-options"
 import {
   getCurrentLineText,
   getFimDataFromProvider,
@@ -105,11 +104,13 @@ export class CompletionProvider
   }
 
   private buildFimRequest(prompt: string, provider: FimProvider) {
-    const body = createStreamRequestBodyFim(provider.provider, prompt, {
+    const body = {
+      max_tokens: this.config.numPredictFim,
       model: provider.modelName,
-      numPredictFim: this.config.numPredictFim,
+      prompt,
+      stream: true,
       temperature: this.config.temperature
-    })
+    }
 
     const options: StreamRequestOptions = {
       hostname: provider.apiHostname || "",

@@ -1,7 +1,7 @@
 import {
   DEEPSEEK_DEFAULT_BASE_URL,
   DEFAULT_PROVIDER_FORM_VALUES
-} from "./constants/providers"
+} from "./deepseek"
 
 export interface ProviderUrlFields {
   apiHostname?: string

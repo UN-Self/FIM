@@ -1,7 +1,6 @@
 import * as vscode from "vscode"
 
 import { logger } from "../../common/logger"
-import { SessionManager } from "../session-manager"
 import { getNonce } from "../utils"
 
 import { BaseProvider } from "./base"
@@ -12,10 +11,9 @@ export class SidebarProvider extends BaseProvider {
 
   constructor(
     statusBarItem: vscode.StatusBarItem,
-    context: vscode.ExtensionContext,
-    sessionManager: SessionManager
+    context: vscode.ExtensionContext
   ) {
-    super(context, statusBarItem, sessionManager)
+    super(context, statusBarItem)
     this.context = context
     this.registerSidebarReadyHandler(this.handleSidebarReady)
   }

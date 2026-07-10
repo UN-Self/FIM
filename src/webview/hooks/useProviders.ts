@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react"
 
 import { PROVIDER_EVENT_NAME } from "../../common/constants"
+import type { FimProvider } from "../../common/deepseek"
 import { ClientMessage, ServerMessage } from "../../common/types"
-import { FimProvider } from "../../extension/provider-manager"
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const global = globalThis as any

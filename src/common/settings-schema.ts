@@ -151,17 +151,6 @@ export const SETTING_DEFS: SettingDef[] = [
     type: "boolean",
     titleKey: "settings.logging.title",
     descKey: "settings.logging.desc"
-  },
-  {
-    key: "fim.providerStorageLocation",
-    group: "general",
-    type: "select",
-    options: [
-      { value: "globalState", labelKey: "settings.storage.globalState" },
-      { value: "file", labelKey: "settings.storage.file" }
-    ],
-    titleKey: "settings.storage.title",
-    descKey: "settings.storage.desc"
   }
 ]
 

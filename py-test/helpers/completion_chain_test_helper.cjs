@@ -1,7 +1,6 @@
 require("./vscode_intercept.cjs")
 const vscode = require("vscode")
 const { getFimPrompt, getStopWords } = require("./out/fim-templates.test.js")
-const { createStreamRequestBodyFim } = require("./out/provider-options.test.js")
 const { CompletionFormatter } = require("./out/completion-formatter.test.js")
 const { getPrefixSuffix } = require("./out/utils.test.js")
 
@@ -22,11 +21,13 @@ function buildPromptAndRequest(params) {
   const prompt = getFimPrompt(fimModel, fimTemplate, promptArgs)
   const stopWords = getStopWords(fimModel, fimTemplate)
 
-  const body = createStreamRequestBodyFim(provider.provider, prompt, {
-    temperature: config.temperature || 0.2,
-    numPredictFim: config.numPredictFim || 128,
+  const body = {
+    max_tokens: config.numPredictFim || 128,
     model: fimModel,
-  })
+    prompt,
+    stream: true,
+    temperature: config.temperature || 0.2,
+  }
 
   return { prompt, stopWords, body }
 }

@@ -275,16 +275,6 @@
           "type": "boolean",
           "default": true,
           "markdownDescription": "Activates debug logging for FIM. When `true`, FIM will output detailed logs, which can be helpful for troubleshooting."
-        },
-        "fim.providerStorageLocation": {
-          "order": 22,
-          "type": "string",
-          "enum": [
-            "globalState",
-            "file"
-          ],
-          "default": "globalState",
-          "markdownDescription": "Specifies where to store FIM provider configurations. 'globalState' uses VS Code's global state (persists per domain, may be lost if domain changes frequently). 'file' stores configurations in a file within the extension's global storage directory (more resilient to domain changes)."
         }
       }
     }

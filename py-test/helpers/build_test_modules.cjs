@@ -5,7 +5,6 @@ const PROJECT_ROOT = path.resolve(__dirname, "..", "..")
 
 const MODULES = [
   { name: "fim-templates", entry: "src/extension/fim-templates.ts" },
-  { name: "provider-options", entry: "src/extension/provider-options.ts" },
   { name: "cache", entry: "src/extension/cache.ts" },
   { name: "completion-formatter", entry: "src/extension/completion-formatter.ts" },
   { name: "utils", entry: "src/extension/utils.ts" },

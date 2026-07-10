@@ -20,7 +20,6 @@ import { setContext } from "./extension/context"
 import { FileInteractionCache } from "./extension/file-interaction"
 import { CompletionProvider } from "./extension/providers/completion"
 import { SidebarProvider } from "./extension/providers/sidebar"
-import { SessionManager } from "./extension/session-manager"
 import { delayExecution } from "./extension/utils"
 import { getLineBreakCount } from "./webview/utils"
 
@@ -32,13 +31,7 @@ export async function activate(context: ExtensionContext) {
   logger.log("Fim completion extension starting")
 
   const fileInteractionCache = new FileInteractionCache()
-  const sessionManager = new SessionManager()
-
-  const sidebarProvider = new SidebarProvider(
-    statusBarItem,
-    context,
-    sessionManager
-  )
+  const sidebarProvider = new SidebarProvider(statusBarItem, context)
 
   const completionProvider = new CompletionProvider(
     statusBarItem,
