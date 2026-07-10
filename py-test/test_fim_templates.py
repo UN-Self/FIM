@@ -13,6 +13,8 @@ def test_fim_template_format(run_node_module, case):
     assert result is not None, f"getFimPrompt returned null for {case['name']}"
     for expected in case["expected_contains"]:
         assert expected in result, f"Expected '{expected}' in {case['name']} output: {result}"
+    for unexpected in case.get("expected_not_contains", []):
+        assert unexpected not in result, f"Did not expect '{unexpected}' in {case['name']} output: {result}"
 
 
 @pytest.mark.parametrize("case", FIM_AUTO_CASES, ids=[c["model"] for c in FIM_AUTO_CASES])
@@ -59,6 +61,8 @@ def test_repository_level_template(run_node_module):
     assert result is not None, "getFimTemplateRepositoryLevel returned null"
     for expected in data["expected_contains"]:
         assert expected in result, f"Expected '{expected}' in repo-level template: {result}"
+    for unexpected in data.get("expected_not_contains", []):
+        assert unexpected not in result, f"Did not expect '{unexpected}' in repo-level template: {result}"
 
 
 def test_default_fim_prompt_template(run_node_module):
@@ -71,9 +75,9 @@ def test_default_fim_prompt_template(run_node_module):
     }
     result = run_node_module("fim-templates", "getDefaultFimPromptTemplate", args=[args])
     assert result is not None
-    assert "<PRE>" in result
-    assert "<SUF>" in result
-    assert "<MID>" in result
+    assert "<\uff5cfim\u2581begin\uff5c" in result
+    assert "<\uff5cfim\u2581hole\uff5c" in result
+    assert "<\uff5cfim\u2581end\uff5c" in result
 
 
 def test_file_context_included_when_enabled(run_node_module):
@@ -84,7 +88,7 @@ def test_file_context_included_when_enabled(run_node_module):
         "prefixSuffix": {"prefix": "x = 1", "suffix": ""},
         "language": "python",
     }
-    result = run_node_module("fim-templates", "getFimPrompt", args=["codellama:7b", "codellama", args])
+    result = run_node_module("fim-templates", "getFimPrompt", args=["deepseek-chat", "deepseek", args])
     assert "some context" in result
 
 
@@ -96,5 +100,5 @@ def test_file_context_excluded_when_disabled(run_node_module):
         "prefixSuffix": {"prefix": "x = 1", "suffix": ""},
         "language": "python",
     }
-    result = run_node_module("fim-templates", "getFimPrompt", args=["codellama:7b", "codellama", args])
+    result = run_node_module("fim-templates", "getFimPrompt", args=["deepseek-chat", "deepseek", args])
     assert "some context" not in result

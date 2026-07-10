@@ -1,17 +1,8 @@
 export const FIM_TEMPLATE_FORMAT = {
   automatic: "automatic",
-  codegemma: "codegemma",
-  codellama: "codellama",
-  codeqwen: "codeqwen",
-  codestral: "codestral",
   custom: "custom-template",
-  deepseek: "deepseek",
-  llama: "llama",
-  stableCode: "stable-code",
-  starcoder: "starcoder"
+  deepseek: "deepseek"
 }
-
-export const STOP_LLAMA = ["<EOT>"]
 
 export const STOP_DEEPSEEK = [
   "<｜fim begin｜>",
@@ -20,29 +11,6 @@ export const STOP_DEEPSEEK = [
   "<END>",
   "<｜end of sentence｜>"
 ]
-
-export const STOP_STARCODER = [
-  "<|endoftext|>",
-  "<file_sep>",
-  "<file_sep>",
-  "<fim_prefix>",
-  "<repo_name>"
-]
-
-export const STOP_QWEN = [
-  "<|endoftext|>",
-  "<|file_sep|>",
-  "<|fim_prefix|>",
-  "<|im_end|>",
-  "<|im_start|>",
-  "<|repo_name|>",
-  "<|fim_pad|>",
-  "<|cursor|>"
-]
-
-export const STOP_CODEGEMMA = ["<|file_separator|>", "<|end_of_turn|>", "<eos>"]
-
-export const STOP_CODESTRAL = ["[PREFIX]", "[SUFFIX]"]
 
 export const WASM_LANGUAGES: { [key: string]: string } = {
   "php-s": "php",

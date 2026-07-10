@@ -1,11 +1,5 @@
 import {
-  FIM_TEMPLATE_FORMAT,
-  STOP_CODEGEMMA,
-  STOP_CODESTRAL,
-  STOP_DEEPSEEK,
-  STOP_LLAMA,
-  STOP_QWEN,
-  STOP_STARCODER
+  STOP_DEEPSEEK
 } from "../common/constants"
 import { supportedLanguages } from "../common/languages"
 import {
@@ -30,23 +24,6 @@ const getFileContext = (
   return { heading: header ?? "", fileContext }
 }
 
-const getFimPromptTemplateLLama = ({
-  context,
-  header,
-  fileContextEnabled,
-  prefixSuffix,
-  language
-}: FimPromptTemplate) => {
-  const { prefix, suffix } = prefixSuffix
-  const { fileContext, heading } = getFileContext(
-    fileContextEnabled,
-    context,
-    language,
-    header
-  )
-  return `<PRE>${fileContext} \n${heading}${prefix} <SUF> ${suffix} <MID>`
-}
-
 const getFimPromptTemplateDeepseek = ({
   context,
   header,
@@ -64,161 +41,44 @@ const getFimPromptTemplateDeepseek = ({
   return `<｜fim▁begin｜>${fileContext}\n${heading}${prefix}<｜fim▁hole｜>${suffix}<｜fim▁end｜>`
 }
 
-const getFimPromptTemplateCodestral = ({
-  context,
-  header,
-  fileContextEnabled,
-  prefixSuffix,
-  language
-}: FimPromptTemplate) => {
-  const { prefix, suffix } = prefixSuffix
-  const { fileContext, heading } = getFileContext(
-    fileContextEnabled,
-    context,
-    language,
-    header
-  )
-  return `${fileContext}\n\n[SUFFIX]${suffix}[PREFIX]${heading}${prefix}`
-}
-
-const getFimPromptTemplateQwen = ({
-  context,
-  header,
-  fileContextEnabled,
-  prefixSuffix,
-  language
-}: FimPromptTemplate) => {
-  const { prefix, suffix } = prefixSuffix
-  const { fileContext, heading } = getFileContext(
-    fileContextEnabled,
-    context,
-    language,
-    header
-  )
-  if (fileContextEnabled) {
-    return `<|file_sep|>${fileContext}\n\n<|file_sep|>${heading}<|fim_prefix|>${prefix}<|fim_suffix|>${suffix}<|fim_middle|>`
-  } else {
-    return `<|fim_prefix|>${prefix}<|fim_suffix|>${suffix}<|fim_middle|>`
-  }
-}
-
-const getFimPromptTemplateOther = ({
-  context,
-  header,
-  fileContextEnabled,
-  prefixSuffix,
-  language
-}: FimPromptTemplate) => {
-  const { prefix, suffix } = prefixSuffix
-  const { fileContext, heading } = getFileContext(
-    fileContextEnabled,
-    context,
-    language,
-    header
-  )
-  return `<fim_prefix>${fileContext}\n${heading}${prefix}<fim_suffix>${suffix}<fim_middle>`
-}
-
-const getFimPromptTemplateQwenMulti = (
+const getRepositoryContext = (
   repo: string,
-  files: RepositoryLevelData[],
-  prefixSuffix: PrefixSuffix,
-  currentFileName: string | undefined
-): string => {
-  let prompt = `<|repo_name|>${repo}\n`
-  for (const file of files) {
-    prompt += `<|file_sep|>${file.name}\n${file.text}\n`
-  }
-  prompt += `<|file_sep|>${currentFileName}\n${prefixSuffix.prefix}`
-  return prompt.trim()
-}
+  files: RepositoryLevelData[]
+) => {
+  const fileContexts = files.map((file) => {
+    return `File: ${file.name}\n${file.text}`
+  })
 
-const templateMap: Record<string, (args: FimPromptTemplate) => string> = {
-  [FIM_TEMPLATE_FORMAT.codellama]: getFimPromptTemplateLLama,
-  [FIM_TEMPLATE_FORMAT.llama]: getFimPromptTemplateLLama,
-  [FIM_TEMPLATE_FORMAT.deepseek]: getFimPromptTemplateDeepseek,
-  [FIM_TEMPLATE_FORMAT.codestral]: getFimPromptTemplateCodestral,
-  [FIM_TEMPLATE_FORMAT.codeqwen]: getFimPromptTemplateQwen,
-  [FIM_TEMPLATE_FORMAT.stableCode]: getFimPromptTemplateOther,
-  [FIM_TEMPLATE_FORMAT.starcoder]: getFimPromptTemplateOther,
-  [FIM_TEMPLATE_FORMAT.codegemma]: getFimPromptTemplateOther
+  return [`Repository: ${repo}`, ...fileContexts].join("\n\n")
 }
 
 export const getDefaultFimPromptTemplate = (args: FimPromptTemplate) =>
-  getFimPromptTemplateLLama(args)
-
-const getFimTemplateAuto = (fimModel: string, args: FimPromptTemplate) => {
-  for (const format of [
-    FIM_TEMPLATE_FORMAT.codellama,
-    FIM_TEMPLATE_FORMAT.llama,
-    FIM_TEMPLATE_FORMAT.deepseek,
-    FIM_TEMPLATE_FORMAT.codestral,
-    FIM_TEMPLATE_FORMAT.codeqwen,
-    FIM_TEMPLATE_FORMAT.stableCode,
-    FIM_TEMPLATE_FORMAT.starcoder,
-    FIM_TEMPLATE_FORMAT.codegemma
-  ]) {
-    if (fimModel.includes(format)) {
-      return templateMap[format](args)
-    }
-  }
-  return getDefaultFimPromptTemplate(args)
-}
-
-const getFimTemplateChosen = (format: string, args: FimPromptTemplate) => {
-  return templateMap[format]
-    ? templateMap[format](args)
-    : getDefaultFimPromptTemplate(args)
-}
+  getFimPromptTemplateDeepseek(args)
 
 export const getFimPrompt = (
-  fimModel: string,
-  format: string,
+  _fimModel: string,
+  _format: string,
   args: FimPromptTemplate
 ) => {
-  return format === FIM_TEMPLATE_FORMAT.automatic
-    ? getFimTemplateAuto(fimModel, args)
-    : getFimTemplateChosen(format, args)
+  void _fimModel
+  void _format
+  return getFimPromptTemplateDeepseek(args)
 }
 
-const stopWordsMap: Record<string, string[]> = {
-  [FIM_TEMPLATE_FORMAT.codellama]: STOP_LLAMA,
-  [FIM_TEMPLATE_FORMAT.llama]: STOP_LLAMA,
-  [FIM_TEMPLATE_FORMAT.deepseek]: STOP_DEEPSEEK,
-  [FIM_TEMPLATE_FORMAT.stableCode]: STOP_STARCODER,
-  [FIM_TEMPLATE_FORMAT.starcoder]: STOP_STARCODER,
-  [FIM_TEMPLATE_FORMAT.codeqwen]: STOP_QWEN,
-  [FIM_TEMPLATE_FORMAT.codegemma]: STOP_CODEGEMMA,
-  [FIM_TEMPLATE_FORMAT.codestral]: STOP_CODESTRAL
+export const getStopWordsAuto = (_fimModel: string) => {
+  void _fimModel
+  return STOP_DEEPSEEK
 }
 
-export const getStopWordsAuto = (fimModel: string) => {
-  for (const format of [
-    FIM_TEMPLATE_FORMAT.codellama,
-    FIM_TEMPLATE_FORMAT.llama,
-    FIM_TEMPLATE_FORMAT.deepseek,
-    FIM_TEMPLATE_FORMAT.stableCode,
-    FIM_TEMPLATE_FORMAT.starcoder,
-    FIM_TEMPLATE_FORMAT.codeqwen,
-    FIM_TEMPLATE_FORMAT.codegemma,
-    FIM_TEMPLATE_FORMAT.codestral
-  ]) {
-    if (fimModel.includes(format)) {
-      return stopWordsMap[format]
-    }
-  }
-  return STOP_LLAMA
+export const getStopWordsChosen = (_format: string) => {
+  void _format
+  return STOP_DEEPSEEK
 }
 
-export const getStopWordsChosen = (format: string) => {
-  return stopWordsMap[format] || STOP_LLAMA
-}
-
-export const getStopWords = (fimModel: string, format: string) => {
-  return format === FIM_TEMPLATE_FORMAT.automatic ||
-    format === FIM_TEMPLATE_FORMAT.custom
-    ? getStopWordsAuto(fimModel)
-    : getStopWordsChosen(format)
+export const getStopWords = (_fimModel: string, _format: string) => {
+  void _fimModel
+  void _format
+  return STOP_DEEPSEEK
 }
 
 export const getFimTemplateRepositoryLevel = (
@@ -227,10 +87,11 @@ export const getFimTemplateRepositoryLevel = (
   prefixSuffix: PrefixSuffix,
   currentFileName: string | undefined
 ) => {
-  return getFimPromptTemplateQwenMulti(
-    repo,
-    code,
+  return getFimPromptTemplateDeepseek({
+    context: getRepositoryContext(repo, code),
+    header: currentFileName ? `File: ${currentFileName}\n` : "",
+    fileContextEnabled: true,
     prefixSuffix,
-    currentFileName
-  )
+    language: undefined
+  })
 }

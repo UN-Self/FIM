@@ -1,6 +1,6 @@
 FIM_TEMPLATE_CASES = [
     {
-        "name": "codellama",
+        "name": "legacy_format_uses_deepseek",
         "model": "codellama:7b",
         "format": "codellama",
         "args": {
@@ -10,10 +10,17 @@ FIM_TEMPLATE_CASES = [
             "prefixSuffix": {"prefix": "function hello() {", "suffix": "}"},
             "language": "javascript",
         },
-        "expected_contains": ["<PRE>", "<SUF>", "<MID>", "function hello() {", "}"],
+        "expected_contains": [
+            "<\uff5cfim\u2581begin\uff5c",
+            "<\uff5cfim\u2581hole\uff5c",
+            "<\uff5cfim\u2581end\uff5c",
+            "function hello() {",
+            "}",
+        ],
+        "expected_not_contains": ["<PRE>", "<SUF>", "<MID>"],
     },
     {
-        "name": "deepseek",
+        "name": "deepseek_format",
         "model": "deepseek-coder:6.7b",
         "format": "deepseek",
         "args": {
@@ -24,93 +31,29 @@ FIM_TEMPLATE_CASES = [
             "language": "typescript",
         },
         "expected_contains": ["<\uff5cfim\u2581begin\uff5c", "<\uff5cfim\u2581hole\uff5c", "<\uff5cfim\u2581end\uff5c"],
-    },
-    {
-        "name": "codestral",
-        "model": "codestral:22b",
-        "format": "codestral",
-        "args": {
-            "context": "",
-            "header": "",
-            "fileContextEnabled": False,
-            "prefixSuffix": {"prefix": "def foo():", "suffix": "    pass"},
-            "language": "python",
-        },
-        "expected_contains": ["[SUFFIX]", "[PREFIX]", "def foo():"],
-    },
-    {
-        "name": "codeqwen",
-        "model": "codeqwen:7b",
-        "format": "codeqwen",
-        "args": {
-            "context": "",
-            "header": "",
-            "fileContextEnabled": False,
-            "prefixSuffix": {"prefix": "import os", "suffix": ""},
-            "language": "python",
-        },
-        "expected_contains": ["<|fim_prefix|>", "<|fim_suffix|>", "<|fim_middle|>"],
-    },
-    {
-        "name": "qwen_with_context",
-        "model": "qwen2.5-coder:7b",
-        "format": "codeqwen",
-        "args": {
-            "context": "some context here",
-            "header": "// Language: python",
-            "fileContextEnabled": True,
-            "prefixSuffix": {"prefix": "def foo():", "suffix": "    return 1"},
-            "language": "python",
-        },
-        "expected_contains": ["<|file_sep|>", "<|fim_prefix|>", "<|fim_suffix|>", "<|fim_middle|>"],
-    },
-    {
-        "name": "starcoder",
-        "model": "starcoder2:3b",
-        "format": "starcoder",
-        "args": {
-            "context": "",
-            "header": "",
-            "fileContextEnabled": False,
-            "prefixSuffix": {"prefix": "console.log(", "suffix": ")"},
-            "language": "javascript",
-        },
-        "expected_contains": ["<fim_prefix>", "<fim_suffix>", "<fim_middle>"],
-    },
-    {
-        "name": "llama",
-        "model": "llama-code:7b",
-        "format": "llama",
-        "args": {
-            "context": "",
-            "header": "",
-            "fileContextEnabled": False,
-            "prefixSuffix": {"prefix": "let x = 1", "suffix": ""},
-            "language": "typescript",
-        },
-        "expected_contains": ["<PRE>", "<SUF>", "<MID>"],
+        "expected_not_contains": ["<PRE>", "<|fim_prefix|>", "[SUFFIX]"],
     },
 ]
 
 FIM_AUTO_CASES = [
-    {"model": "codellama:7b", "expected_format_contains": "<PRE>"},
+    {"model": "codellama:7b", "expected_format_contains": "<\uff5cfim\u2581begin\uff5c"},
     {"model": "deepseek-coder:6.7b", "expected_format_contains": "<\uff5cfim\u2581begin\uff5c"},
-    {"model": "codestral:22b", "expected_format_contains": "[SUFFIX]"},
-    {"model": "codeqwen:7b", "expected_format_contains": "<|fim_prefix|>"},
-    {"model": "starcoder2:3b", "expected_format_contains": "<fim_prefix>"},
-    {"model": "codegemma:7b", "expected_format_contains": "<fim_prefix>"},
-    {"model": "unknown-model", "expected_format_contains": "<PRE>"},
+    {"model": "codestral:22b", "expected_format_contains": "<\uff5cfim\u2581begin\uff5c"},
+    {"model": "codeqwen:7b", "expected_format_contains": "<\uff5cfim\u2581begin\uff5c"},
+    {"model": "starcoder2:3b", "expected_format_contains": "<\uff5cfim\u2581begin\uff5c"},
+    {"model": "codegemma:7b", "expected_format_contains": "<\uff5cfim\u2581begin\uff5c"},
+    {"model": "unknown-model", "expected_format_contains": "<\uff5cfim\u2581begin\uff5c"},
 ]
 
 STOP_WORDS_CASES = [
-    {"model": "codellama:7b", "format": "codellama", "expected_contains": "<EOT>"},
+    {"model": "codellama:7b", "format": "codellama", "expected_contains": "<\uff5cfim begin\uff5c>"},
     {"model": "deepseek-coder:6.7b", "format": "deepseek", "expected_contains": "<\uff5cfim begin\uff5c>"},
-    {"model": "qwen2.5-coder:7b", "format": "codeqwen", "expected_contains": "<|fim_pad|>"},
-    {"model": "codestral:22b", "format": "codestral", "expected_contains": "[PREFIX]"},
-    {"model": "starcoder2:3b", "format": "starcoder", "expected_contains": "<file_sep>"},
-    {"model": "codegemma:7b", "format": "codegemma", "expected_contains": "<|file_separator|>"},
-    {"model": "codellama:7b", "format": "automatic", "expected_contains": "<EOT>"},
-    {"model": "unknown-model", "format": "automatic", "expected_contains": "<EOT>"},
+    {"model": "qwen2.5-coder:7b", "format": "codeqwen", "expected_contains": "<\uff5cfim begin\uff5c>"},
+    {"model": "codestral:22b", "format": "codestral", "expected_contains": "<\uff5cfim begin\uff5c>"},
+    {"model": "starcoder2:3b", "format": "starcoder", "expected_contains": "<\uff5cfim begin\uff5c>"},
+    {"model": "codegemma:7b", "format": "codegemma", "expected_contains": "<\uff5cfim begin\uff5c>"},
+    {"model": "codellama:7b", "format": "automatic", "expected_contains": "<\uff5cfim begin\uff5c>"},
+    {"model": "unknown-model", "format": "automatic", "expected_contains": "<\uff5cfim begin\uff5c>"},
 ]
 
 REPO_LEVEL_DATA = {
@@ -121,5 +64,16 @@ REPO_LEVEL_DATA = {
     ],
     "prefixSuffix": {"prefix": "const c = ", "suffix": ";"},
     "currentFileName": "c.ts",
-    "expected_contains": ["<|repo_name|>my-project", "<|file_sep|>a.ts", "export const a = 1", "const c ="],
+    "expected_contains": [
+        "<\uff5cfim\u2581begin\uff5c",
+        "<\uff5cfim\u2581hole\uff5c",
+        "<\uff5cfim\u2581end\uff5c",
+        "Repository: my-project",
+        "File: a.ts",
+        "export const a = 1",
+        "File: c.ts",
+        "const c = ",
+        ";",
+    ],
+    "expected_not_contains": ["<|repo_name|>", "<|file_sep|>", "<|fim_prefix|>"],
 }
