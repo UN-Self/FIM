@@ -1,0 +1,16 @@
+{
+  "name": "fim-eval",
+  "version": "0.0.1",
+  "private": true,
+  "description": "FIM completion evaluation harness — layered metrics over the real FIM source chain",
+  "type": "commonjs",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "eval": "tsc -p tsconfig.json && node out/runner.js",
+    "eval:watch": "tsc -p tsconfig.json -w"
+  },
+  "devDependencies": {
+    "@types/node": "^16.18.68",
+    "typescript": "^4.7.4"
+  }
+}
