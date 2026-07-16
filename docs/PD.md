@@ -1,5 +1,15 @@
 # FIM: Fill-in-the-Middle 代码补全系统产品与技术设计文档
 
+> **⚠️ 本文档定位为「未来跨编辑器架构参考」。**
+>
+> 当前 MVP 阶段的权威设计文档是 [`fim-overall-design.md`](./fim-overall-design.md)。MVP 采用：
+> - 单体 VS Code 扩展（非 Client-Server）
+> - 手动触发优先的交互模型
+> - 单一 DeepSeek provider
+> - 四层逻辑架构（Interaction → Planning → Context → Model）
+>
+> 本文档描述的独立 Engine Server、多 provider、跨编辑器（Zed/Neovim/JetBrains）等能力属于 **Phase 3+ 的远期方向**。其中补全编排、意图识别、Prompt Builder、Postprocessor 等模块设计对当前 MVP 的实现仍有参考价值。
+
 ## 1. 产品定位
 
 FIM 是一个面向开发者的跨编辑器代码补全系统，核心目标是提供低延迟、低打扰、可控、可本地化的 AI 行内补全能力。

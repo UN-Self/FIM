@@ -1,9 +1,22 @@
 
 # FIM: Fill-in-the-Middle 补全系统 — PD 补充与难点清单
 
-> 本文档是对 `docs/PD.md` 的增量补充，基于对现有代码（`src/extension/providers/completion.ts` 等）的深入分析和现有方案（GitHub Copilot、vLLM、Ollama、Zed、tree-sitter）的文献调研。
+> 本文档是对 `docs/PD.md` 的增量补充。PD.md 已标注为「未来跨编辑器架构参考」，本文档同理。
 >
-> 每节标注对应修订的 PD 章节，难点部分标注 MVP 是否必须解决。
+> **各章节当前适用情况：**
+>
+> | 章节 | MVP 适用 | 说明 |
+> |------|---------|------|
+> | §1 IntentDetector 触发规则表 | ✅ 适用 | 意图识别是当前 MVP 技术验证核心 |
+> | §2 预计算机制（Prefetcher） | ❌ Phase 2+ | MVP 先停顿触发 + KV cache |
+> | §3 L1/L2 模型路由 | ❌ Phase 2+ | 当前只有云端 DeepSeek，无本地模型 |
+> | §4 KV cache 复用 | ❌ 只做静态前置 | 块对齐、预计算兜底为优化项 |
+> | §5 FeedbackEvent 简化 | ✅ 适用 | 只记录 Tab 接受，当前代码改造参考 |
+> | §6 服务端进程生命周期 | ❌ Phase 3+ | 独立 Engine Server 属于远期跨编辑器架构 |
+> | §7 tree-sitter 输入传输 | ✅ 适用 | MVP 传全文 + 缓存 tree |
+> | §8 Postprocessor 范围控制 | ✅ 适用 | 11 步后处理链已存在于 completion-formatter.ts |
+
+> **⚠️ 参见当前 MVP 权威文档：[`fim-overall-design.md`](./fim-overall-design.md)**
 
 ## 1. IntentDetector 触发规则表（补充 §6.3）
 

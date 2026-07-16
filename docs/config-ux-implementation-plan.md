@@ -14,12 +14,12 @@
 
 ## 范围说明（重要）
 
-**MVP 包含的 15 个可见设置**（boolean/number/select 三种类型）：
+**MVP 包含的 13 个可见设置**（boolean/number/select 三种类型）：
 - 指挥栏：`enabled`
 - 补全行为：`autoSuggestEnabled`、`debounceWait`、`enableSubsequentCompletions`、`multilineCompletionsEnabled`、`completionCacheEnabled`
-- 模型参数：`temperature`、`numPredictFim`、`maxLines`、`contextLength`、`keepAlive`
+- 模型参数：`temperature`、`numPredictFim`、`maxLines`、`contextLength`
 - 语言与上下文：`fileContextEnabled`
-- 通用：`locale`、`enableLogging`、`providerStorageLocation`
+- 通用：`locale`、`enableLogging`
 
 **MVP 排除（需要专用 UI，列为后续）**：
 - `enabledLanguages`（object map `{"*": true}`）— 需多选 UI
@@ -284,18 +284,6 @@ export const SETTING_DEFS: SettingDef[] = [
     titleKey: "settings.contextLength.title",
     descKey: "settings.contextLength.desc"
   },
-  {
-    key: "fim.keepAlive",
-    group: "model",
-    type: "select",
-    options: [
-      { value: "5m", labelKey: "settings.keepAlive.5m" },
-      { value: "30m", labelKey: "settings.keepAlive.30m" },
-      { value: "-1", labelKey: "settings.keepAlive.always" }
-    ],
-    titleKey: "settings.keepAlive.title",
-    descKey: "settings.keepAlive.desc"
-  },
   // ── context ──
   {
     key: "fim.fileContextEnabled",
@@ -309,21 +297,10 @@ export const SETTING_DEFS: SettingDef[] = [
     key: "fim.locale",
     group: "general",
     type: "select",
-    // MUST match the 13 locales loaded in src/webview/i18n.ts resources
+    // MUST match the locales loaded in src/webview/i18n.ts resources
     options: [
       { value: "en", labelKey: "settings.locale.en" },
-      { value: "de", labelKey: "settings.locale.de" },
-      { value: "es", labelKey: "settings.locale.es" },
-      { value: "esCL", labelKey: "settings.locale.esCL" },
-      { value: "fr", labelKey: "settings.locale.fr" },
-      { value: "it", labelKey: "settings.locale.it" },
-      { value: "ja", labelKey: "settings.locale.ja" },
-      { value: "ko", labelKey: "settings.locale.ko" },
-      { value: "nl", labelKey: "settings.locale.nl" },
-      { value: "pt", labelKey: "settings.locale.pt" },
-      { value: "ru", labelKey: "settings.locale.ru" },
-      { value: "zh-CN", labelKey: "settings.locale.zhCN" },
-      { value: "zh-HK", labelKey: "settings.locale.zhHK" }
+      { value: "zh-CN", labelKey: "settings.locale.zhCN" }
     ],
     titleKey: "settings.locale.title",
     descKey: "settings.locale.desc"
@@ -334,17 +311,6 @@ export const SETTING_DEFS: SettingDef[] = [
     type: "boolean",
     titleKey: "settings.logging.title",
     descKey: "settings.logging.desc"
-  },
-  {
-    key: "fim.providerStorageLocation",
-    group: "general",
-    type: "select",
-    options: [
-      { value: "globalState", labelKey: "settings.storage.globalState" },
-      { value: "file", labelKey: "settings.storage.file" }
-    ],
-    titleKey: "settings.storage.title",
-    descKey: "settings.storage.desc"
   }
 ]
 
@@ -1282,34 +1248,14 @@ git commit -m "feat: add settings accordion + master bar styles"
   "settings.maxLines.desc": "Completions are truncated beyond this many lines",
   "settings.contextLength.title": "Context lines",
   "settings.contextLength.desc": "How many lines around the cursor to use as prefix/suffix",
-  "settings.keepAlive.title": "Model keep-alive",
-  "settings.keepAlive.desc": "How long an Ollama model stays loaded before unloading",
-  "settings.keepAlive.5m": "5 minutes",
-  "settings.keepAlive.30m": "30 minutes",
-  "settings.keepAlive.always": "Always",
   "settings.fileContext.title": "Use file context",
   "settings.fileContext.desc": "Include relevant open files as completion context (by edit activity)",
   "settings.locale.title": "Interface language",
   "settings.locale.desc": "Language for the sidebar and messages",
   "settings.locale.en": "English",
-  "settings.locale.de": "Deutsch",
-  "settings.locale.es": "Español",
-  "settings.locale.esCL": "Español (Chile)",
-  "settings.locale.fr": "Français",
-  "settings.locale.it": "Italiano",
-  "settings.locale.ja": "日本語",
-  "settings.locale.ko": "한국어",
-  "settings.locale.nl": "Nederlands",
-  "settings.locale.pt": "Português",
-  "settings.locale.ru": "Русский",
   "settings.locale.zhCN": "中文 (简体)",
-  "settings.locale.zhHK": "中文 (繁體)",
   "settings.logging.title": "Enable logging",
-  "settings.logging.desc": "Write completion requests, latency, and cache hits to the FIM output channel",
-  "settings.storage.title": "Provider storage location",
-  "settings.storage.desc": "globalState uses VS Code built-in; file uses a local JSON file",
-  "settings.storage.globalState": "VS Code globalState",
-  "settings.storage.file": "Local file"
+  "settings.logging.desc": "Write completion requests, latency, and cache hits to the FIM output channel"
 }
 ```
 

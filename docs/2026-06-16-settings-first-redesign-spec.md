@@ -1,4 +1,6 @@
-# Settings-First Redesign — 全单页设置首屏 Spec
+# Settings-First Redesign — 全单页设置首屏 Spec ⚠️ 已废弃
+
+> **状态：已废弃。** 本文档描述"去 Tab 栏、全单页手风琴首屏"方案，经讨论决定**保持当前 Settings / Providers 两个 Tab 的结构不变**（见 `config-ux-design.md` 和 `config-ux-implementation-plan.md`）。本文档保留作为设计探索记录。
 
 > **基于:** `docs/config-ux-design.md`(原 Settings Tab 手风琴化) + brainstorming 决策
 > **原设计范围:** 保留三 tab、只重做 Settings tab 内部

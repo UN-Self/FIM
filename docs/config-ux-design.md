@@ -18,8 +18,8 @@
 
 **不包含**（本轮不动）：
 - Provider tab 的功能（保持现状）
-- Embeddings tab 的功能（保持现状）
-- 侧边栏 tab 结构（保持 Settings / Providers / Embeddings 三个 tab）
+- Embeddings/RAG 功能（尚未实现，预留后续）
+- 侧边栏 tab 结构（保持 Settings / Providers 两个 tab）
 - FIM 引擎服务端化（属于 PD.md 的后续工作）
 
 ## 3. 设置分组
@@ -47,7 +47,6 @@
 | `fim.numPredictFim` | number | 512 | 最大输出 token 数 |
 | `fim.maxLines` | number | 40 | 最大输出行数 |
 | `fim.contextLength` | number | 100 | 上下文行数 |
-| `fim.keepAlive` | string | "5m" | 模型保活时间 |
 
 ### 3.3 语言与上下文（codicon `file-code`）
 控制哪些文件参与补全。
@@ -61,15 +60,18 @@
 
 | 设置键 | 类型 | 默认值 | 说明 |
 |---|---|---|---|
-| `fim.locale` | string | "en" | 界面语言（下拉：13 个 locale） |
+| `fim.locale` | string | "en" | 界面语言（下拉：en / zh-CN） |
 | `fim.enableLogging` | boolean | true | 日志开关 |
-| `fim.providerStorageLocation` | string | "globalState" | provider 存储方式（globalState / file） |
 
 ### 3.5 模板（codicon `note`）
 保留原 Settings tab 的模板管理功能（编辑默认模板、勾选 action 模板），作为独立分组放在最底部。
 
-### 3.6 移到 Embeddings tab
-- `fim.embeddingIgnoredGlobs` — 语义上属于 embeddings，从设置移到 Embeddings tab。
+### 3.6 未在 webview 展示的设置
+
+以下设置仍在 `package.json` 中定义（可通过 VS Code Settings UI `Ctrl+,` 编辑），但不展示在 FIM 侧边栏 Settings 中：
+
+- `fim.enabledLanguages`（object map）— 需多选 UI，后续扩展
+- `fim.embeddingIgnoredGlobs`（array）— RAG/embeddings 功能尚未实现，暂不展示
 
 ### 3.7 Deprecated（UI 隐藏，代码保留）
 被新 provider 系统取代，UI 不再展示，`package.json` 加 `deprecated` 提示，代码路径保留向后兼容：
@@ -163,7 +165,7 @@ extension → workspace.getConfiguration("fim").update("debounceWait", 350, Conf
 ### 5.5 package.json 调整
 - 3 个 Ollama 设置的 `description` 前缀加 `[deprecated]`，提示已被 provider 系统取代。
 - 不删除设置定义（保持向后兼容），仅 UI 不展示。
-- `embeddingIgnoredGlobs` 的 `scope` 无需改动（仍可在 VS Code Settings 编辑，只是 webview 的展示位置移到 Embeddings tab）。
+- `embeddingIgnoredGlobs` 的 `scope` 无需改动（仍可在 VS Code Settings `Ctrl+,` 编辑，FIM 侧边栏不展示）。
 
 ## 6. 测试
 
@@ -180,4 +182,4 @@ extension → workspace.getConfiguration("fim").update("debounceWait", 350, Conf
 - 不做设置搜索框（设置数量不多，手风琴足够）
 - 不做设置导入/导出（provider 已有，设置层面暂不需要）
 - 不做设置变更的 diff/撤销
-- 不重做 Provider / Embeddings tab
+- 不重做 Provider tab

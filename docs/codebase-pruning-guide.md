@@ -270,7 +270,16 @@ test_utils.py ......                     [100%]
 
 | 待清理 | 说明 |
 | --- | --- |
-| `package.json` 依赖 | `@lancedb/lancedb`、`cheerio`、`hyperswarm`、`@tiptap/*`、`onnxruntime-web`、`symmetry-core`、`toxe`、`b4a`、`hypercore-crypto`、`tippy.js`、`tiptap-markdown`、`react-virtuoso`、`react-syntax-highlighter`、`react-markdown`、`rehype-raw`、`remark-gfm`、`dompurify` 等仅被已删代码使用 |
-| `src/common/constants/events.ts` | `CONVERSATION_EVENT_NAME`、`GITHUB_EVENT_NAME`、Symmetry 相关事件常量无引用 |
-| `src/common/types.ts` | Conversation*/Review*/Symmetry*/Embedding* 相关接口无引用 |
-| `providers.tsx:59` | `handleAdd` 未使用（pre-existing lint error，非裁剪引入） |
+| ~~`package.json` 依赖~~ | ✅ 已完成 — 所有死依赖（lancedb、cheerio、hyperswarm、tiptap、onnxruntime、symmetry、tippy、react-virtuoso、react-markdown 等 22 个）已从 package.json 移除 |
+| ~~依赖清理~~ | ✅ 已完成 |
+| `src/common/constants/events.ts` | `CONVERSATION_EVENT_NAME`、`GITHUB_EVENT_NAME`、Symmetry 相关事件常量无引用（低优先级，不动不影响） |
+| `src/common/types.ts` | Conversation*/Review*/Symmetry*/Embedding* 相关接口无引用（低优先级，不动不影响） |
+| `providers.tsx:59` | `handleAdd` 未使用（pre-existing lint error）
+
+## 9. 当前状态
+
+- FIM 补全核心链路完整（CompletionProvider → llm → DeepSeek）
+- 单一 DeepSeek provider，预留 gateway 扩展框架
+- 无 Chat、无 RAG/Embeddings、无 Symmetry P2P
+- 66 个测试全部通过（pytest + Mocha）
+- 权威架构文档：[`fim-overall-design.md`](./fim-overall-design.md)

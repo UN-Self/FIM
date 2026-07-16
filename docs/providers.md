@@ -1,126 +1,60 @@
-## Example Provider Configurations and Notes
+# Provider 配置
 
-These example configurations serve as a starting point. Individual adjustments may be required depending on your specific hardware and software environments.
+> **当前 MVP 阶段仅支持 DeepSeek。** 未来多 provider 扩展通过统一的 gateway 抽象层接入，不碎片化管理。
 
-#### FIM (Auto-complete)
+## DeepSeek（默认 Provider）
 
-- **Hostname:** `localhost`
-- **Port:** `11434`
-- **Path:** `/api/generate`
-- **Model Name:** `codellama:7b-code`
-- **FIM Template:** Select the appropriate template based on the model. For instance, `codellama:7b-code` uses the Codellama template, while `deepseek-coder:6.7b-base-q5_K_M` uses the Deepseek template.
+FIM 默认使用 DeepSeek API 提供 FIM（Fill-in-the-Middle）代码补全。DeepSeek 原生支持 FIM 格式（`<｜f#fim▁begin｜>` / `<｜#fim▁hole｜>` / `<｜#fim▁end｜>`），无需额外模板适配。
 
-#### Chat Configuration
+### 配置项
 
-- **Hostname:** `localhost`
-- **Port:** `11434`
-- **Path:** `/v1/chat/completions`
-- **Model Name:** `codellama:7b-instruct` or any effective instruct model
+| 字段 | 说明 | 默认值 |
+|------|------|--------|
+| **API Hostname** | API 域名 | `api.deepseek.com` |
+| **API Path** | FIM 补全端点 | `/beta/completions` |
+| **API Protocol** | 协议 | `https` |
+| **API Key** | DeepSeek API Key | （需自行填写） |
+| **Model Name** | 模型名称 | `deepseek-chat` |
 
-### Open WebUI
+### 获取 API Key
 
-Open WebUI can be used a proxy API for FIM, simply configure the endpoint to match what is served by OpenWeb UI.
+1. 注册 [DeepSeek 开放平台](https://platform.deepseek.com/)
+2. 在 API Keys 页面创建新 key
+3. 复制 key 填入 FIM 的 Provider 配置
 
-#### FIM (Auto-complete)
+### FIM 模板
 
-- **Hostname:** `localhost`
-- **Port:** Check documentation
-- **Path:** Check documentation
-- **Model Name:** `codellama:7b-code`
-- **FIM Template:** Use the template corresponding to your model, similar to the desktop configuration.
+DeepSeek FIM 模板格式：
 
-#### Chat Configuration
-
-- **Hostname:** `localhost`
-- **Port:** Check documentation
-- **Path:** Check documentation
-- **Model Name:** `codellama:7b-instruct` or another reliable instruct model
-
-### LM Studio
-
-#### FIM (Auto-complete)
-
-- **Hostname:** `localhost`
-- **Port:** `1234`
-- **Path:** `/v1/completions`
-- **Model Name:** Base model such as `codellama:7b`
-- **Preset:** CodeLlama Completion
-- **FIM Template:** Choose a template that matches your model's specifications.
-
-#### Chat Configuration
-
-- **Hostname:** `localhost`
-- **Port:** `1234`
-- **Path:** `/v1/chat/completions`
-- **Model Name:** `codellama:7b-instruct` or your preferred instruct model
-- **Preset:** Default or `CodeLlama Instruct`
-
-### LiteLLM
-
-#### FIM (Auto-complete)
-
-LiteLLM can technically support auto-complete, but it's optimized as a proxy for external APIs like OpenAI and Anthropic.
-
-#### Chat Configuration
-
-- **Hostname:** `localhost`
-- **Port:** `4000`
-- **Path:** `/v1/chat/completions`
-
-Start LiteLLM with the following command:
-
-```bash
-litellm --model gpt-4-turbo
+```text
+<｜f#fim▁begin｜>{fileContext}
+{header}{prefix}<｜#fim▁hole｜>{suffix}<｜#fim▁end｜>
 ```
 
-### Llama.cpp
+Stop words: `"<｜#fim▁begin｜>"`, `"<｜#fim▁hole｜>"`, `"<｜#fim▁end｜>"`, `"<|endoftext|>"`, `"<|fim_prefix|>"`, `"<|fim_suffix|>"`, `"<|fim_middle|>"`, `"<|end▁of▁sentence|>"`, `"<|User|>"`, `"<|Assistant|>"`
 
-#### FIM (Auto-complete)
+---
 
-Start Llama.cpp in the terminal with this Docker command:
+## 未来扩展框架（Gateway 占位，当前不实现）
 
-```bash
-docker run -p 8080:8080 --gpus all --network bridge -v /home/<user>/.cache/lm-studio/models/TheBloke/CodeLlama-7B-GGUF/:/models local/llama.cpp:full-cuda --server -m /models/codellama-7b.Q5_K_M.gguf -c 2048 -ngl 43 -mg 1 --port 8080 --host 0.0.0.0
-```
+以下仅为架构预留记录，说明多 provider 如何在不碎片化的情况下接入。
 
-Configure your provider settings as follows:
+### 设计原则
 
-- **Hostname:** `localhost`
-- **Port:** `8080`
-- **Path:** `/completion`
-- **FIM Template:** Choose the appropriate template based on the model, such as `CodeLlama-7B-GGUF`.
+- 单一 model profile（不是多个独立 provider 槽位）
+- 一个 profile 可配置多个角色：completion / chat（教师面板）/ embedding / rerank
+- 用户配置一个 base URL + API key，FIM 自动发现可用模型
+- 高级设置允许按角色覆盖 path
 
-#### Chat Configuration
+### 未来可能接入的 Provider 类型
 
-The performance of chat functionalities with Llama.cpp has been mixed. If you obtain favorable results, please share them by opening an issue or a pull request.
+| Provider | 补全端点 | 备注 |
+|----------|---------|------|
+| OpenAI-compatible | `/v1/completions` | 需适配 FIM → chat completions 转换 |
+| Ollama | `/api/generate` | 本地模型，原生 FIM suffix 支持 |
+| vLLM | `/v1/completions` | 高性能推理引擎 |
+| DeepSeek（当前唯一） | `/beta/completions` | 原生 FIM 支持 |
 
-- **Hostname:** `localhost`
-- **Port:** `8080`
-- **Path:** `/completion`
-- **Model Name:** `CodeLlama-7B-GGUF` or any other strong instruct model
+### 不采用多 Provider 槽位的原因
 
-
-### Oobabooga
-
-```bash
-bash start_linux.sh --api --listen
-```
-
-#### FIM (Auto-complete)
-
-Navigate to `http://0.0.0.0:7860/` to load your model:
-
-- **Hostname:** `localhost`
-- **Port:** `5000`
-- **Path:** `/v1/completions`
-- **Model Name:** `CodeLlama-7B-GGUF` or another effective instruct model
-- **FIM Template:** Select a template that matches the model, such as `CodeLlama-7B-GGUF` or `deepseek-coder:6.7b-base-q5_K_M`.
-
-#### Chat Configuration
-
-Chat functionality has not been successful on Linux with Oobabooga:
-
-- **Hostname:** `localhost`
-- **Port:** `5000`
-- **Path:** `/v1/chat/completions`
-- **Model Name:** `CodeLlama-7B-GGUF`
+fim-overall-design.md §5 明确：不回到碎片化的多 provider 管理。用户只需要一个 model profile，FIM 内部按角色路由。

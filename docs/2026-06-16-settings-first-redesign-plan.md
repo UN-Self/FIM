@@ -1,4 +1,6 @@
-# Settings-First Redesign 实施计划
+# Settings-First Redesign 实施计划 ⚠️ 已废弃
+
+> **状态：已废弃。** 对应 spec 已废弃，当前保持两 Tab 结构。本文档保留作为设计探索记录。
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
