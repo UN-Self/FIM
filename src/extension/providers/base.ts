@@ -88,7 +88,10 @@ export class BaseProvider {
 
     vscode.workspace.onDidChangeConfiguration((event) => {
       if (!event.affectsConfiguration("fim")) return
-      this.sendLocaleToWebView()
+      if (event.affectsConfiguration("fim.locale")) {
+        this.sendLocaleToWebView()
+      }
+      this.getAllConfigValues()
     })
   }
 
@@ -112,10 +115,11 @@ export class BaseProvider {
     })
   }
 
-  private setTab = (tab: ClientMessage) => {
+  private setTab = (message: ClientMessage) => {
+    if (typeof message.data !== "string") return
     this.webView?.postMessage({
       type: EVENT_NAME.fimSetTab,
-      data: tab
+      data: message.data
     } as ServerMessage<string>)
   }
 
@@ -153,13 +157,47 @@ export class BaseProvider {
     }
   }
 
-  private setConfigurationValue = (message: ClientMessage) => {
+  private setConfigurationValue = async (message: ClientMessage) => {
     if (!message.key) return
     const config = vscode.workspace.getConfiguration("fim")
-    config.update(message.key, message.data, vscode.ConfigurationTarget.Global)
-    getMessagesForConfigUpdate(message.key, message.data).forEach(
-      (serverMessage) => this.webView?.postMessage(serverMessage)
-    )
+    const inspection = config.inspect(message.key)
+    const target = inspection?.workspaceFolderValue !== undefined
+      ? vscode.ConfigurationTarget.WorkspaceFolder
+      : inspection?.workspaceValue !== undefined
+        ? vscode.ConfigurationTarget.Workspace
+        : vscode.ConfigurationTarget.Global
+    try {
+      await config.update(message.key, message.data, target)
+      const persistedConfig = vscode.workspace.getConfiguration("fim")
+      const value = persistedConfig.get(message.key)
+      const success = value === message.data
+      this.webView?.postMessage({
+        type: EVENT_NAME.fimSetConfigValueResult,
+        data: {
+          error: success
+            ? undefined
+            : "The persisted value is overridden by another configuration scope",
+          key: message.key,
+          success,
+          value
+        }
+      })
+      if (success) {
+        getMessagesForConfigUpdate(message.key, value).forEach(
+          (serverMessage) => this.webView?.postMessage(serverMessage)
+        )
+      }
+    } catch (error) {
+      this.webView?.postMessage({
+        type: EVENT_NAME.fimSetConfigValueResult,
+        data: {
+          error: error instanceof Error ? error.message : String(error),
+          key: message.key,
+          success: false,
+          value: config.get(message.key)
+        }
+      })
+    }
   }
 
   private sendNotification = (message: ClientMessage) => {
@@ -252,7 +290,7 @@ export class BaseProvider {
     } as ServerMessage<Record<string, FimProvider>>)
   }
 
-  private updateFimProvider = (message: ClientMessage) => {
+  private updateFimProvider = async (message: ClientMessage) => {
     const provider = {
       ...DEFAULT_PROVIDER_FORM_VALUES,
       ...(message.data as Partial<FimProvider>),
@@ -260,9 +298,26 @@ export class BaseProvider {
       provider: DEFAULT_PROVIDER_FORM_VALUES.provider,
       type: "fim"
     }
-    this.context.globalState.update(ACTIVE_FIM_PROVIDER_STORAGE_KEY, provider)
-    this.getActiveFimProvider()
-    this.getAllProviders()
+    try {
+      await this.context.globalState.update(
+        ACTIVE_FIM_PROVIDER_STORAGE_KEY,
+        provider
+      )
+      this.getActiveFimProvider()
+      this.getAllProviders()
+      this.webView?.postMessage({
+        type: PROVIDER_EVENT_NAME.updateProviderResult,
+        data: { success: true }
+      })
+    } catch (error) {
+      this.webView?.postMessage({
+        type: PROVIDER_EVENT_NAME.updateProviderResult,
+        data: {
+          error: error instanceof Error ? error.message : String(error),
+          success: false
+        }
+      })
+    }
   }
 
   private testProvider = async (message: ClientMessage) => {

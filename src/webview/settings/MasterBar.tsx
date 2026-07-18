@@ -13,12 +13,22 @@ const global = globalThis as any
 
 interface MasterBarProps {
   enabled: boolean
+  error?: string
   onToggleEnabled: (enabled: boolean) => void
 }
 
-export const MasterBar = ({ enabled, onToggleEnabled }: MasterBarProps) => {
+export const MasterBar = ({
+  enabled,
+  error,
+  onToggleEnabled
+}: MasterBarProps) => {
   const { t } = useTranslation()
-  const { fimProvider, setActiveFimProvider, getProvidersByType } = useProviders()
+  const {
+    fimProvider,
+    setActiveFimProvider,
+    getProvidersByType,
+    loaded
+  } = useProviders()
   const fimProviders = Object.values(getProvidersByType("fim"))
 
   const goToProviders = () => {
@@ -38,9 +48,11 @@ export const MasterBar = ({ enabled, onToggleEnabled }: MasterBarProps) => {
     <div className={`${styles.masterBar} ${enabled ? "" : styles.masterBarOff}`}>
       <div className={styles.masterLeft}>
         <span className={styles.masterDot} />
-        <div>
+        <div className={styles.masterDetails}>
           <div className={styles.masterName}>FIM</div>
-          {fimProviders.length > 0 ? (
+          {!loaded ? (
+            <div className={styles.masterLoading}>{t("settings.loading")}</div>
+          ) : fimProviders.length > 0 ? (
             <VSCodeDropdown
               className={styles.masterSelect}
               value={fimProvider?.id || ""}
@@ -57,9 +69,21 @@ export const MasterBar = ({ enabled, onToggleEnabled }: MasterBarProps) => {
               {t("settings.masterBar.noProvider")}
             </button>
           )}
+          <button
+            type="button"
+            className={styles.manageProviderButton}
+            onClick={goToProviders}
+          >
+            <i className="codicon codicon-settings-gear" />
+            {t("settings.masterBar.configureProvider")}
+          </button>
+          {error && <div className={styles.masterError}>{error}</div>}
         </div>
       </div>
-      <Toggle checked={enabled} onChange={onToggleEnabled} />
+      <Toggle
+        checked={enabled}
+        onChange={onToggleEnabled}
+      />
     </div>
   )
 }

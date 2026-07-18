@@ -1,11 +1,7 @@
 import React from "react"
 import { useTranslation } from "react-i18next"
-import {
-  VSCodeButton,
-  VSCodeDivider,
-  VSCodePanelView,
-  VSCodeTextField
-} from "@vscode/webview-ui-toolkit/react"
+import { TextFieldType } from "@vscode/webview-ui-toolkit"
+import { VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
 
 import {
   DEEPSEEK_DEFAULT_BASE_URL,
@@ -24,62 +20,63 @@ import styles from "./styles/providers.module.css"
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const global = globalThis as any
+
+interface Feedback {
+  kind: "error" | "loading" | "success"
+  message: string
+}
+
 export const Providers = () => {
   const { t } = useTranslation()
-  const {
-    fimProvider,
-    saveProvider,
-    updateProvider
-  } = useProviders()
+  const { fimProvider, updateProvider } = useProviders()
+
+  const goBack = () => {
+    global.vscode.postMessage({
+      type: EVENT_NAME.fimSetTab,
+      data: "settings"
+    })
+  }
 
   return (
-    <div>
-      <h3>DeepSeek</h3>
-      <VSCodePanelView>
-        <div className={styles.backHeader}>
-          <VSCodeButton appearance="secondary" onClick={() => {
-            global.vscode.postMessage({
-              type: EVENT_NAME.fimSetTab,
-              data: "settings"
-            })
-          }}>
-            <i className="codicon codicon-arrow-left" />
-            {t("back-to-settings")}
-          </VSCodeButton>
+    <main className={styles.page}>
+      <button type="button" className={styles.backButton} onClick={goBack}>
+        <i className="codicon codicon-arrow-left" />
+        {t("back-to-settings")}
+      </button>
+
+      <header className={styles.providerHero}>
+        <div className={styles.providerMark} aria-hidden="true">
+          <i className="codicon codicon-code" />
         </div>
-        <ProviderForm
-          provider={fimProvider || undefined}
-          saveProvider={saveProvider}
-          updateProvider={updateProvider}
-        />
-      </VSCodePanelView>
-    </div>
+        <div className={styles.providerIdentity}>
+          <div className={styles.providerTitleRow}>
+            <h2>DeepSeek</h2>
+            <span className={styles.providerBadge}>FIM</span>
+          </div>
+          <p>{t("provider.config.subtitle")}</p>
+        </div>
+      </header>
+
+      <ProviderForm
+        provider={fimProvider || undefined}
+        updateProvider={updateProvider}
+      />
+    </main>
   )
 }
 
 interface ProviderFormProps {
   provider?: FimProvider
-  saveProvider: (provider: FimProvider) => void
   updateProvider: (provider: FimProvider) => void
 }
 
-function ProviderForm({
-  provider,
-  saveProvider,
-  updateProvider
-}: ProviderFormProps) {
+function ProviderForm({ provider, updateProvider }: ProviderFormProps) {
   const { t } = useTranslation()
   const initialFormState = getDeepSeekProviderFormState(provider)
-  const [modelName, setModelName] = React.useState<string>(
-    initialFormState.modelName
-  )
-  const [apiKey, setApiKey] = React.useState<string>(
-    initialFormState.apiKey
-  )
-  const [baseUrl, setBaseUrl] = React.useState<string>(
-    initialFormState.baseUrl
-  )
-  const [testStatus, setTestStatus] = React.useState<string | null>(null)
+  const [modelName, setModelName] = React.useState(initialFormState.modelName)
+  const [apiKey, setApiKey] = React.useState(initialFormState.apiKey)
+  const [baseUrl, setBaseUrl] = React.useState(initialFormState.baseUrl)
+  const [feedback, setFeedback] = React.useState<Feedback | null>(null)
 
   React.useEffect(() => {
     const nextFormState = getDeepSeekProviderFormState(provider)
@@ -92,105 +89,157 @@ function ProviderForm({
     const listener = (event: MessageEvent) => {
       const message = event.data
       if (message.type === PROVIDER_EVENT_NAME.testProviderResult) {
-        if (message.data.success) {
-          setTestStatus(t("provider-test-successful"))
-        } else {
-          setTestStatus(`${t("provider-test-failed")}: ${message.data.error || t("unknown-error")}`)
-        }
+        setFeedback({
+          kind: message.data.success ? "success" : "error",
+          message: message.data.success
+            ? t("provider-test-successful")
+            : `${t("provider-test-failed")}: ${
+                message.data.error || t("unknown-error")
+              }`
+        })
+      }
+      if (message.type === PROVIDER_EVENT_NAME.updateProviderResult) {
+        setFeedback({
+          kind: message.data.success ? "success" : "error",
+          message: message.data.success
+            ? t("provider.config.saved")
+            : `${t("provider.config.saveFailed")}: ${
+                message.data.error || t("unknown-error")
+              }`
+        })
       }
     }
     window.addEventListener("message", listener)
-    return () => {
-      window.removeEventListener("message", listener)
-    }
+    return () => window.removeEventListener("message", listener)
   }, [t])
 
-  const handleTestProvider = () => {
-    setTestStatus("Testing...")
-    global.vscode.postMessage({
-      type: PROVIDER_EVENT_NAME.testProvider,
-      data: buildDeepSeekProviderFromForm(provider, {
-        apiKey,
-        baseUrl,
-        modelName
-      })
-    })
-  }
-
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    const nextProvider = buildDeepSeekProviderFromForm(provider, {
+  const currentProvider = () =>
+    buildDeepSeekProviderFromForm(provider, {
       apiKey,
       baseUrl,
       modelName
     })
 
-    if (nextProvider.id) {
-      updateProvider(nextProvider)
-    } else {
-      saveProvider(nextProvider)
-    }
+  const handleTestProvider = () => {
+    setFeedback({ kind: "loading", message: t("provider.config.testing") })
+    global.vscode.postMessage({
+      type: PROVIDER_EVENT_NAME.testProvider,
+      data: currentProvider()
+    })
   }
 
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    setFeedback({ kind: "loading", message: t("provider.config.saving") })
+    updateProvider(currentProvider())
+  }
+
+  const busy = feedback?.kind === "loading"
+
   return (
-    <>
-      <VSCodeDivider />
-      <form onSubmit={handleSubmit} className={styles.providerForm}>
-        <div>
+    <form onSubmit={handleSubmit} className={styles.providerForm}>
+      <section className={styles.formCard}>
+        <div className={styles.sectionHeading}>
+          <i className="codicon codicon-plug" />
           <div>
-            <label htmlFor="modelName">Model</label>
+            <h3>{t("provider.config.connectionTitle")}</h3>
+            <p>{t("provider.config.connectionDesc")}</p>
           </div>
-          <VSCodeTextField
-            name="modelName"
-            onChange={(event) => {
-              const target = event.target as HTMLInputElement
-              setModelName(target.value.trim())
-            }}
-            value={modelName}
-            placeholder="deepseek-chat"
-          ></VSCodeTextField>
         </div>
 
-        <div>
-          <div>
-            <label htmlFor="baseUrl">BaseURL</label>
-          </div>
-          <VSCodeTextField
-            name="baseUrl"
-            onChange={(event) => {
-              const target = event.target as HTMLInputElement
-              setBaseUrl(target.value.trim())
-            }}
-            value={baseUrl}
-            placeholder={DEEPSEEK_DEFAULT_BASE_URL}
-          ></VSCodeTextField>
-        </div>
+        <div className={styles.fieldList}>
+          <label className={styles.field}>
+            <span className={styles.fieldLabel}>{t("provider.config.model")}</span>
+            <span className={styles.fieldDescription}>
+              {t("provider.config.modelDesc")}
+            </span>
+            <VSCodeTextField
+              disabled={busy}
+              name="modelName"
+              required
+              value={modelName}
+              placeholder="deepseek-chat"
+              onInput={(event) => {
+                setModelName((event.target as HTMLInputElement).value)
+              }}
+            />
+          </label>
 
-        <div>
-          <div>
-            <label htmlFor="apiKey">APIKey</label>
-          </div>
-          <VSCodeTextField
-            onChange={(event) => {
-              const target = event.target as HTMLInputElement
-              setApiKey(target.value.trim())
-            }}
-            name="apiKey"
-            value={apiKey}
-            placeholder={t("api-key-placeholder")}
-          ></VSCodeTextField>
-        </div>
+          <label className={styles.field}>
+            <span className={styles.fieldLabel}>{t("provider.config.endpoint")}</span>
+            <span className={styles.fieldDescription}>
+              {t("provider.config.endpointDesc")}
+            </span>
+            <VSCodeTextField
+              disabled={busy}
+              name="baseUrl"
+              required
+              value={baseUrl}
+              placeholder={DEEPSEEK_DEFAULT_BASE_URL}
+              onInput={(event) => {
+                setBaseUrl((event.target as HTMLInputElement).value)
+              }}
+            />
+          </label>
 
-        <div className={styles.providerFormButtons}>
-          <VSCodeButton appearance="primary" type="submit">
-            {t("save")}
-          </VSCodeButton>
-          <VSCodeButton appearance="secondary" onClick={handleTestProvider}>
-            {t("test-provider")}
-          </VSCodeButton>
+          <label className={styles.field}>
+            <span className={styles.fieldLabel}>{t("provider.config.apiKey")}</span>
+            <span className={styles.fieldDescription}>
+              {t("provider.config.apiKeyDesc")}
+            </span>
+            <VSCodeTextField
+              disabled={busy}
+              name="apiKey"
+              type={TextFieldType.password}
+              value={apiKey}
+              placeholder={t("api-key-placeholder")}
+              onInput={(event) => {
+                setApiKey((event.target as HTMLInputElement).value)
+              }}
+            />
+          </label>
         </div>
-        {testStatus && <p className={styles.testStatus}>{testStatus}</p>}
-      </form>
-    </>
+      </section>
+
+      <div className={styles.formFooter}>
+        {feedback && (
+          <div
+            className={`${styles.feedback} ${styles[feedback.kind]}`}
+            role="status"
+          >
+            <i
+              className={`codicon codicon-${
+                feedback.kind === "success"
+                  ? "check"
+                  : feedback.kind === "error"
+                    ? "error"
+                    : "loading"
+              }`}
+            />
+            <span>{feedback.message}</span>
+          </div>
+        )}
+
+        <div className={styles.actions}>
+          <button
+            type="button"
+            className={styles.secondaryButton}
+            disabled={busy}
+            onClick={handleTestProvider}
+          >
+            <i className="codicon codicon-debug-start" />
+            {t("provider.config.test")}
+          </button>
+          <button
+            type="submit"
+            className={styles.primaryButton}
+            disabled={busy}
+          >
+            <i className="codicon codicon-save" />
+            {t("provider.config.save")}
+          </button>
+        </div>
+      </div>
+    </form>
   )
 }

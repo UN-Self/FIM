@@ -16,17 +16,21 @@ const tabs: Record<string, JSX.Element> = {
 
 export const Main = () => {
   const [tab, setTab] = useState<string | undefined>(WEBUI_TABS.settings)
-  const { locale, renderKey } = useLocale()
+  const { locale } = useLocale()
 
-  const handler = (event: MessageEvent) => {
-    const message: ServerMessage<string | undefined> = event.data
-    if (message?.type === EVENT_NAME.fimSetTab && message?.data && tabs[message.data]) {
-      setTab(message?.data)
-    }
-    return () => window.removeEventListener("message", handler)
-  }
   useEffect(() => {
+    const handler = (event: MessageEvent) => {
+      const message: ServerMessage<string | undefined> = event.data
+      if (
+        message?.type === EVENT_NAME.fimSetTab &&
+        message?.data &&
+        tabs[message.data]
+      ) {
+        setTab(message.data)
+      }
+    }
     window.addEventListener("message", handler)
+    return () => window.removeEventListener("message", handler)
   }, [])
 
   if (!tab) {
@@ -36,7 +40,7 @@ export const Main = () => {
   const element: JSX.Element = tabs[tab]
 
   return (
-    <div key={renderKey} data-locale={locale}>
+    <div data-locale={locale}>
       {element}
     </div>
   )

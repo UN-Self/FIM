@@ -8,13 +8,11 @@ const global = globalThis as any
 
 export const useLocale = () => {
   const [locale, setLocale] = useState<string>("en")
-  const [renderKey, setRenderKey] = useState<number>(0)
   useEffect(() => {
     const messageHandler = (event: MessageEvent) => {
       if (event.data.type === EVENT_NAME.fimSetLocale) {
         i18next.changeLanguage(event.data.data)
         setLocale(event.data.data)
-        setRenderKey((prev: number) => prev + 1)
       }
     }
 
@@ -23,5 +21,5 @@ export const useLocale = () => {
     window.addEventListener("message", messageHandler)
     return () => window.removeEventListener("message", messageHandler)
   }, [i18next])
-  return { locale, renderKey }
+  return { locale }
 }

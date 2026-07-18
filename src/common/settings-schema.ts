@@ -23,9 +23,6 @@ export interface SettingDef {
   unit?: string
   /** Options for select type */
   options?: SelectOption[]
-  min?: number
-  max?: number
-  step?: number
 }
 
 export interface SettingGroupDef {
@@ -56,9 +53,6 @@ export const SETTING_DEFS: SettingDef[] = [
     group: "completion",
     type: "number",
     unit: "ms",
-    min: 0,
-    max: 5000,
-    step: 50,
     titleKey: "settings.debounce.title",
     descKey: "settings.debounce.desc"
   },
@@ -88,9 +82,6 @@ export const SETTING_DEFS: SettingDef[] = [
     key: "fim.temperature",
     group: "model",
     type: "number",
-    min: 0,
-    max: 2,
-    step: 0.1,
     titleKey: "settings.temperature.title",
     descKey: "settings.temperature.desc"
   },
@@ -98,9 +89,6 @@ export const SETTING_DEFS: SettingDef[] = [
     key: "fim.numPredictFim",
     group: "model",
     type: "number",
-    min: 1,
-    max: 4096,
-    step: 1,
     titleKey: "settings.numPredict.title",
     descKey: "settings.numPredict.desc"
   },
@@ -108,9 +96,6 @@ export const SETTING_DEFS: SettingDef[] = [
     key: "fim.maxLines",
     group: "model",
     type: "number",
-    min: 1,
-    max: 200,
-    step: 1,
     titleKey: "settings.maxLines.title",
     descKey: "settings.maxLines.desc"
   },
@@ -119,9 +104,6 @@ export const SETTING_DEFS: SettingDef[] = [
     group: "model",
     type: "number",
     unit: "行",
-    min: 1,
-    max: 500,
-    step: 1,
     titleKey: "settings.contextLength.title",
     descKey: "settings.contextLength.desc"
   },
@@ -161,7 +143,14 @@ export const getConfigKey = (def: Pick<SettingDef, "key">): string =>
 export const getSettingsByGroup = (groupId: SettingGroupId): SettingDef[] =>
   SETTING_DEFS.filter((def) => def.group === groupId)
 
-/** Coerce a raw input (string from input field, etc.) into the setting's type, with range validation. */
+/** Parse a value as a finite number. No range or step validation is applied. */
+export const parseNumberValue = (raw: unknown): number | undefined => {
+  if (typeof raw === "string" && raw.trim() === "") return undefined
+  const value = typeof raw === "number" ? raw : Number(raw)
+  return Number.isFinite(value) ? value : undefined
+}
+
+/** Coerce a raw input into the setting's declared type. */
 export const coerceValue = (def: SettingDef, raw: unknown): unknown => {
   if (def.type === "boolean") {
     if (typeof raw === "boolean") return raw
@@ -169,12 +158,7 @@ export const coerceValue = (def: SettingDef, raw: unknown): unknown => {
     return Boolean(raw)
   }
   if (def.type === "number") {
-    const n = typeof raw === "string" ? parseFloat(raw) : Number(raw)
-    if (Number.isNaN(n)) return def.min ?? 0
-    let clamped = n
-    if (def.min !== undefined) clamped = Math.max(def.min, clamped)
-    if (def.max !== undefined) clamped = Math.min(def.max, clamped)
-    return clamped
+    return parseNumberValue(raw)
   }
   // select
   const allowed = (def.options ?? []).map((o) => o.value)
