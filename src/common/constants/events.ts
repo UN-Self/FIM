@@ -37,6 +37,7 @@ export const EVENT_NAME = {
   fimSendTheme: "fim-send-theme",
   fimSessionContext: "fim-session-context",
   fimSetConfigValue: "fim-set-config-value",
+  fimSetConfigValueResult: "fim-set-config-value-result",
   fimSidebarReady: "fim-sidebar-ready",
   fimSetGlobalContext: "fim-set-global-context",
   fimSetLocale: "fim-set-locale",
@@ -83,7 +84,8 @@ export const PROVIDER_EVENT_NAME = {
   setActiveFimProvider: "fim.set-active-fim-provider",
   updateProvider: "fim.update-provider",
   testProvider: "fim.test-provider",
-  testProviderResult: "fim.test-provider-result"
+  testProviderResult: "fim.test-provider-result",
+  updateProviderResult: "fim.update-provider-result"
 }
 
 export const GITHUB_EVENT_NAME = {

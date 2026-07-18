@@ -10,31 +10,9 @@ const global = globalThis as any
 export const useProviders = () => {
   const [providers, setProviders] = useState<Record<string, FimProvider>>({})
   const [fimProvider, setFimProvider] = useState<FimProvider | null>(null)
+  const [loaded, setLoaded] = useState(false)
   const [embeddingProvider, setEmbeddingProvider] =
     useState<FimProvider | null>(null)
-  const handler = (event: MessageEvent) => {
-    const message: ServerMessage<
-      Record<string, FimProvider> | FimProvider
-    > = event.data
-    if (message?.type === PROVIDER_EVENT_NAME.getAllProviders) {
-      const providers = message.data as Record<string, FimProvider>
-      setProviders(providers || {})
-    }
-    if (message?.type === PROVIDER_EVENT_NAME.getActiveFimProvider) {
-      if (message.data) {
-        const provider = message.data as FimProvider
-        setFimProvider(provider)
-      }
-    }
-    if (message?.type === PROVIDER_EVENT_NAME.getActiveEmbeddingsProvider) {
-      if (message.data) {
-        const provider = message.data as FimProvider
-        setEmbeddingProvider(provider)
-      }
-    }
-    return () => window.removeEventListener("message", handler)
-  }
-
   const saveProvider = (provider: FimProvider) => {
     global.vscode.postMessage({
       type: PROVIDER_EVENT_NAME.addProvider,
@@ -90,6 +68,23 @@ export const useProviders = () => {
   }
 
   useEffect(() => {
+    const handler = (event: MessageEvent) => {
+      const message: ServerMessage<
+        Record<string, FimProvider> | FimProvider
+      > = event.data
+      if (message?.type === PROVIDER_EVENT_NAME.getAllProviders) {
+        const providers = message.data as Record<string, FimProvider>
+        setProviders(providers || {})
+        setLoaded(true)
+      }
+      if (message?.type === PROVIDER_EVENT_NAME.getActiveFimProvider) {
+        setFimProvider((message.data as FimProvider) || null)
+      }
+      if (message?.type === PROVIDER_EVENT_NAME.getActiveEmbeddingsProvider) {
+        setEmbeddingProvider((message.data as FimProvider) || null)
+      }
+    }
+    window.addEventListener("message", handler)
     global.vscode.postMessage({
       type: PROVIDER_EVENT_NAME.getAllProviders
     })
@@ -99,7 +94,6 @@ export const useProviders = () => {
     global.vscode.postMessage({
       type: PROVIDER_EVENT_NAME.getActiveEmbeddingsProvider
     })
-    window.addEventListener("message", handler)
     return () => window.removeEventListener("message", handler)
   }, [])
 
@@ -108,6 +102,7 @@ export const useProviders = () => {
     embeddingProvider,
     fimProvider,
     getProvidersByType,
+    loaded,
     providers,
     removeProvider,
     resetProviders,

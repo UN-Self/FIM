@@ -1,6 +1,7 @@
 .panel {
   display: flex;
   flex-direction: column;
+  min-width: 0;
   padding: 16px 12px;
 }
 
@@ -13,10 +14,24 @@
   margin: 8px 4px 10px;
 }
 
-.loading {
+.loadingCard {
+  align-items: center;
+  background: var(--vscode-editor-background);
+  border: 1px solid var(--vscode-editorWidget-border);
+  border-radius: 6px;
   color: var(--vscode-descriptionForeground);
+  display: flex;
   font-size: 12px;
-  padding: 12px 4px;
+  gap: 10px;
+  padding: 14px 16px;
+}
+
+.loadingPulse {
+  animation: loading-pulse 1.2s ease-in-out infinite;
+  background: var(--vscode-progressBar-background);
+  border-radius: 50%;
+  height: 8px;
+  width: 8px;
 }
 
 /* ── Master bar ── */
@@ -30,6 +45,7 @@
   border-left: 3px solid var(--vscode-terminal-ansiGreen, #4ec9b0);
   border-radius: 6px;
   margin-bottom: 16px;
+  min-width: 0;
 }
 
 .masterBarOff {
@@ -39,7 +55,14 @@
 .masterLeft {
   display: flex;
   align-items: center;
+  flex: 1 1 auto;
   gap: 10px;
+  min-width: 0;
+}
+
+.masterDetails {
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .masterDot {
@@ -63,8 +86,12 @@
 
 /* ── MasterBar provider dropdown ── */
 .masterSelect {
+  box-sizing: border-box;
+  display: block;
   margin-top: 1px;
-  min-width: 160px;
+  max-width: 100%;
+  min-width: 0;
+  width: 100%;
 }
 
 .masterMetaButton {
@@ -76,6 +103,41 @@
   cursor: pointer;
   text-decoration: underline;
   margin-top: 1px;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  text-align: left;
+}
+
+.manageProviderButton {
+  align-items: center;
+  background: none;
+  border: none;
+  color: var(--vscode-textLink-foreground);
+  cursor: pointer;
+  display: flex;
+  font-family: inherit;
+  font-size: 11px;
+  gap: 4px;
+  margin-top: 5px;
+  max-width: 100%;
+  padding: 0;
+}
+
+.manageProviderButton:hover {
+  color: var(--vscode-textLink-activeForeground);
+  text-decoration: underline;
+}
+
+.masterLoading,
+.masterError {
+  color: var(--vscode-descriptionForeground);
+  font-size: 11px;
+  margin-top: 2px;
+}
+
+.masterError {
+  color: var(--vscode-errorForeground);
+  overflow-wrap: anywhere;
 }
 
 /* ── Accordion group ── */
@@ -119,6 +181,7 @@
   gap: 9px;
   font-weight: 600;
   font-size: 13px;
+  min-width: 0;
 }
 
 .groupTitle i {
@@ -174,9 +237,27 @@
 
 .rowControl {
   display: flex;
+  flex-direction: column;
   align-items: center;
+  max-width: 100%;
+  min-width: 0;
   padding-top: 2px;
   flex-shrink: 0;
+}
+
+.rowControl > vscode-dropdown {
+  box-sizing: border-box;
+  max-width: 100%;
+  min-width: 0;
+  width: 100%;
+}
+
+.rowError {
+  color: var(--vscode-errorForeground);
+  font-size: 10px;
+  margin-top: 4px;
+  max-width: 160px;
+  overflow-wrap: anywhere;
 }
 
 /* ── Toggle ── */
@@ -190,6 +271,7 @@
   cursor: pointer;
   padding: 0;
   transition: background 0.15s ease, border-color 0.15s ease;
+  flex-shrink: 0;
 }
 
 .toggle::after {
@@ -221,22 +303,91 @@
   background: var(--vscode-input-background);
   border: 1px solid var(--vscode-input-border);
   border-radius: 4px;
+  box-sizing: border-box;
+  max-width: 100%;
   overflow: hidden;
+  width: 96px;
 }
 
-.numInput vscode-text-field {
+.numberField {
   background: transparent;
   border: none;
-  width: 60px;
+  box-sizing: border-box;
+  color: var(--vscode-input-foreground);
+  font: inherit;
+  font-size: 12px;
+  height: 26px;
+  min-width: 0;
+  outline: none;
+  padding: 0 6px;
+  width: 100%;
 }
 
 .unit {
   font-size: 11px;
   color: var(--vscode-descriptionForeground);
   padding-right: 8px;
+  white-space: nowrap;
+}
+
+@media (max-width: 320px) {
+  .panel {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+
+  .masterBar {
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .masterLeft {
+    flex: 1;
+  }
+
+  .groupInner {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .row {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .rowControl {
+    align-items: stretch;
+    flex-basis: 100%;
+    width: 100%;
+  }
+
+  .numInput {
+    width: 100%;
+  }
+
+  .rowControl > .toggle {
+    align-self: flex-end;
+  }
+
+  .rowError {
+    max-width: 100%;
+  }
+}
+
+@keyframes loading-pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+
+  50% {
+    opacity: 1;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .loadingPulse,
   .groupChevron,
   .toggle,
   .toggle::after {

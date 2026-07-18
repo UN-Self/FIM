@@ -3,7 +3,8 @@ import { useTranslation } from "react-i18next"
 import {
   getConfigKey,
   getSettingsByGroup,
-  SETTING_GROUPS} from "../../common/settings-schema"
+  SETTING_GROUPS
+} from "../../common/settings-schema"
 import { useFimConfig } from "../hooks/useFimConfig"
 
 import { AccordionSection } from "./AccordionSection"
@@ -14,14 +15,26 @@ import styles from "../styles/settings-view.module.css"
 
 export const SettingsView = () => {
   const { t } = useTranslation()
-  const { config, loaded, update } = useFimConfig()
+  const { config, loaded, update, updateErrors } = useFimConfig()
 
   const enabled = Boolean(config.enabled)
+
+  if (!loaded) {
+    return (
+      <div className={styles.panel} aria-busy="true">
+        <div className={styles.loadingCard}>
+          <span className={styles.loadingPulse} />
+          {t("settings.loading")}
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className={styles.panel}>
       <MasterBar
         enabled={enabled}
+        error={updateErrors.enabled}
         onToggleEnabled={(next) => update("enabled", next)}
       />
       <div className={styles.sectionLabel}>{t("settings.sectionLabel")}</div>
@@ -37,6 +50,7 @@ export const SettingsView = () => {
               <SettingRow
                 key={def.key}
                 def={def}
+                error={updateErrors[getConfigKey(def)]}
                 value={config[getConfigKey(def)]}
                 onUpdate={update}
               />
@@ -44,7 +58,6 @@ export const SettingsView = () => {
           </div>
         </AccordionSection>
       ))}
-      {!loaded && <div className={styles.loading}>{t("settings.loading")}</div>}
     </div>
   )
 }
