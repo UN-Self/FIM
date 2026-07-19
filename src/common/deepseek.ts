@@ -1,5 +1,3 @@
-import { ReactNode } from "react"
-
 export const DEEPSEEK_PROVIDER_ID = "deepseek-default"
 export const DEEPSEEK_DEFAULT_BASE_URL =
   "https://api.deepseek.com/beta/completions"
@@ -19,7 +17,6 @@ export interface FimProvider {
   fimTemplate?: string
   id: string
   label: string
-  logo?: ReactNode
   modelName: string
   provider: string
   repositoryLevel?: boolean
