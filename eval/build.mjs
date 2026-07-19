@@ -5,7 +5,7 @@ import { fileURLToPath } from "url"
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const rootModules = path.join(__dirname, "..", "node_modules", "tree-sitter-wasms", "out")
-const dest = path.join(__dirname, "out", "tree-sitter-wasms")
+const dest = path.join(__dirname, "out", "src", "extension", "tree-sitter-wasms")
 
 if (!fs.existsSync(dest)) fs.mkdirSync(dest, { recursive: true })
 
