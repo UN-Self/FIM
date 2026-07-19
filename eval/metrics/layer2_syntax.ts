@@ -56,7 +56,10 @@ export async function evalLayer2(
 
   const bracketBalanced = checkBracketBalance(completion)
   const noOverrun = !/\n\s*\n\s*\n/.test(completion.trim()) // 粗略：补全不应有连续多空行（越界信号）
-  const noDuplication = !suffix.startsWith(completion.trim().split("\n").pop() || "___NOMATCH___")
+  const trimmedCompletion = completion.trim()
+  const noDuplication =
+    trimmedCompletion.length === 0 ||
+    !suffix.startsWith(trimmedCompletion.split("\n").pop() || "___NOMATCH___")
 
   return { syntaxValid, bracketBalanced, noOverrun, noDuplication, errorNodeCount }
 }

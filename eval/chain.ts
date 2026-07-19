@@ -79,7 +79,7 @@ export async function runChain(
       language: sample.languageId
     }
   )
-  const stopWords = ["<｜fim begin｜>", "<｜fim hole｜>", "<｜fim end｜>", "<END>", "<｜end of sentence｜>"]
+  const stopWords = ["<｜fim▁begin｜>", "<｜fim▁hole｜>", "<｜fim▁end｜>", "<END>", "<｜end of sentence｜>"]
 
   // E. model — onData only accumulates; truncate once after stream (Step 2 simplified)
   const startTime = Date.now()

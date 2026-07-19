@@ -109,7 +109,14 @@ export function createFakeEditor(
 export const window = {
   activeTextEditor: undefined as TextEditor | undefined,
   showInformationMessage: () => undefined,
-  createStatusBarItem: () => ({ show() {}, hide() {}, dispose() {} })
+  createStatusBarItem: () => ({ show() {}, hide() {}, dispose() {} }),
+  createOutputChannel: () => ({
+    appendLine: () => undefined,
+    append: () => undefined,
+    show: () => undefined,
+    hide: () => undefined,
+    dispose: () => undefined
+  })
 }
 
 export const workspace = {
