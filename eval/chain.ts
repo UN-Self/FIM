@@ -7,7 +7,7 @@ import { getFimPrompt } from "../src/extension/fim-templates"
 import { llm } from "../src/extension/llm"
 import { truncateCompletion } from "../src/extension/postprocessor"
 import { getNodeAtPosition, getParser } from "../src/extension/parser"
-import { getPrefixSuffix } from "../src/extension/utils"
+import { getFimDataFromProvider, getPrefixSuffix } from "../src/extension/utils"
 import { createFakeDocument, createFakeEditor, Position } from "./stub/vscode"
 
 import { ContextAdapter, ContextIR, IntentAdapter, IntentResult } from "./adapters/types"
@@ -121,11 +121,11 @@ export async function runChain(
       onStart: () => {},
       onError: (err: Error) => {
         modelError = err.message
+        resolve()
       },
       onData: (data: any) => {
-        const chunk =
-          data?.response || data?.choices?.[0]?.text || data?.choices?.[0]?.delta?.content || ""
-        rawCompletion += chunk
+        const chunk = getFimDataFromProvider(provider.provider, data)
+        if (chunk !== undefined) rawCompletion += chunk
       },
       onEnd: () => resolve()
     } as any).catch(() => resolve())
