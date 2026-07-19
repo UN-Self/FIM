@@ -12,14 +12,6 @@ export interface RequestBodyBase {
   messages?: ChatCompletionMessageParam[]
 }
 
-export interface RequestOptionsOllama extends RequestBodyBase {
-  model: string
-  keep_alive?: string | number
-  prompt?: string
-  input?: string
-  options: Record<string, unknown>
-}
-
 export interface StreamBodyOpenAI extends RequestBodyBase {
   max_tokens: number
 }

@@ -42,8 +42,8 @@ import { cache } from "../cache"
 import { CompletionFormatter } from "../completion-formatter"
 import { FileInteractionCache } from "../file-interaction"
 import {
-  getFimPrompt,
-  getFimTemplateRepositoryLevel,
+  getFimSplitPrompt,
+  getFimSplitPromptRepositoryLevel,
   getStopWords
 } from "../fim-templates"
 import { llm } from "../llm"
@@ -95,11 +95,15 @@ export class CompletionProvider
     this._fileInteractionCache = fileInteractionCache
   }
 
-  private buildFimRequest(prompt: string, provider: FimProvider) {
+  private buildFimRequest(
+    promptData: { prompt: string; suffix: string },
+    provider: FimProvider
+  ) {
     const body = {
       max_tokens: this.config.numPredictFim,
       model: provider.modelName,
-      prompt,
+      prompt: promptData.prompt,
+      suffix: promptData.suffix,
       stream: true,
       temperature: this.config.temperature
     }
@@ -183,16 +187,16 @@ export class CompletionProvider
 
     if (this._debouncer) clearTimeout(this._debouncer)
 
-    const prompt = await this.getPrompt(this._prefixSuffix)
+    const promptData = await this.getPrompt(this._prefixSuffix)
 
-    if (!prompt) return
+    if (!promptData) return
 
     return new Promise<ResolvedInlineCompletion>((resolve, reject) => {
       this._debouncer = setTimeout(() => {
         this._lock.acquire("fim.completion", async () => {
           const provider = this.getFimProvider()
           if (!provider) return
-          const request = this.buildFimRequest(prompt, provider)
+          const request = this.buildFimRequest(promptData, provider)
 
           if (!request) return
 
@@ -470,7 +474,9 @@ export class CompletionProvider
     return filteredCompletion
   }
 
-  private async getPrompt(prefixSuffix: PrefixSuffix) {
+  private async getPrompt(
+    prefixSuffix: PrefixSuffix
+  ): Promise<{ prompt: string; suffix: string } | ""> {
     if (!this._provider) return ""
     if (!this._document || !this._position || !this._provider) return ""
 
@@ -481,7 +487,7 @@ export class CompletionProvider
       const repositoryLevelData = await this.getRelevantDocuments()
       const repoName = sanitizeWorkspaceName(workspace.name)
       const currentFile = await this._document.uri.fsPath
-      return getFimTemplateRepositoryLevel(
+      return getFimSplitPromptRepositoryLevel(
         repoName || "untitled",
         repositoryLevelData,
         prefixSuffix,
@@ -489,17 +495,13 @@ export class CompletionProvider
       )
     }
 
-    return getFimPrompt(
-      this._provider.modelName,
-      this._provider.fimTemplate || FIM_TEMPLATE_FORMAT.automatic,
-      {
-        context: fileInteractionContext || "",
-        prefixSuffix,
-        header: this.getPromptHeader(documentLanguage, this._document.uri),
-        fileContextEnabled: this.config.fileContextEnabled,
-        language: documentLanguage
-      }
-    )
+    return getFimSplitPrompt({
+      context: fileInteractionContext || "",
+      prefixSuffix,
+      header: this.getPromptHeader(documentLanguage, this._document.uri),
+      fileContextEnabled: this.config.fileContextEnabled,
+      language: documentLanguage
+    })
   }
 
   public setAcceptedLastCompletion(value: boolean) {

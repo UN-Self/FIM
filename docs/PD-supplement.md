@@ -1,6 +1,8 @@
 
 # FIM: Fill-in-the-Middle 补全系统 — PD 补充与难点清单
 
+> ⚠️ **当前 MVP 仅支持 DeepSeek。** 本文涉及的独立 Engine Server、多 provider、Ollama/vLLM 本地模型、L1/L2 路由、Prefetcher 预计算等均属于 Phase 2+ 远期方向，未来经统一 gateway 抽象层接入，非当前能力。
+>
 > 本文档是对 `docs/PD.md` 的增量补充。PD.md 已标注为「未来跨编辑器架构参考」，本文档同理。
 >
 > **各章节当前适用情况：**

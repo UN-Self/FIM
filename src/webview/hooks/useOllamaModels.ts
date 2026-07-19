@@ -1,28 +1,8 @@
-import { useEffect, useState } from "react"
-
-import { EVENT_NAME } from "../../common/constants"
-import { ApiModel, ServerMessage } from "../../common/types"
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const global = globalThis as any
-
-export const useOllamaModels = () => {
-  const [models, setModels] = useState<ApiModel[] | undefined>([])
-  const handler = (event: MessageEvent) => {
-    const message: ServerMessage<ApiModel[]> = event.data
-    if (message?.type === EVENT_NAME.fimFetchOllamaModels) {
-      setModels(message?.data)
-    }
-    return () => window.removeEventListener("message", handler)
-  }
-
-  useEffect(() => {
-    global.vscode.postMessage({
-      type: EVENT_NAME.fimFetchOllamaModels
-    })
-    window.addEventListener("message", handler)
-    return () => window.removeEventListener("message", handler)
-  }, [])
-
-  return { models }
-}
+// Deprecated: Ollama model fetching was removed in the DeepSeek-only unification.
+// This file previously exported `useOllamaModels` and referenced the now-deleted
+// `EVENT_NAME.fimFetchOllamaModels` key. It has zero importers.
+//
+// The host session denied the physical `rm` (agent-relayed file destruction
+// requires explicit user consent), so the body is emptied here to clear the
+// dangling reference. Safe to delete this stub file manually.
+export {}

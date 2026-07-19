@@ -61,22 +61,10 @@ export async function activate(context: ExtensionContext) {
         WEBUI_TABS.providers
       )
     }),
-    commands.registerCommand(FIM_COMMAND_NAME.embeddings, async () => {
-      await showSidebarTab(
-        sidebarProvider,
-        EXTENSION_CONTEXT_NAME.fimEmbeddingsTab,
-        WEBUI_TABS.embeddings
-      )
-    }),
     commands.registerCommand(FIM_COMMAND_NAME.hideBackButton, () => {
       commands.executeCommand(
         "setContext",
         EXTENSION_CONTEXT_NAME.fimManageProviders,
-        false
-      )
-      commands.executeCommand(
-        "setContext",
-        EXTENSION_CONTEXT_NAME.fimEmbeddingsTab,
         false
       )
     }),

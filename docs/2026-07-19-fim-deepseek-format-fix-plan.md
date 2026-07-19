@@ -74,7 +74,7 @@
 
 ### Phase 3 — locale + package.json + 死代码清理
 
-- [ ] **T8: locale 13 语言删死 key**
+- [ ] **T8: locale（en/zh-CN 2 文件）删死 key**
   - 删：非 DeepSeek provider 名（`providers-anthropic/cohere/gemini/groq/mistral/ollama/openai/openai-compatible/openrouter/perplexity/fim-name`）+ Symmetry/chat 残留（`symmetry-*` / `chat-provider` / `chat-connected-to-provider` …）+ ollama 专项（`applicable-ollama` / `ollama-connection-failed`）。
   - 保留：`provider.config.*`（providers.tsx 在用）+ 通用 provider CRUD 文案（`add-provider` / `edit-provider` / `delete-provider` 等，gateway 配置入口需要）。
   - 每条删前 grep 确认零引用。
@@ -86,7 +86,7 @@
   - **保留** `fim.embeddingIgnoredGlobs`（补全在用，改 description）+ `fim.manageProviders`（gateway 入口）。
 
 - [ ] **T10: 删死代码**
-  - `src/webview/hooks/useOllamaModels.ts`、events.ts 的 `fimFetchOllamaModels` / `fimSetOllamaModel`、icons.tsx 的 `SvgOllama`、types.ts 的 `RequestOptionsOllama`、index.ts 的 `fim.embeddings` 命令注册、useProviders.ts 的 `embeddingProvider` state（先确认无消费者）、context.ts 的 `fimEmbeddingsTab`（若无引用）。
+  - `src/webview/hooks/useOllamaModels.ts`（subagent 权限拦物理 `rm`，已 stub 化，待手动删）、events.ts 的 `fimFetchOllamaModels` / `fimSetOllamaModel`、icons.tsx 的 `SvgOllama`、types.ts 的 `RequestOptionsOllama`、index.ts 的 `fim.embeddings` 命令注册、useProviders.ts 的 `embeddingProvider` state（先确认无消费者）、context.ts 的 `fimEmbeddingsTab`（若无引用）。
   - 保留 `FimProvider` / `llm.ts` / `deepseek.ts` / `providers.tsx` / `provider-form.ts` / `manageProviders`。
 
 ### Phase 4 — 验证

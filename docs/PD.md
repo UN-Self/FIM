@@ -8,7 +8,7 @@
 > - 单一 DeepSeek provider
 > - 四层逻辑架构（Interaction → Planning → Context → Model）
 >
-> 本文档描述的独立 Engine Server、多 provider、跨编辑器（Zed/Neovim/JetBrains）等能力属于 **Phase 3+ 的远期方向**。其中补全编排、意图识别、Prompt Builder、Postprocessor 等模块设计对当前 MVP 的实现仍有参考价值。
+> ⚠️ **当前 MVP 仅支持 DeepSeek。** 本文档描述的独立 Engine Server、多 provider、Ollama/vLLM/llama.cpp 本地模型、跨编辑器（Zed/Neovim/JetBrains）等能力均属于 **Phase 3+ 的远期方向**，未来经统一 gateway 抽象层接入，不碎片化管理，非当前能力。其中补全编排、意图识别、Prompt Builder、Postprocessor 等模块设计对当前 MVP 的实现仍有参考价值。
 
 ## 1. 产品定位
 
