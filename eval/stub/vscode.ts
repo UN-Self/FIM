@@ -6,7 +6,19 @@ export class Position {
 }
 
 export class Range {
-  constructor(public start: Position, public end: Position) {}
+  public start: Position
+  public end: Position
+  constructor(start: Position, end: Position)
+  constructor(startLine: number, startChar: number, endLine: number, endChar: number)
+  constructor(a: Position | number, b: Position | number, c?: number, d?: number) {
+    if (a instanceof Position) {
+      this.start = a
+      this.end = b as Position
+    } else {
+      this.start = new Position(a as number, b as number)
+      this.end = new Position(c as number, d as number)
+    }
+  }
 }
 
 export interface TextLine {
@@ -58,7 +70,7 @@ export function createFakeDocument(
       if (startLine === endLine) {
         return (lines[startLine] || "").slice(startChar, endChar)
       }
-      const parts = [lines[startLine].slice(startChar)]
+      const parts = [(lines[startLine] || "").slice(startChar)]
       for (let i = startLine + 1; i < endLine; i++) parts.push(lines[i])
       parts.push((lines[endLine] || "").slice(0, endChar))
       return parts.join("\n")
