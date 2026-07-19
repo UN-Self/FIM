@@ -19,3 +19,4 @@ __pycache__/
 # Eval outputs
 eval/out/
 eval/reports/
+eval/.env
