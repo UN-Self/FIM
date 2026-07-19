@@ -1,18 +1,19 @@
-# FIM DeepSeek 调用格式修复计划
+# FIM DeepSeek-only 收敛 + 调用格式修复计划
 
-> **下次执行**：用 superpowers:subagent-driven-development 逐 Task 执行。每 Task 实现后 review。
+> **统一口径**：FIM 当前仅支持 DeepSeek。架构保留 gateway（`FimProvider` 抽象 + `llm` 通用调用链 + provider 配置入口），未来可经 gateway 扩展，不碎片化管理。
+> **执行**：逐 Task 实现，每 Task 实现后 review。
 
-## 背景：eval-framework 实跑挖出的生产 bug
+## 背景
 
-eval-framework 跑通后（synthetic 样本），`syn-import` 样本补全是乱码（L3=0）。systematic-debugging 排查（2026-07-19）定位到根因：
+本次工作合并两个相互强化的目标：
 
-**FIM 项目对 DeepSeek 用了错误的 FIM 调用格式。**
+**A. 口径统一**：项目已决定 deepseek-only（`docs/providers.md` 早声明"MVP 仅 DeepSeek，未来走 gateway"），但只有该处跟上。README / CLAUDE.md / locale（13 语言）/ package.json / 死代码仍是"15+ providers / Ollama / 任意 OpenAI 兼容"旧口径 → 文档与代码长期不符 = "乱"。
 
-- 当前做法：`getFimPrompt` 把 `<｜fim▁begin｜>...prefix...<｜fim▁hole｜>...suffix...<｜fim▁end｜>` 拼成一个字符串，塞进请求体的 `prompt` 字段（**不用** `suffix` 字段）。
-- DeepSeek 官方 FIM：`prompt`（前缀）+ `suffix`（后缀）**分开两个字段**，API 自己加 token。
-- 结果：DeepSeek `/beta/completions` 不识别 raw prompt 里的 FIM token，当成普通续写 → 补全质量差。
+**B. 调用格式修复**：DeepSeek FIM 调用格式错——`getFimPrompt` 把 `<｜fim▁begin｜>…<｜fim▁hole｜>…<｜fim▁end｜>` 拼成 raw 字符串塞进 `prompt`，不用 `suffix` 字段 → DeepSeek `/beta/completions` 不识别 FIM token，当普通续写 → 补全质量差（import / 函数体等需填 hole 的场景废）。
 
-### 实测铁证（2026-07-19，同一道题两种出法）
+**两者交集 = 简化**：deepseek-only 口径下，DeepSeek 是唯一 provider 且支持 `suffix` → 格式修复**无需 split/raw 双模式、无需多端点调研**，直接 **split-only**（`prompt`+`suffix` 分开），比原计划更简单。
+
+### 格式 bug 实测铁证（2026-07-19，同题两种出法）
 
 | 题 | 当前（raw 拼 token） | 官方（prompt+suffix 分开） |
 |---|---|---|
@@ -21,75 +22,108 @@ eval-framework 跑通后（synthetic 样本），`syn-import` 样本补全是乱
 
 ### 影响范围
 
-- **生产** `src/extension/providers/completion.ts:98-110` `buildFimRequest`：body 是 `{ max_tokens, model, prompt, stream, temperature }`，prompt 含拼好的 token，无 suffix 字段。
-- **eval** `eval/chain.ts`：同上格式（抄自生产）。
-- 所以**不止 eval，生产 FIM 对 DeepSeek 也一直用错格式**——补全质量一直被打折，只是简单续写场景巧合能用，需填 hole 的（import 等）就废。
+- 生产 `src/extension/providers/completion.ts:98-120` `buildFimRequest`：body `{ max_tokens, model, prompt, stream, temperature }`，prompt 含拼好 token，无 suffix。
+- eval `eval/chain.ts:103-109`：同格式（抄自生产）。
+- → 不止 eval，生产 FIM 对 DeepSeek 一直用错格式。
 
-> 注意：之前一轮分析曾误判为"deepseek-chat 模型能力边界"，**已推翻**——是调用格式错，不是模型笨。
+> 之前一轮分析曾误判"deepseek-chat 模型能力边界"，**已推翻**——是调用格式错，不是模型笨。
 
-## Goal
+## 关键事实（2026-07-19 核查）
 
-按 **provider 能力**区分 FIM 调用模式：
-- 支持 `suffix` 字段的 provider（DeepSeek beta、OpenAI 兼容 `/completions` 带 suffix 的）→ 用 `prompt`+`suffix` 分开（官方格式）。
-- 只支持 raw 的 provider（codellama / starcoder 类无 suffix 端点）→ 保留拼 token 模式（`getFimPrompt` 不变）。
-
-补全质量恢复到模型本应有的水平。
-
-## Constraints
-
-- **不能一刀切**：FIM 支持 15+ provider，必须逐个确认其端点是否支持 `suffix` 字段。误判会让原本正常的 provider 回归。
-- **生产回归风险**：`completion.ts` 改动影响真实补全，每步小改 + 手动验证（F5 Extension Host + eval）。
-- 已修的 `STOP_DEEPSEEK ▁`（commit `9a7e23d`）与新格式叠加——新格式下 API 自动加 token，stop 仍需 chain/生产侧清理（`removeStopWords`）。
-- 代码风格：双引号、无分号、无尾逗号、2 空格、LF。
+- `providers.tsx` / `provider-form.ts` **已是 DeepSeek 单配置表单**（endpoint/key/model 三字段）→ UI 改动 ≈ 0。
+- gateway 实体 = `FimProvider` 接口 + `llm.ts` + `deepseek.ts` + providers.tsx 配置入口 → **全保留**。
+- `fim.embeddingIgnoredGlobs` 被 `utils.ts:708` + `completion.ts:322` 复用为文件 ignore → **保留**（仅改 description 去 embedding 字样）。
+- 死代码（全零调用方，安全删）：`useOllamaModels.ts`、events.ts 的 `fimFetchOllamaModels`/`fimSetOllamaModel`、icons.tsx 的 `SvgOllama`、types.ts 的 `RequestOptionsOllama`、`fim.ollamaHostname/ollamaApiPort/ollamaUseTls` 配置、`fim.embeddings` 命令（指向已删的 embeddings tab）。
+- `src/extension/ollama.ts`、`provider-options.ts` 均已不存在（`focus-on-completion-only` 收敛成果）。
 
 ## Tasks
 
-- [ ] **Task 1: provider × FIM 模式调研**
-  - grep `src/extension/fim-templates.ts`、`provider-options.ts`、`providers/`，列出每个 provider 的端点 + 是否支持 `suffix` 字段。
-  - 产出：一张 `provider → {端点, 支持 suffix?}` 表（写入本 plan 或 docs/）。
-  - 重点确认：DeepSeek（已知支持）、Ollama、OpenAI 兼容、Codestral、Qwen 等。
+### Phase 1 — 调用格式修复（split-only）
 
-- [ ] **Task 2: fim-templates.ts 加 split 模式**
-  - 新增 `getFimSplitPrompt(prefixSuffix)` 返回 `{ prompt: prefix, suffix: suffix }`（用于支持 suffix 的 provider）。
-  - 保留现有 `getFimPrompt`（拼 token，raw 模式，给不支持的 provider）。
-  - 不要破坏现有调用方。
+- [ ] **T1: fim-templates.ts 加 split 模式**
+  - 新增 `getFimSplitPrompt(args: FimPromptTemplate)` 返回 `{ prompt: string, suffix: string }`：复用 `getFileContext`，`fileContext` + `heading` 留 `prompt` 侧（属光标前），`suffix` = `prefixSuffix.suffix`。
+  - `suffix` nullable：行尾补全（suffix 空）时 prompt = 纯前缀 + fileContext + heading、suffix = ""，仍走 FIM，不退化成普通续写。
+  - split-only：`getFimPrompt`（raw 拼 token）不再用于请求构建；若 `getFimTemplateRepositoryLevel` 仍依赖拼 token，一并改 split（见 T2）。
 
-- [ ] **Task 3: completion.ts buildFamRequest 按 provider 选模式**
-  - 根据 provider 能力（Task 1 的表）选 split 或 raw。
-  - split 模式：body 加 `suffix` 字段，`prompt` 传纯前缀。
-  - 改动小步，保留 raw 分支。
+- [ ] **T2: completion.ts buildFimRequest 走 split**
+  - `completion.ts:98-120`：body 加 `suffix` 字段，`prompt` 传 `getFimSplitPrompt` 的纯前缀（含 fileContext/heading）。不再拼 FIM token。
+  - **repositoryLevel 路径**（`getPrompt` line ~480 → `getFimTemplateRepositoryLevel`，同样拼 token）一并 split 化，避免默认路径与 repo 级路径格式不一致。
+  - 小步改 + F5 验证。
 
-- [ ] **Task 4: chain.ts（eval）按 provider 选模式**
-  - 同 Task 3 逻辑。eval 主要测 DeepSeek → 走 split。
+- [ ] **T3: chain.ts(eval) 走 split + 类型扩展**
+  - `chain.ts:103-109` 同 T2 逻辑。eval 只测 DeepSeek → 走 split。
+  - `ChainArtifacts.prompt` 类型 `{ prompt: string; stopWords: string[] }` → `{ prompt: string; suffix: string; stopWords: string[] }`，reports 渲染层同步（grep `artifacts.prompt` / `prompt.prompt`）。
 
-- [ ] **Task 5: provider-options.ts DeepSeek body 用 prompt+suffix**
-  - 确认 DeepSeek body 构建走 split。
+### Phase 2 — 文档统一（对齐"统一口径"那句）
 
-- [ ] **Task 6: 验证**
-  - 重跑 `cd eval && npm run eval`（synthetic）：`syn-import` 应补出 `} from '...'` 类正确内容，L3 从 0 → 高分；`syn-block-start` 稳定满分。
-  - 生产：F5 启动 Extension Host，对 DeepSeek 触发真实补全（import 场景、function 场景），确认 ghost text 质量提升、无回归。
-  - 回归：codellama/其他 raw provider 仍正常（用 raw 模式不变）。
+- [ ] **T4: README.md + README.zh-CN.md**
+  - 删"自带模型 / Ollama / 任意 OpenAI 兼容 / Anthropic / Mistral / Groq / Gemini / vLLM"话术 → "当前支持 DeepSeek；gateway 预留扩展"。
+  - slogan "Stop guessing. Start conducting." **不变**。自托管精确化：扩展无遥测 / 数据不出机器 / 你掌控 key（不等于必须本地模型）。
+
+- [ ] **T5: CLAUDE.md + AGENTS.md**
+  - "15+ AI providers (Ollama, OpenAI, Anthropic…)" → "DeepSeek（MVP）；gateway 预留扩展"。Project Overview / Provider System 段同步。
+
+- [ ] **T6: docs/ 内一致性**
+  - `providers.md`：已是目标口径，微调。
+  - `fim-overall-design.md`：§"default paths follow DeepSeek and OpenAI-compatible" 措辞调整。
+  - `codebase-pruning-guide.md`：追加本次收敛记录。
+  - `灵魂不能外包.md`：**不动**（自托管 / 反遥测哲学根，与 deepseek-only 不冲突）。
+
+- [ ] **T7: PD.md + PD-supplement.md 加 MVP 锚点**
+  - **保留**（gateway / 多 provider 设计来源），开头加"当前 MVP 仅 DeepSeek"锚点，避免误读为现在就支持 Ollama / vLLM。
+
+### Phase 3 — locale + package.json + 死代码清理
+
+- [ ] **T8: locale 13 语言删死 key**
+  - 删：非 DeepSeek provider 名（`providers-anthropic/cohere/gemini/groq/mistral/ollama/openai/openai-compatible/openrouter/perplexity/fim-name`）+ Symmetry/chat 残留（`symmetry-*` / `chat-provider` / `chat-connected-to-provider` …）+ ollama 专项（`applicable-ollama` / `ollama-connection-failed`）。
+  - 保留：`provider.config.*`（providers.tsx 在用）+ 通用 provider CRUD 文案（`add-provider` / `edit-provider` / `delete-provider` 等，gateway 配置入口需要）。
+  - 每条删前 grep 确认零引用。
+
+- [ ] **T9: package.json**
+  - `keywords` 删 `ollama`（加 `deepseek`）。
+  - 删 3 个 `[deprecated]` `fim.ollamaHostname` / `ollamaApiPort` / `ollamaUseTls`。
+  - 删 `fim.embeddings` 命令 + `fimEmbeddingsTab` context（确认 embeddings tab 已不在 main.tsx）。
+  - **保留** `fim.embeddingIgnoredGlobs`（补全在用，改 description）+ `fim.manageProviders`（gateway 入口）。
+
+- [ ] **T10: 删死代码**
+  - `src/webview/hooks/useOllamaModels.ts`、events.ts 的 `fimFetchOllamaModels` / `fimSetOllamaModel`、icons.tsx 的 `SvgOllama`、types.ts 的 `RequestOptionsOllama`、index.ts 的 `fim.embeddings` 命令注册、useProviders.ts 的 `embeddingProvider` state（先确认无消费者）、context.ts 的 `fimEmbeddingsTab`（若无引用）。
+  - 保留 `FimProvider` / `llm.ts` / `deepseek.ts` / `providers.tsx` / `provider-form.ts` / `manageProviders`。
+
+### Phase 4 — 验证
+
+- [ ] **T11: 全量验证**
+  - `npm run build` + `npm run lint` 全绿。
+  - 重跑 `cd eval && npm run eval`（synthetic）：`syn-import` 补出 `} from '…'` 类，L3 0→高分；`syn-block-start` / `syn-line-continuation` 稳定 L3 ≥ 9。
+  - F5 Extension Host：DeepSeek 真实补全（import / function / 行续）质量提升、无回归。
+  - grep 验证：`README.md README.zh-CN.md CLAUDE.md AGENTS.md docs/ src/webview/assets/locales/ package.json` 无"Ollama / 15+ provider / 多 provider"残留（PD 远期文档 + 锚点除外）。
+  - gateway 完整性：`FimProvider` / `llm.ts` / providers.tsx 配置入口仍在。
 
 ## 验证标准（Definition of Done）
 
-1. eval synthetic 重跑：`syn-import` L3 ≥ 7（补出合法 import），`syn-block-start` / `syn-line-continuation` 稳定 L3 ≥ 9。
-2. 生产 F5：DeepSeek 至少 3 个真实场景（import / function / 行续）ghost text 合理。
-3. 至少 1 个 raw-only provider（如 codellama via Ollama）不回归。
+1. 格式：eval `syn-import` L3 ≥ 7，`syn-block-start` / `syn-line-continuation` L3 ≥ 9。
+2. 口径：文档 / locale / package.json 无多 provider / Ollama 残留（grep 证据）；gateway 抽象与配置入口保留。
+3. 死代码：ollama / fim.embeddings 相关零引用。
 4. `npm run build` + `npm run lint` 通过。
+5. 生产 F5：DeepSeek ≥ 3 场景（import / function / 行续）ghost text 合理、无回归。
 
 ## 风险与回退
 
-- **provider 模式表不全** → Task 1 必须实测确认（不能凭文档猜），拿不准的默认 raw（保守）。
-- **生产回归** → Task 3/5 小步改 + Task 6 手动测；若回归，单 provider 回退 raw。
-- 回退成本低：split/raw 由一个 provider 能力开关决定，改回即可。
+- **split-only 后 STOP_DEEPSEEK 的 FIM token 变 dead stop**（API 返回纯补全，不含 `<｜fim▁begin｜>` 等）→ `removeStopWords` 照跑无害，有效 stop 只剩 `<END>` / `<｜end of sentence｜>`。
+- **模型可达性**（独立变量，非格式问题）→ 官方 FIM 文档 `model` 仅列 `deepseek-v4-pro`，默认 + eval 用 `deepseek-chat`；eval 能跑通说明暂可用，若突报 4xx 先查模型支持。
+- **locale / package.json 误删活 key** → 删前 grep 确认零引用；`provider.config.*` / `embeddingIgnoredGlobs` / `manageProviders` 保留。
+- **embeddingIgnoredGlobs 被补全复用** → 不删（仅改 description）。
+- **repositoryLevel 路径遗漏** → T2 必须覆盖，否则默认路径与 repo 级路径格式不一致。
+- 回退：纯删除 / 文案 / split 改动，`git revert` 即可。
 
 ## 相关 commits（上下文）
 
 - `9a7e23d` fix: STOP_DEEPSEEK use ▁（stop token 修复，叠加）
 - `493b9be` fix(eval): wasm 路径（layer2/chain AST）
-- eval-framework 分支 `feat/eval-framework` 全部工作（14+ commits）
+- eval-framework 分支 `feat/eval-framework`（14+ commits）
+- `focus-on-completion-only` 收敛（删 chat / embeddings / symmetry，`provider-options.ts` 等）
 
 ## 排查证据存档
 
 - 全链路中间产物（prompt / raw completion）见对话记录（2026-07-19）。
 - 关键对比脚本：node 直调 DeepSeek `/beta/completions`，raw vs split 两模式（可复现）。
+- 死代码调用方核查（2026-07-19 grep）：`useOllamaModels` / `SvgOllama` / `RequestOptionsOllama` / `fim.ollama*` / `fimSetOllamaModel` 均零引用。
