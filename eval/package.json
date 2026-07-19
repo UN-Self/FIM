@@ -6,7 +6,7 @@
   "type": "commonjs",
   "scripts": {
     "build": "node build.mjs && tsc -p tsconfig.json",
-    "eval": "node build.mjs && tsc -p tsconfig.json && node out/eval/runner.js"
+    "eval": "node build.mjs && tsc -p tsconfig.json && node --env-file-if-exists=.env out/eval/runner.js"
   },
   "devDependencies": {
     "@types/node": "^16.18.68",
