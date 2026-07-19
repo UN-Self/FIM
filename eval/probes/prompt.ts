@@ -1,4 +1,4 @@
-const FIM_TOKENS = ["<｜fim_begin｜>", "<｜fim_hole｜>", "<｜fim_end｜>"]
+const FIM_TOKENS = ["<｜fim▁begin｜>", "<｜fim▁hole｜>", "<｜fim▁end｜>"]
 
 export interface PromptProbeResult {
   length: number
