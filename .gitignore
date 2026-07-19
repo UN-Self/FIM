@@ -15,3 +15,7 @@ __pycache__/
 .codex
 .agents
 .claude
+
+# Eval outputs
+eval/out/
+eval/reports/
