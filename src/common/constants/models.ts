@@ -5,9 +5,9 @@ export const FIM_TEMPLATE_FORMAT = {
 }
 
 export const STOP_DEEPSEEK = [
-  "<｜fim begin｜>",
-  "<｜fim hole｜>",
-  "<｜fim end｜>",
+  "<｜fim▁begin｜>",
+  "<｜fim▁hole｜>",
+  "<｜fim▁end｜>",
   "<END>",
   "<｜end of sentence｜>"
 ]
