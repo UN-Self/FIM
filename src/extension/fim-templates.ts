@@ -24,23 +24,6 @@ const getFileContext = (
   return { heading: header ?? "", fileContext }
 }
 
-const getFimPromptTemplateDeepseek = ({
-  context,
-  header,
-  fileContextEnabled,
-  prefixSuffix,
-  language
-}: FimPromptTemplate) => {
-  const { prefix, suffix } = prefixSuffix
-  const { fileContext, heading } = getFileContext(
-    fileContextEnabled,
-    context,
-    language,
-    header
-  )
-  return `<｜fim▁begin｜>${fileContext}\n${heading}${prefix}<｜fim▁hole｜>${suffix}<｜fim▁end｜>`
-}
-
 const getRepositoryContext = (
   repo: string,
   files: RepositoryLevelData[]
@@ -52,27 +35,27 @@ const getRepositoryContext = (
   return [`Repository: ${repo}`, ...fileContexts].join("\n\n")
 }
 
-export const getDefaultFimPromptTemplate = (args: FimPromptTemplate) =>
-  getFimPromptTemplateDeepseek(args)
-
-export const getFimPrompt = (
-  _fimModel: string,
-  _format: string,
-  args: FimPromptTemplate
-) => {
-  void _fimModel
-  void _format
-  return getFimPromptTemplateDeepseek(args)
-}
-
-export const getStopWordsAuto = (_fimModel: string) => {
-  void _fimModel
-  return STOP_DEEPSEEK
-}
-
-export const getStopWordsChosen = (_format: string) => {
-  void _format
-  return STOP_DEEPSEEK
+// Split-only: DeepSeek FIM adds the special tokens server-side from the
+// raw prefix (prompt) + suffix pair. fileContext and heading describe text
+// before the cursor, so they stay on the prompt side.
+export const getFimSplitPrompt = ({
+  context,
+  header,
+  fileContextEnabled,
+  prefixSuffix,
+  language
+}: FimPromptTemplate): { prompt: string; suffix: string } => {
+  const { prefix, suffix } = prefixSuffix
+  const { fileContext, heading } = getFileContext(
+    fileContextEnabled,
+    context,
+    language,
+    header
+  )
+  return {
+    prompt: `${fileContext}\n${heading}${prefix}`,
+    suffix
+  }
 }
 
 export const getStopWords = (_fimModel: string, _format: string) => {
@@ -81,13 +64,13 @@ export const getStopWords = (_fimModel: string, _format: string) => {
   return STOP_DEEPSEEK
 }
 
-export const getFimTemplateRepositoryLevel = (
+export const getFimSplitPromptRepositoryLevel = (
   repo: string,
   code: RepositoryLevelData[],
   prefixSuffix: PrefixSuffix,
   currentFileName: string | undefined
-) => {
-  return getFimPromptTemplateDeepseek({
+): { prompt: string; suffix: string } => {
+  return getFimSplitPrompt({
     context: getRepositoryContext(repo, code),
     header: currentFileName ? `File: ${currentFileName}\n` : "",
     fileContextEnabled: true,

@@ -14,7 +14,7 @@
     "fim",
     "fill-in-the-middle",
     "ai",
-    "ollama",
+    "deepseek",
     "llama",
     "development",
     "extension",
@@ -100,12 +100,6 @@
         "shortTitle": "Manage FIM providers",
         "title": "Manage FIM providers",
         "icon": "$(robot)"
-      },
-      {
-        "command": "fim.embeddings",
-        "shortTitle": "FIM embeddings",
-        "title": "Embedding options",
-        "icon": "$(database)"
       }
     ],
     "keybindings": [
@@ -245,30 +239,7 @@
           "order": 14,
           "type": "array",
           "default": [],
-          "markdownDescription": "Specifies file patterns to ignore when calculating embeddings, such as `**/*.md`, `**/node_modules/**`."
-        },
-        "fim.ollamaHostname": {
-          "order": 15,
-          "type": "string",
-          "default": "0.0.0.0",
-          "markdownDescription": "[deprecated] Use the provider system instead. Legacy Ollama hostname. Specifies the hostname for the Ollama API. Use `0.0.0.0` for localhost or provide a specific IP address or domain name.",
-          "required": true
-        },
-        "fim.ollamaApiPort": {
-          "order": 16,
-          "type": [
-            "number",
-            "null"
-          ],
-          "default": 11434,
-          "markdownDescription": "[deprecated] Use the provider system instead. Legacy Ollama API port. Sets the port number for the Ollama API. The default is `11434`, but you can change it if your Ollama instance uses a different port.",
-          "required": false
-        },
-        "fim.ollamaUseTls": {
-          "order": 18,
-          "type": "boolean",
-          "default": false,
-          "markdownDescription": "[deprecated] Use the provider system instead. Legacy Ollama TLS flag. When `true`, FIM will use TLS encryption for connections to the Ollama API. Ensure your Ollama instance is configured for TLS before enabling this option."
+          "markdownDescription": "Ignores file paths matching these globs when gathering completion context."
         },
         "fim.enableLogging": {
           "order": 19,
@@ -314,7 +285,6 @@
     "async-lock": "^1.4.1",
     "fastest-levenshtein": "^1.0.16",
     "fluency.js": "^1.0.23",
-    "handlebars": "^4.7.8",
     "i18next": "^23.16.5",
     "i18next-http-backend": "^2.6.2",
     "ignore": "^6.0.2",

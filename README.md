@@ -48,7 +48,7 @@ Retrieval knowledge — the library call you can almost remember, the parameter 
 
 No telemetry. No cloud analytics. No usage data quietly phoning home. Nothing leaves your laptop unless you point FIM at a provider yourself.
 
-Bring your own model. Run a local one through [Ollama](https://ollama.com), or drop in any OpenAI-compatible API — OpenAI, Anthropic, Mistral, Groq, Gemini, your own vLLM. The key, the endpoint, and the off switch are all yours. FIM is a host, not a tenant.
+Today, FIM runs on [DeepSeek](https://www.deepseek.com). Configurable endpoint, your key, the off switch in your hand — and nothing else leaves your laptop. The architecture keeps a provider gateway: a thin `FimProvider` abstraction over a generic streaming call, so other models can be added later through one extension point rather than fifteen forks. FIM is a host, not a tenant.
 
 ## Completion, not chat
 
@@ -71,7 +71,7 @@ FIM is the musician. You're the conductor.
 FIM is a VS Code extension. Three steps.
 
 1. Install the `.vsix` from [releases](https://github.com/UN-Self/FIM/releases): `code --install-extension fim-*.vsix`
-2. Point it at a model — local Ollama, or any OpenAI-compatible endpoint.
+2. Point it at DeepSeek — configurable endpoint, drop in your key.
 3. Write a comment. Draw a skeleton. Press `Alt+\`.
 
 Why it works this way — the orchestration, the FIM templates, the local-first architecture — lives in [`docs/`](./docs):
@@ -81,4 +81,4 @@ Why it works this way — the orchestration, the FIM templates, the local-first 
 
 ## License
 
-[MIT](./LICENSE). Self-hosted, self-owned. The way it should be.
+[MIT](./LICENSE). Self-hosted, self-owned. (Self-hosted means the extension itself runs on your machine with no telemetry — not that the model has to run locally. Your DeepSeek key and the off switch are yours.) The way it should be.

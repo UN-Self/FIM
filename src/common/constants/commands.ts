@@ -3,7 +3,6 @@ export const FIM_COMMAND_NAME = {
   addTypes: "fim.addTypes",
   conversationHistory: "fim.conversationHistory",
   disable: "fim.disable",
-  embeddings: "fim.embeddings",
   enable: "fim.enable",
   review: "fim.review",
   explain: "fim.explain",

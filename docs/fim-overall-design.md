@@ -142,9 +142,10 @@ service to declare exact role capabilities. The user remains responsible for
 choosing working models, and FIM should provide test actions and clear failure
 messages to reduce configuration mistakes.
 
-The default paths follow DeepSeek and OpenAI-compatible conventions, while
-advanced settings allow proxies, company gateways, and self-hosted compatible
-services to override paths per role.
+The default paths follow DeepSeek conventions. Advanced settings can override
+paths per role to route through proxies, company gateways, and self-hosted
+OpenAI-compatible services; these are reserved gateway extension points rather
+than current MVP capabilities — the MVP ships DeepSeek only.
 
 The important distinction is:
 

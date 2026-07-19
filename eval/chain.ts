@@ -3,7 +3,7 @@ import * as fs from "fs"
 import { DEFAULT_PROVIDER_FORM_VALUES, FimProvider } from "../src/common/deepseek"
 import { PrefixSuffix } from "../src/common/types"
 import { CompletionFormatter } from "../src/extension/completion-formatter"
-import { getFimPrompt } from "../src/extension/fim-templates"
+import { getFimSplitPrompt } from "../src/extension/fim-templates"
 import { llm } from "../src/extension/llm"
 import { truncateCompletion } from "../src/extension/postprocessor"
 import { getNodeAtPosition, getParser } from "../src/extension/parser"
@@ -18,7 +18,7 @@ export interface ChainArtifacts {
   prefixSuffix: PrefixSuffix
   context: ContextIR
   intent: IntentResult
-  prompt: { prompt: string; stopWords: string[] }
+  prompt: { prompt: string; suffix: string; stopWords: string[] }
   model: { rawCompletion: string; latencyMs: number; error?: string }
   completion: { text: string; truncated: boolean }
 }
@@ -67,18 +67,14 @@ export async function runChain(
     cursor: { line: cursorLine, character: sample.cursor.character }
   })
 
-  // D. prompt
-  const prompt = getFimPrompt(
-    provider.modelName,
-    provider.fimTemplate || "automatic",
-    {
-      context: context.chunks.map((c) => c.text).join("\n"),
-      prefixSuffix,
-      header: "",
-      fileContextEnabled: context.chunks.length > 0,
-      language: sample.languageId
-    }
-  )
+  // D. prompt (split-only: DeepSeek FIM adds tokens server-side from prompt + suffix)
+  const { prompt, suffix } = getFimSplitPrompt({
+    context: context.chunks.map((c) => c.text).join("\n"),
+    prefixSuffix,
+    header: "",
+    fileContextEnabled: context.chunks.length > 0,
+    language: sample.languageId
+  })
   const stopWords = ["<｜fim▁begin｜>", "<｜fim▁hole｜>", "<｜fim▁end｜>", "<END>", "<｜end of sentence｜>"]
 
   // E. model — onData only accumulates; truncate once after stream (Step 2 simplified)
@@ -104,6 +100,7 @@ export async function runChain(
         max_tokens: 512,
         model: provider.modelName,
         prompt,
+        suffix,
         stream: true,
         temperature: 0.2
       },
@@ -171,7 +168,7 @@ export async function runChain(
       prefixSuffix,
       context,
       intent,
-      prompt: { prompt, stopWords },
+      prompt: { prompt, suffix, stopWords },
       model: { rawCompletion, latencyMs, error: modelError },
       completion: { text: finalText, truncated }
     }

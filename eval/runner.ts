@@ -50,7 +50,11 @@ async function main() {
           matrixLabel: matrix.label,
           contextProbe: probeContext(chainResult.artifacts.context),
           intentProbe: probeIntent(chainResult.artifacts.intent),
-          promptProbe: probePrompt(chainResult.artifacts.prompt.prompt),
+          promptProbe: {
+            ...probePrompt(chainResult.artifacts.prompt.prompt),
+            suffixLength: chainResult.artifacts.prompt.suffix.length,
+            suffixPreview: chainResult.artifacts.prompt.suffix.slice(0, 80)
+          },
           completionProbe
         })
         console.log(

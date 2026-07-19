@@ -11,8 +11,6 @@ export const useProviders = () => {
   const [providers, setProviders] = useState<Record<string, FimProvider>>({})
   const [fimProvider, setFimProvider] = useState<FimProvider | null>(null)
   const [loaded, setLoaded] = useState(false)
-  const [embeddingProvider, setEmbeddingProvider] =
-    useState<FimProvider | null>(null)
   const saveProvider = (provider: FimProvider) => {
     global.vscode.postMessage({
       type: PROVIDER_EVENT_NAME.addProvider,
@@ -80,9 +78,6 @@ export const useProviders = () => {
       if (message?.type === PROVIDER_EVENT_NAME.getActiveFimProvider) {
         setFimProvider((message.data as FimProvider) || null)
       }
-      if (message?.type === PROVIDER_EVENT_NAME.getActiveEmbeddingsProvider) {
-        setEmbeddingProvider((message.data as FimProvider) || null)
-      }
     }
     window.addEventListener("message", handler)
     global.vscode.postMessage({
@@ -91,15 +86,11 @@ export const useProviders = () => {
     global.vscode.postMessage({
       type: PROVIDER_EVENT_NAME.getActiveFimProvider
     })
-    global.vscode.postMessage({
-      type: PROVIDER_EVENT_NAME.getActiveEmbeddingsProvider
-    })
     return () => window.removeEventListener("message", handler)
   }, [])
 
   return {
     copyProvider,
-    embeddingProvider,
     fimProvider,
     getProvidersByType,
     loaded,

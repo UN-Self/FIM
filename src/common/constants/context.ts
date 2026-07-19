@@ -11,8 +11,7 @@ export const EXTENSION_CONTEXT_NAME = {
   fimRelevantFilePaths: "fimRelevantFilePaths",
   fimRerankThreshold: "fimRerankThreshold",
   fimReviewTab: "fimReviewTab",
-  fimSymmetryTab: "fimSymmetryTab",
-  fimEmbeddingsTab: "fimEmbeddingsTab"
+  fimSymmetryTab: "fimSymmetryTab"
 }
 
 export const EXTENSION_SESSION_NAME = {

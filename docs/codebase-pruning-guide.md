@@ -98,6 +98,8 @@
 
 ## 3. 保留的文件
 
+> **注**：本节为 PR #1（2026-07-04）裁剪时的保留快照。其中 `provider-options.ts` / `provider-manager.ts` / `ollama.ts` / `template-provider.ts` / `templates.ts` / `session-manager.ts` 在后续 deepseek-only 收敛（§10）中进一步删除。**当前真实结构以 `CLAUDE.md` 的 Layer Structure 为准。**
+
 ### 3.1 关键链路（补全核心，不可删）
 
 | 文件 | 角色 |
@@ -283,3 +285,46 @@ test_utils.py ......                     [100%]
 - 无 Chat、无 RAG/Embeddings、无 Symmetry P2P
 - 66 个测试全部通过（pytest + Mocha）
 - 权威架构文档：[`fim-overall-design.md`](./fim-overall-design.md)
+
+## 10. DeepSeek-only 收敛（2026-07-19）
+
+> 本节记录 `feat/deepseek-only-unification` 分支的 deepseek-only 收敛工作范围。口径：**当前仅支持 DeepSeek，未来多 provider 经统一 gateway 抽象层接入，不碎片化管理。** gateway 框架（`FimProvider` 抽象 + `llm()` 通用调用链 + provider 配置入口）保留为扩展点，不删。代码删除与格式修复已落地（`npm run build` + `lint` 通过，2026-07-19）；`useOllamaModels.ts` 因 subagent 权限拦截物理 `rm`，暂以 stub 替代（零 importer，不影响 bundle），待手动物理删除。
+
+### 10.1 删除 Ollama / Embeddings 死代码
+
+| 位置 | 删除内容 |
+| --- | --- |
+| `src/webview/hooks/useOllamaModels.ts` | 整文件（Ollama 模型拉取 hook） |
+| `src/common/constants/events.ts` | `fimFetchOllamaModels`、`fimSetOllamaModel` 事件 key |
+| `src/webview/icons.tsx` | `SvgOllama` 图标组件 |
+| `src/common/types.ts` | `RequestOptionsOllama` 接口 |
+| `package.json` | `fim.ollamaHostname`、`fim.ollamaApiPort`、`fim.ollamaUseTls` 配置；`fim.embeddings` 命令声明 |
+| `src/index.ts` | `fim.embeddings` 命令注册点 |
+| `src/webview/hooks/useProviders.ts` | `embeddingProvider` 字段 |
+| `src/common/constants/context.ts` / `commands.ts` | `fimEmbeddingsTab` context key + `embeddings` 命令常量 |
+
+### 10.2 Locale 清理
+
+`src/webview/assets/locales/zh-CN.json`、`en.json`（仅此 2 个，其余 locale 早在 commit `5bee2df` 删除）清理非 DeepSeek 的 provider 名残留（OpenAI / Ollama / Groq / Mistral / Gemini / Anthropic 等）+ Symmetry / Chat 文案残留，每文件删 58 条死 key，仅保留 DeepSeek + gateway 配置入口文案。
+
+### 10.3 调用格式修复：raw token 拼接 → prompt + suffix split-only
+
+DeepSeek `/beta/completions` 原生支持 `prompt` + `suffix` 分字段的 FIM 调用。原实现把 `<｜fim▁begin｜>` / `<｜fim▁hole｜>` / `<｜fim▁end｜>` 等 token **raw 拼成单一 `prompt` 字符串**发送（见 `fim-templates.ts` 的 `getFimPrompt`），与官方推荐用法不一致。本次收敛改为 **split-only**：`prompt` 字段只承载 prefix + hole 标记，`suffix` 字段独立传递，不再 raw 拼接 suffix 标记。
+
+- 相关 plan：deepseek-only unification + split-only format fix（提交 `8c56f4e` / `d883f9a`）
+- 涉及文件：`src/extension/fim-templates.ts`（`getFimSplitPrompt`）、`src/extension/providers/completion.ts`（`buildFimRequest`）、`eval/chain.ts`、`eval/runner.ts`（通用 `llm.ts` 链未改）
+
+### 10.4 顶层文档口径统一
+
+README / CLAUDE.md / AGENTS.md 等顶层文档统一为"当前仅 DeepSeek + gateway 预留"口径，删除暗示当前支持 Ollama / 多 provider 的措辞。
+
+### 10.5 保留的 gateway 抽象（不删）
+
+收敛只去碎片化，不动 gateway 框架本身。以下保留为未来多 provider 扩展入口：
+
+| 位置 | 角色 |
+| --- | --- |
+| `src/common/deepseek` | `FimProvider` 抽象 |
+| `src/extension/llm.ts` | `llm()` 通用流式 SSE 调用链 |
+| `src/webview/providers.tsx`、`hooks/useProviders.ts`、`hooks/useFimConfig.ts` | provider 配置入口 |
+| `src/extension/fim-templates.ts` | FIM 模板（未来按 provider 族扩展） |
