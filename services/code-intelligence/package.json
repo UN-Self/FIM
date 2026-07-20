@@ -1,0 +1,25 @@
+{
+  "name": "@fim/code-intelligence",
+  "version": "0.0.1",
+  "private": true,
+  "description": "FIM code-intelligence service — GraphProvider contract and CodeGraph adapter",
+  "type": "commonjs",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "lint": "eslint src"
+  },
+  "peerDependencies": {
+    "@colbymchenry/codegraph": "^1.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@colbymchenry/codegraph": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/node": "^16.18.68",
+    "typescript": "^4.7.4"
+  }
+}

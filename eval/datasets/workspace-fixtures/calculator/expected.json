@@ -1,0 +1,31 @@
+{
+  "workspace": "calculator",
+  "languageId": "typescript",
+  "currentFile": "index.ts",
+  "cursor": { "line": 60, "character": 22 },
+  "expectedIntent": "block_completion",
+  "expectedCompletion": "add(sum, v)",
+  "expectedCompletionAlternatives": [
+    "add(sum, v);",
+    "add(sum, v)\n      }",
+    "mul(sum, v)"
+  ],
+  "expectedGraphEvidence": [
+    { "symbolId": "Calculator", "filePath": "calculator.ts", "relation": "callee", "signature": "class Calculator", "freshness": "fresh", "provenance": "codegraph" },
+    { "symbolId": "formatResult", "filePath": "format.ts", "relation": "callee", "signature": "function formatResult(value: number, opts?: FormatOptions): string", "freshness": "fresh", "provenance": "codegraph" },
+    { "symbolId": "Logger", "filePath": "logger.ts", "relation": "callee", "signature": "class Logger", "freshness": "fresh", "provenance": "codegraph" },
+    { "symbolId": "FormatOptions", "filePath": "format.ts", "relation": "reference", "signature": "interface FormatOptions", "freshness": "fresh", "provenance": "codegraph" },
+    { "symbolId": "mul", "filePath": "calculator.ts", "relation": "callee", "signature": "mul(a: number, b: number): number", "freshness": "fresh", "provenance": "codegraph" },
+    { "symbolId": "lastResult", "filePath": "calculator.ts", "relation": "reference", "signature": "get lastResult(): number | null", "freshness": "fresh", "provenance": "codegraph" }
+  ],
+  "expectedConstraints": [
+    "must return from the factorial method",
+    "already has a result variable tracking the product",
+    "method is inside createApp() return object"
+  ],
+  "relatedFiles": [
+    { "path": "calculator.ts", "role": "callee", "symbols": ["Calculator", "mul", "lastResult"] },
+    { "path": "format.ts", "role": "callee", "symbols": ["formatResult", "FormatOptions"] },
+    { "path": "logger.ts", "role": "callee", "symbols": ["Logger"] }
+  ]
+}

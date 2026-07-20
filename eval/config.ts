@@ -10,7 +10,7 @@ export interface EvalConfig {
     enabled: boolean
   }
   contextLength: number
-  dataset: "synthetic" | "fim-self" | "all"
+  dataset: "synthetic" | "fim-self" | "workspace" | "all"
   codegraph: {
     maxNodes: number
   }
@@ -20,7 +20,10 @@ export interface EvalConfig {
     maxContextChars: number
     model: string
   }
-  matrices: Array<"baseline" | "codegraph" | "codegraph-planner">
+  matrices: Array<"baseline" | "codegraph" | "codegraph-planner" | "codegraph-planner-direct-writer">
+  /** Use the Engine-based ChainV2 instead of the legacy ChainV1 (Phase 6).
+   * Controlled by EVAL_USE_ENGINE_CHAIN env var (default false). */
+  useEngineChain: boolean
 }
 
 export function loadConfig(): EvalConfig {
@@ -34,8 +37,9 @@ export function loadConfig(): EvalConfig {
     .split(",")
     .map((value) => value.trim())
     .filter((value): value is EvalConfig["matrices"][number] =>
-      ["baseline", "codegraph", "codegraph-planner"].includes(value)
+      ["baseline", "codegraph", "codegraph-planner", "codegraph-planner-direct-writer"].includes(value)
     )
+  const useEngineChain = process.env.EVAL_USE_ENGINE_CHAIN === "true"
 
   return {
     deepseek: { apiKey: deepseekApiKey, model: deepseekModel },
@@ -56,6 +60,7 @@ export function loadConfig(): EvalConfig {
       maxContextChars: Number(process.env.INTENT_MAX_CONTEXT_CHARS) || 24000,
       model: process.env.INTENT_MODEL || deepseekModel
     },
-    matrices: matrixValues.length ? matrixValues : ["baseline"]
+    matrices: matrixValues.length ? matrixValues : ["baseline"],
+    useEngineChain
   }
 }

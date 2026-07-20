@@ -2,6 +2,7 @@ import * as fs from "fs"
 import * as path from "path"
 import { Sample } from "./types"
 import { getSyntheticSamples } from "./synthetic/cases"
+import { loadWorkspaceFixtures } from "./workspace-loader"
 
 // 真实快照：从 FIM 仓库 src/ 切样本。光标位置人造（函数体空行/行尾）。
 const fimSelfSnapshots: Sample[] = [
@@ -26,8 +27,12 @@ const fimSelfSnapshots: Sample[] = [
   }
 ]
 
-export function loadSamples(source: "synthetic" | "fim-self" | "all"): Sample[] {
-  const synthetic = source === "fim-self" ? [] : getSyntheticSamples()
-  const fimSelf = source === "synthetic" ? [] : fimSelfSnapshots.filter((s) => fs.existsSync(s.filePath))
-  return [...synthetic, ...fimSelf]
+export function loadSamples(
+  source: "synthetic" | "fim-self" | "workspace" | "all",
+  workspaceSamples: Sample[] = loadWorkspaceFixtures().samples
+): Sample[] {
+  const synthetic = source === "fim-self" || source === "workspace" ? [] : getSyntheticSamples()
+  const fimSelf = source === "synthetic" || source === "workspace" ? [] : fimSelfSnapshots.filter((s) => fs.existsSync(s.filePath))
+  const workspace = source === "synthetic" || source === "fim-self" ? [] : workspaceSamples
+  return [...synthetic, ...fimSelf, ...workspace]
 }
