@@ -11,6 +11,7 @@ import { getNodeAtPosition, getParser } from "../src/extension/parser"
 import { getFimDataFromProvider, getPrefixSuffix } from "../src/extension/utils"
 import { createFakeDocument, createFakeEditor, Position } from "./stub/vscode"
 
+import { CodeGraphEvalProvider } from "./adapters/context/codegraph"
 import { ContextAdapter, ContextIR, IntentAdapter, IntentResult } from "./adapters/types"
 import { EvalConfig } from "./config"
 import { Sample } from "./datasets/types"
@@ -22,6 +23,12 @@ export interface ChainArtifacts {
   prompt: { prompt: string; suffix: string; stopWords: string[] }
   model: { rawCompletion: string; latencyMs: number; error?: string }
   completion: { text: string; truncated: boolean }
+  /** Phase 6: context assembly result (only when using Engine chain). */
+  assembly?: import("../services/engine-ts/src/context/graph-assembler").AssemblyResult
+  /** Phase 6: raw intent plan from Engine planner. */
+  intentPlan?: import("@fim/protocol").IntentPlan
+  /** Phase 6: plan validation output. */
+  planValidation?: { valid: boolean; errors: string[]; warnings: string[] }
 }
 
 export interface ChainResult {
@@ -185,6 +192,236 @@ export async function runChain(
       prompt: { prompt, suffix, stopWords },
       model: { rawCompletion, latencyMs, error: modelError },
       completion: { text: finalText, truncated }
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// ChainV2 — Engine contract-based path (Phase 6)
+//
+// Uses @fim/engine-ts components instead of importing src/extension/*.
+// Activated via config.useEngineChain.  Preserves the same ChainArtifacts
+// shape so probes and the runner work with either chain.
+// ---------------------------------------------------------------------------
+
+import { DeepSeekFimClient, DeepSeekFimRequestBody } from "../services/engine-ts/src/model/deepseek-fim"
+import { buildFimPrompt, FimPrompt } from "../services/engine-ts/src/prompt/builder"
+import { postprocess, PostprocessInput } from "../services/engine-ts/src/postprocess/processor"
+import { detectIntentLlm, PlannerLlmConfig } from "../services/engine-ts/src/planning/intent-planner"
+import { validatePlan } from "../services/engine-ts/src/planning/plan-validator"
+import { ContextAssembler, GraphSeedInput, AssemblyResult } from "../services/engine-ts/src/context/graph-assembler"
+import { extractPrefixSuffix } from "../services/engine-ts/src/context/current-file"
+
+import type {
+  DeepSeekProviderConfig,
+  StreamEvent,
+  IntentPlan,
+  GraphEvidence,
+  ContextChunk
+} from "@fim/protocol"
+
+const STOP_WORDS = [
+  "<｜fim▁begin｜>", "<｜fim▁hole｜>", "<｜fim▁end｜>",
+  "<END>", "<｜end of sentence｜>"
+]
+
+function toEngineProviderConfig(fp: FimProvider): DeepSeekProviderConfig {
+  return {
+    apiHostname: fp.apiHostname || "",
+    apiKey: fp.apiKey || "",
+    apiPath: fp.apiPath || "",
+    apiPort: fp.apiPort ? Number(fp.apiPort) : undefined,
+    apiProtocol: fp.apiProtocol || "https",
+    modelName: fp.modelName,
+    fimTemplate: fp.fimTemplate || "automatic"
+  }
+}
+
+export async function runChainV2(
+  sample: Sample,
+  matrix: { label: string; contextAdapter: ContextAdapter; intentAdapter: IntentAdapter },
+  config: EvalConfig
+): Promise<ChainResult> {
+  const provider = makeProvider(config)
+  const engineProvider = toEngineProviderConfig(provider)
+  const fileContent = fs.readFileSync(sample.filePath, "utf-8")
+  const lines = fileContent.split("\n")
+  const cursorLine = Math.min(sample.cursor.line, lines.length - 1)
+  const workspaceRoot = sample.workspaceRoot || path.dirname(sample.filePath)
+  const languageId = sample.languageId
+
+  const prefixSuffix = extractPrefixSuffix(
+    fileContent,
+    { line: cursorLine, character: sample.cursor.character },
+    config.contextLength
+  )
+
+  // --- context assembly ---
+  let assembly: AssemblyResult | undefined
+  let contextIR: ContextIR
+
+  if (matrix.label.includes("codegraph")) {
+    const graphProvider = new CodeGraphEvalProvider(
+      workspaceRoot,
+      config.codegraph.maxNodes
+    )
+    const assembler = new ContextAssembler(graphProvider)
+    try {
+      await graphProvider.warm()
+      const seedInput: GraphSeedInput = {
+        filePath: sample.filePath, languageId,
+        prefix: prefixSuffix.prefix, suffix: prefixSuffix.suffix,
+        cursorLine, cursorCharacter: sample.cursor.character
+      }
+      assembly = await assembler.assemble(
+        seedInput,
+        { maxEdges: 50, maxSymbols: config.codegraph.maxNodes },
+        { maxTokens: Math.floor(512 * 0.3) }
+      )
+    } catch { assembly = undefined }
+
+    contextIR = await matrix.contextAdapter.collect({
+      filePath: sample.filePath, languageId, workspaceRoot, prefixSuffix,
+      cursor: { line: cursorLine, character: sample.cursor.character }
+    })
+  } else {
+    contextIR = await matrix.contextAdapter.collect({
+      filePath: sample.filePath, languageId, workspaceRoot, prefixSuffix,
+      cursor: { line: cursorLine, character: sample.cursor.character }
+    })
+  }
+
+  // --- intent planning ---
+  let intentPlan: IntentPlan | undefined
+  let planValidation: { valid: boolean; errors: string[]; warnings: string[] } | undefined
+  let intentResult: IntentResult
+
+  if (matrix.label.includes("planner")) {
+    const plannerConfig: PlannerLlmConfig = {
+      apiKey: config.planner.apiKey, baseUrl: config.planner.baseUrl,
+      model: config.planner.model, maxContextChars: config.planner.maxContextChars
+    }
+    const contextChunks = assembly?.chunks as ContextChunk[] | undefined
+    const evidence = assembly?.evidence as GraphEvidence[] | undefined
+
+    try {
+      const candidatePlan = await detectIntentLlm(
+        prefixSuffix.prefix,
+        prefixSuffix.suffix,
+        languageId,
+        plannerConfig,
+        contextChunks,
+        evidence
+      )
+      const validation = validatePlan(candidatePlan, evidence ?? [])
+      planValidation = { valid: validation.valid, errors: [...validation.errors], warnings: [...validation.warnings] }
+      if (validation.valid) {
+        intentPlan = candidatePlan
+        intentResult = {
+          intent: intentPlan.intent, confidence: intentPlan.confidence,
+          signals: ["engine-planner-v2"], constraints: intentPlan.constraints,
+          requestedSymbols: intentPlan.requestedSymbolIds
+        }
+      } else {
+        intentPlan = undefined
+        intentResult = {
+          intent: "unknown", confidence: 0, signals: ["planner-invalid"],
+          constraints: [], requestedSymbols: []
+        }
+      }
+    } catch {
+      intentPlan = undefined
+      intentResult = { intent: "unknown", confidence: 0, signals: ["planner-failed"], constraints: [], requestedSymbols: [] }
+    }
+  } else {
+    intentResult = await matrix.intentAdapter.detect({
+      languageId, prefixSuffix,
+      cursor: { line: cursorLine, character: sample.cursor.character },
+      context: contextIR
+    })
+  }
+
+  // --- prompt ---
+  const intentContextBlock = intentPlan
+    ? ["Completion intent:", `- ${intentPlan.intent}`, `- scope: ${intentPlan.scope}`,
+       ...intentPlan.constraints.map((c) => `- ${c}`),
+       ...intentPlan.requestedSymbolIds.map((s) => `- Use existing symbol: ${s}`)].join("\n")
+    : intentResult.intent !== "unknown"
+      ? ["Completion intent:", `- ${intentResult.intent}`,
+         ...intentResult.constraints.map((c) => `- ${c}`),
+         ...intentResult.requestedSymbols.map((s) => `- Use existing symbol: ${s}`)].join("\n")
+      : ""
+
+  const contextText = contextIR.chunks.map((c) => c.text).join("\n")
+  const combinedContext = [contextText, intentContextBlock].filter(Boolean).join("\n\n")
+
+  const fimPrompt: FimPrompt = buildFimPrompt({
+    prefix: prefixSuffix.prefix, suffix: prefixSuffix.suffix,
+    context: combinedContext || undefined, header: "",
+    fileContextEnabled: contextIR.chunks.length > 0, language: languageId,
+    contextChunks: assembly?.chunks, graphEvidence: assembly?.evidence, intentPlan
+  })
+
+  // --- model ---
+  const startTime = Date.now()
+  let rawCompletion = ""
+  let modelError: string | undefined
+
+  const body: DeepSeekFimRequestBody = {
+    max_tokens: 512, model: engineProvider.modelName,
+    prompt: fimPrompt.prompt, suffix: fimPrompt.suffix,
+    stream: true, temperature: 0.2
+  }
+
+  const client = new DeepSeekFimClient({ timeoutMs: 60000 })
+  const requestId = `${sample.id}-v2-${Date.now()}`
+
+  try {
+    const streamResult = await client.stream(engineProvider, body, requestId, (event: StreamEvent) => {
+      if (event.type === "chunk") rawCompletion += event.text
+      else if (event.type === "error") modelError = event.error.message
+    })
+    if (streamResult.finishReason !== "stop") rawCompletion = ""
+  } catch (err) { modelError = (err as Error).message }
+
+  const latencyMs = Date.now() - startTime
+
+  // --- postprocess ---
+  let finalText = rawCompletion
+  let truncated = false
+  if (rawCompletion && !modelError) {
+    const lineText = lines[cursorLine] ?? ""
+    const textAfterCursor = (lines[cursorLine] ?? "").substring(sample.cursor.character) ?? ""
+    const charAfterCursor = textAfterCursor.charAt(0) ?? ""
+    const charBeforeCursor = sample.cursor.character > 0 ? lineText.charAt(sample.cursor.character - 1) : ""
+
+    const postInput: PostprocessInput = {
+      completion: rawCompletion, providerFimData: rawCompletion,
+      chunkCount: rawCompletion.length > 0 ? 1 : 0,
+      providerModelName: engineProvider.modelName,
+      providerFimTemplate: engineProvider.fimTemplate || "automatic",
+      nodeType: "", astHasError: false,
+      lineText, prefix: fimPrompt.prompt, suffix: fimPrompt.suffix,
+      isMultilineCompletion: rawCompletion.split("\n").length > 2,
+      multilineCompletionsEnabled: true, maxLines: 40,
+      textAfterCursor, charAfterCursor, charBeforeCursor,
+      cursorAtMiddleOfWord: /\w/.test(charBeforeCursor) && /\w/.test(charAfterCursor),
+      languageId
+    }
+
+    const processed = postprocess(postInput)
+    if (processed) { finalText = processed; truncated = processed !== rawCompletion && processed.length > 0 }
+    else { truncated = false }
+  }
+
+  return {
+    sampleId: sample.id, matrixLabel: matrix.label,
+    artifacts: {
+      prefixSuffix, context: contextIR, intent: intentResult,
+      prompt: { prompt: fimPrompt.prompt, suffix: fimPrompt.suffix, stopWords: STOP_WORDS },
+      model: { rawCompletion, latencyMs, error: modelError },
+      completion: { text: finalText, truncated },
+      assembly, intentPlan, planValidation
     }
   }
 }

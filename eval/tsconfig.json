@@ -15,7 +15,8 @@
     "forceConsistentCasingInFileNames": true,
     "baseUrl": ".",
     "paths": {
-      "vscode": ["./stub/vscode.ts"]
+      "vscode": ["./stub/vscode.ts"],
+      "@fim/protocol": ["../packages/protocol/src/index.ts"]
     }
   },
   "include": [
