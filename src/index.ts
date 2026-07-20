@@ -17,11 +17,15 @@ import {
 import { logger } from "./common/logger"
 import { ServerMessage } from "./common/types"
 import { setContext } from "./extension/context"
+import { EngineAdapter, isEngineEnabled } from "./extension/engine-adapter"
 import { FileInteractionCache } from "./extension/file-interaction"
 import { CompletionProvider } from "./extension/providers/completion"
 import { SidebarProvider } from "./extension/providers/sidebar"
 import { delayExecution } from "./extension/utils"
 import { getLineBreakCount } from "./webview/utils"
+
+// Module-level reference so deactivate() can clean up the engine.
+let _engineAdapter: EngineAdapter | null = null
 
 export async function activate(context: ExtensionContext) {
   setContext(context)
@@ -39,6 +43,26 @@ export async function activate(context: ExtensionContext) {
     context
   )
 
+  // ---- Engine lifecycle (opt-in, gated by FIM_USE_ENGINE or fim.useEngine) ----
+  // The engine adapter bridges VS Code <-> Engine core. It is the ONLY place
+  // that imports from both "vscode" and @fim/engine-ts.
+  // Initialization failure is non-fatal — the extension falls back to the
+  // existing completion path.
+  if (isEngineEnabled(config)) {
+    try {
+      _engineAdapter = new EngineAdapter({
+        debounceWait: config.get<number>("debounceWait", 300),
+        timeoutMs: 60_000,
+        // Phase 3-4 not yet integrated — these stay off until eval v2 validates them
+        enableIntentPlanner: false
+      })
+      completionProvider.setEngineAdapter(_engineAdapter)
+      logger.log("Engine path enabled")
+    } catch (error) {
+      logger.error(`Failed to initialize engine adapter: ${error}`)
+    }
+  }
+
   context.subscriptions.push(
     languages.registerInlineCompletionItemProvider(
       { pattern: "**" },
@@ -51,7 +75,7 @@ export async function activate(context: ExtensionContext) {
       statusBarItem.hide()
     }),
     commands.registerCommand(FIM_COMMAND_NAME.stopGeneration, () => {
-      completionProvider.onError()
+      completionProvider.abortCompletion()
       sidebarProvider.destroyStream()
     }),
     commands.registerCommand(FIM_COMMAND_NAME.manageProviders, async () => {
@@ -131,5 +155,8 @@ async function showSidebarTab(
 }
 
 export function deactivate() {
+  if (_engineAdapter) {
+    _engineAdapter.cancel()
+  }
   logger.log("Fim completion extension deactivated")
 }

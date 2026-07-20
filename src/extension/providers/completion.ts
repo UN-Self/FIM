@@ -40,6 +40,7 @@ import { getLineBreakCount } from "../../webview/utils"
 import { Base } from "../base"
 import { cache } from "../cache"
 import { CompletionFormatter } from "../completion-formatter"
+import { EngineAdapter, mapConfig, mapProvider } from "../engine-adapter"
 import { FileInteractionCache } from "../file-interaction"
 import {
   getFimSplitPrompt,
@@ -68,6 +69,7 @@ export class CompletionProvider
   private _completion = ""
   private _debouncer: NodeJS.Timeout | undefined
   private _document: TextDocument | null
+  private _engineAdapter: EngineAdapter | null = null
   private _fileInteractionCache: FileInteractionCache
   private _isMultilineCompletion = false
   private _lastCompletionMultiline = false
@@ -93,6 +95,11 @@ export class CompletionProvider
     this._position = null
     this._statusBar = statusBar
     this._fileInteractionCache = fileInteractionCache
+  }
+
+  /** Set the engine adapter (called from extension activate). */
+  public setEngineAdapter(adapter: EngineAdapter): void {
+    this._engineAdapter = adapter
   }
 
   private buildFimRequest(
@@ -138,6 +145,10 @@ export class CompletionProvider
       document,
       position
     )
+    // Cache hits and manual re-invocations reuse the current editor state.
+    // Keep it in sync for both the legacy and engine completion paths.
+    this._document = document
+    this._position = position
 
     const languageEnabled =
       this.config.enabledLanguages[document.languageId] ??
@@ -172,9 +183,22 @@ export class CompletionProvider
       return
     }
 
+    // ---- Engine path (opt-in, gated by FIM_USE_ENGINE or fim.useEngine) ----
+    if (this._engineAdapter) {
+      try {
+        return await this.runEngineCompletion(document, position, context)
+      } catch (error) {
+        logger.error(
+          `Engine path failed, falling back to legacy: ${error}`
+        )
+        this._statusBar.text = "$(code)"
+        // Fall through to existing path below
+      }
+    }
+
+    // ---- Existing completion path (unchanged) ----
+
     this._chunkCount = 0
-    this._document = document
-    this._position = position
     this._nonce = this._nonce + 1
     this._statusBar.text = "$(loading~spin)"
     this._statusBar.command = "fim.stopGeneration"
@@ -506,12 +530,72 @@ export class CompletionProvider
 
   public setAcceptedLastCompletion(value: boolean) {
     this._acceptedLastCompletion = value
-    this._lastCompletionMultiline = getLineBreakCount(this._completion) > 1
+    this._lastCompletionMultiline = getLineBreakCount(this.lastCompletionText) > 1
   }
 
   public abortCompletion() {
+    if (this._engineAdapter) {
+      this._engineAdapter.cancel()
+    }
     this._abortController?.abort()
     this._statusBar.text = "$(code)"
+  }
+
+  // ---- Engine path ---------------------------------------------------------
+
+  /**
+   * Delegates the completion to the Engine adapter.
+   *
+   * The adapter builds a CompletionRequest (protocol), calls the orchestrator,
+   * and maps stream events back to InlineCompletionItem[].
+   */
+  private async runEngineCompletion(
+    document: TextDocument,
+    position: Position,
+    context: InlineCompletionContext
+  ): Promise<InlineCompletionItem[] | InlineCompletionList> {
+    if (!this._engineAdapter) return []
+
+    this._statusBar.text = "$(loading~spin)"
+    this._statusBar.command = "fim.stopGeneration"
+
+    const provider = this.getFimProvider()
+    if (!provider) {
+      this._statusBar.text = "$(code)"
+      return []
+    }
+
+    const engineConfig = mapConfig(this.config)
+    const engineProvider = mapProvider(provider)
+
+    const workspaceFolder = workspace.workspaceFolders?.[0]
+
+    const items = await this._engineAdapter.provideCompletion(
+      document,
+      position,
+      context,
+      engineConfig,
+      engineProvider,
+      workspaceFolder
+    )
+
+    // Sync shared completion state from engine adapter results
+    if (items.length > 0) {
+      const completionText = (items[0] as InlineCompletionItem).insertText
+      if (typeof completionText === "string" && completionText.length > 0) {
+        this._completion = ""
+        this._statusBar.text = "$(code)"
+        this.lastCompletionText = completionText
+        this._lastCompletionMultiline = getLineBreakCount(completionText) > 1
+        this.logCompletion(completionText)
+        if (this.config.completionCacheEnabled)
+          cache.setCache(this._prefixSuffix, completionText)
+        return items
+      }
+    }
+
+    this._statusBar.text = "$(code)"
+    return items
   }
 
   private logCompletion(formattedCompletion: string) {
@@ -527,14 +611,8 @@ export class CompletionProvider
     )
   }
 
-  private provideInlineCompletion(): InlineCompletionItem[] {
-    const editor = window.activeTextEditor
-
-    if (!editor || !this._position) return []
-
-    const formattedCompletion = new CompletionFormatter(editor).format(
-      this.removeStopWords(this._completion)
-    )
+  private finalizeCompletion(formattedCompletion: string): InlineCompletionItem[] {
+    if (!this._position) return []
 
     this.logCompletion(formattedCompletion)
 
@@ -544,7 +622,7 @@ export class CompletionProvider
     this._completion = ""
     this._statusBar.text = "$(code)"
     this.lastCompletionText = formattedCompletion
-    this._lastCompletionMultiline = getLineBreakCount(this._completion) > 1
+    this._lastCompletionMultiline = getLineBreakCount(formattedCompletion) > 1
 
     return [
       new InlineCompletionItem(
@@ -552,5 +630,16 @@ export class CompletionProvider
         new Range(this._position, this._position)
       )
     ]
+  }
+
+  private provideInlineCompletion(): InlineCompletionItem[] {
+    const editor = window.activeTextEditor
+    if (!editor || !this._position) return []
+
+    const formattedCompletion = new CompletionFormatter(editor).format(
+      this.removeStopWords(this._completion)
+    )
+
+    return this.finalizeCompletion(formattedCompletion)
   }
 }
