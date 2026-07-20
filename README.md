@@ -48,7 +48,7 @@ Retrieval knowledge — the library call you can almost remember, the parameter 
 
 No telemetry. No cloud analytics. No usage data quietly phoning home. Nothing leaves your laptop unless you point FIM at a provider yourself.
 
-Today, FIM runs on [DeepSeek](https://www.deepseek.com). Configurable endpoint, your key, the off switch in your hand — and nothing else leaves your laptop. The architecture keeps a provider gateway: a thin `FimProvider` abstraction over a generic streaming call, so other models can be added later through one extension point rather than fifteen forks. FIM is a host, not a tenant.
+Today, FIM runs on [DeepSeek](https://www.deepseek.com). The completion context required for a request goes only to the endpoint you configure, with your key and under your control; FIM itself adds no telemetry or cloud analytics. The architecture keeps a provider gateway: a thin `FimProvider` abstraction over a generic streaming call, so other models can be added later through one extension point rather than fifteen forks. FIM is a host, not a tenant.
 
 ## Completion, not chat
 
