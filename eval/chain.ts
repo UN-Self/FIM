@@ -1,4 +1,5 @@
 import * as fs from "fs"
+import * as path from "path"
 
 import { DEFAULT_PROVIDER_FORM_VALUES, FimProvider } from "../src/common/deepseek"
 import { PrefixSuffix } from "../src/common/types"
@@ -48,6 +49,7 @@ export async function runChain(
   const cursorLine = Math.min(sample.cursor.line, lines.length - 1)
   const cursor = new Position(cursorLine, sample.cursor.character)
   const document = createFakeDocument(fileContent, sample.filePath, sample.languageId)
+  const workspaceRoot = sample.workspaceRoot || path.dirname(sample.filePath)
 
   // A. prefix/suffix
   const prefixSuffix = getPrefixSuffix(config.contextLength, document as any, cursor as any)
@@ -56,6 +58,7 @@ export async function runChain(
   const context = await matrix.contextAdapter.collect({
     filePath: sample.filePath,
     languageId: sample.languageId,
+    workspaceRoot,
     prefixSuffix,
     cursor: { line: cursorLine, character: sample.cursor.character }
   })
@@ -64,12 +67,23 @@ export async function runChain(
   const intent = await matrix.intentAdapter.detect({
     languageId: sample.languageId,
     prefixSuffix,
-    cursor: { line: cursorLine, character: sample.cursor.character }
+    cursor: { line: cursorLine, character: sample.cursor.character },
+    context
   })
 
   // D. prompt (split-only: DeepSeek FIM adds tokens server-side from prompt + suffix)
+  const intentContext = intent.intent === "unknown"
+    ? ""
+    : [
+        "Completion intent:",
+        `- ${intent.intent}`,
+        ...intent.constraints.map((constraint) => `- ${constraint}`),
+        ...intent.requestedSymbols.map((symbol) => `- Use existing symbol: ${symbol}`)
+      ].join("\n")
   const { prompt, suffix } = getFimSplitPrompt({
-    context: context.chunks.map((c) => c.text).join("\n"),
+    context: [context.chunks.map((c) => c.text).join("\n"), intentContext]
+      .filter(Boolean)
+      .join("\n\n"),
     prefixSuffix,
     header: "",
     fileContextEnabled: context.chunks.length > 0,

@@ -15,6 +15,10 @@
 
 - [`灵魂不能外包.md`](./灵魂不能外包.md) — FIM 的产品立场与设计取向
 
+## 进行中计划
+
+- [`plans/2026-07-20-engine-architecture-migration-plan.md`](./plans/2026-07-20-engine-architecture-migration-plan.md) — Engine、CodeGraph、意图编排与 Go 替换计划
+
 ## 历史归档
 
 [`archive/`](./archive) 保存已经完成、被取代或仅具历史价值的设计与实施计划，包括配置体验、评测框架和 DeepSeek 格式修复等记录。引用这些文件时，应明确其历史状态，并以当前参考文档和代码为准。

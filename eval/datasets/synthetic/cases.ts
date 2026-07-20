@@ -9,6 +9,7 @@ interface SyntheticCase {
   content: string
   cursorLine: number
   cursorCharacter: number
+  expectedIntent: string
 }
 
 const cases: SyntheticCase[] = [
@@ -18,7 +19,8 @@ const cases: SyntheticCase[] = [
     languageId: "typescript",
     content: "",
     cursorLine: 0,
-    cursorCharacter: 0
+    cursorCharacter: 0,
+    expectedIntent: "unknown"
   },
   {
     id: "syn-line-continuation",
@@ -26,7 +28,8 @@ const cases: SyntheticCase[] = [
     languageId: "typescript",
     content: "const result = 1 + 2",
     cursorLine: 0,
-    cursorCharacter: 19
+    cursorCharacter: 19,
+    expectedIntent: "line_continuation"
   },
   {
     id: "syn-block-start",
@@ -34,7 +37,8 @@ const cases: SyntheticCase[] = [
     languageId: "typescript",
     content: "function add(a, b) {\n  ",
     cursorLine: 1,
-    cursorCharacter: 2
+    cursorCharacter: 2,
+    expectedIntent: "block_completion"
   },
   {
     id: "syn-import",
@@ -42,7 +46,8 @@ const cases: SyntheticCase[] = [
     languageId: "typescript",
     content: "import { ",
     cursorLine: 0,
-    cursorCharacter: 9
+    cursorCharacter: 9,
+    expectedIntent: "import_completion"
   },
   {
     id: "syn-comment-to-code",
@@ -50,7 +55,8 @@ const cases: SyntheticCase[] = [
     languageId: "typescript",
     content: "// sort the array\n",
     cursorLine: 1,
-    cursorCharacter: 0
+    cursorCharacter: 0,
+    expectedIntent: "comment_to_code"
   }
 ]
 
@@ -65,7 +71,9 @@ export function getSyntheticSamples(): Sample[] {
       source: "synthetic" as const,
       filePath,
       cursor: { line: c.cursorLine, character: c.cursorCharacter },
-      languageId: c.languageId
+      languageId: c.languageId,
+      workspaceRoot: dir,
+      expectedIntent: c.expectedIntent
     }
   })
 }

@@ -3,6 +3,7 @@ import { PrefixSuffix } from "../../src/common/types"
 export interface ContextChunk {
   filePath: string
   text: string
+  symbolId?: string
   relevanceScore?: number
   reason?: string
 }
@@ -26,11 +27,14 @@ export interface IntentResult {
   intent: IntentType
   confidence: number
   signals: string[]
+  constraints: string[]
+  requestedSymbols: string[]
 }
 
 export interface ContextAdapterInput {
   filePath: string
   languageId: string
+  workspaceRoot: string
   prefixSuffix: PrefixSuffix
   cursor: { line: number; character: number }
 }
@@ -44,6 +48,7 @@ export interface IntentAdapterInput {
   languageId: string
   prefixSuffix: PrefixSuffix
   cursor: { line: number; character: number }
+  context: ContextIR
 }
 
 export interface IntentAdapter {

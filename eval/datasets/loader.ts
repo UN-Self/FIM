@@ -11,14 +11,18 @@ const fimSelfSnapshots: Sample[] = [
     // FIM 自己的 completion.ts，光标放在 onData 方法体内某行尾
     filePath: path.resolve(__dirname, "..", "..", "..", "src", "extension", "providers", "completion.ts"),
     cursor: { line: 260, character: 0 },
-    languageId: "typescript"
+    languageId: "typescript",
+    workspaceRoot: path.resolve(__dirname, "..", "..", ".."),
+    expectedIntent: "block_completion"
   },
   {
     id: "fim-self-utils-getprefix",
     source: "fim-self",
     filePath: path.resolve(__dirname, "..", "..", "..", "src", "extension", "utils.ts"),
     cursor: { line: 190, character: 0 },
-    languageId: "typescript"
+    languageId: "typescript",
+    workspaceRoot: path.resolve(__dirname, "..", "..", ".."),
+    expectedIntent: "block_completion"
   }
 ]
 

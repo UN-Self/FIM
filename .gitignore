@@ -20,3 +20,6 @@ __pycache__/
 eval/out/
 eval/reports/
 eval/.env
+
+# Local CodeGraph indexes created by evaluation workspaces
+.codegraph/

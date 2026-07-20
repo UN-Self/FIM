@@ -4,5 +4,7 @@ export interface Sample {
   filePath: string
   cursor: { line: number; character: number }
   languageId: string
+  workspaceRoot?: string
+  expectedIntent?: string
   expectedCompletion?: string
 }

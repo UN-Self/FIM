@@ -11,6 +11,16 @@ export interface EvalConfig {
   }
   contextLength: number
   dataset: "synthetic" | "fim-self" | "all"
+  codegraph: {
+    maxNodes: number
+  }
+  planner: {
+    apiKey: string
+    baseUrl: string
+    maxContextChars: number
+    model: string
+  }
+  matrices: Array<"baseline" | "codegraph" | "codegraph-planner">
 }
 
 export function loadConfig(): EvalConfig {
@@ -20,6 +30,12 @@ export function loadConfig(): EvalConfig {
   const judgeApiKey = process.env.JUDGE_API_KEY || ""
   const judgeModel = process.env.JUDGE_MODEL || ""
   const dataset = (process.env.EVAL_DATASET as EvalConfig["dataset"]) || "all"
+  const matrixValues = (process.env.EVAL_MATRICES || "baseline,codegraph,codegraph-planner")
+    .split(",")
+    .map((value) => value.trim())
+    .filter((value): value is EvalConfig["matrices"][number] =>
+      ["baseline", "codegraph", "codegraph-planner"].includes(value)
+    )
 
   return {
     deepseek: { apiKey: deepseekApiKey, model: deepseekModel },
@@ -30,6 +46,16 @@ export function loadConfig(): EvalConfig {
       enabled: Boolean(judgeBaseUrl && judgeApiKey && judgeModel)
     },
     contextLength: 100,
-    dataset
+    dataset,
+    codegraph: {
+      maxNodes: Number(process.env.CODEGRAPH_MAX_NODES) || 12
+    },
+    planner: {
+      apiKey: process.env.INTENT_API_KEY || deepseekApiKey,
+      baseUrl: process.env.INTENT_BASE_URL || "https://api.deepseek.com/chat/completions",
+      maxContextChars: Number(process.env.INTENT_MAX_CONTEXT_CHARS) || 24000,
+      model: process.env.INTENT_MODEL || deepseekModel
+    },
+    matrices: matrixValues.length ? matrixValues : ["baseline"]
   }
 }

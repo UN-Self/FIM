@@ -14,6 +14,9 @@
 - `JUDGE_API_KEY` — 裁判 key
 - `JUDGE_MODEL` — 裁判模型名
 - `EVAL_DATASET` — `synthetic` / `fim-self` / `all`（默认 `all`）
+- `EVAL_MATRICES` — `baseline,codegraph,codegraph-planner` 的逗号分隔组合（默认全部）
+- `CODEGRAPH_MAX_NODES` — CodeGraph 子图的最大节点数（默认 `12`）
+- `INTENT_BASE_URL` / `INTENT_API_KEY` / `INTENT_MODEL` — 意图 planner 的 OpenAI-compatible 配置；默认复用 DeepSeek key/model
 
 ## 运行
 
@@ -30,13 +33,17 @@ DEEPSEEK_API_KEY=sk-xxx EVAL_DATASET=synthetic node out/eval/runner.js
 见 [`docs/archive/2026-07-16-eval-framework-design.md`](../docs/archive/2026-07-16-eval-framework-design.md)。
 
 - `chain.ts` — A→G 全链路编排
-- `adapters/` — 可换组件（第一版 Noop，后续 graphify/codegraph 并入）
-- `probes/` — 逐环中间产物探针
-- `metrics/` — 三层指标（has/syntax/quality）
+- `adapters/` — Noop、CodeGraph context 与 DeepSeek intent planner
+- `probes/` — context、intent、prompt、completion 中间产物探针
+- `metrics/` — completion 的 has/syntax/quality 指标；报告另聚合 intent 命中和上下文 token
 - `runner.ts` — 样本 × 矩阵 × 报告
 
 ## 加新 adapter
 
-1. 在 `adapters/context/` 或 `adapters/intent/` 新建实现，满足 `ContextAdapter`/`IntentAdapter` 接口
-2. 在 `runner.ts` 的 `matrices` 数组加一项
-3. 跑 `npm run eval`，报告里横向对比
+默认对照矩阵：
+
+- `baseline-fim` — 当前 prefix/suffix FIM
+- `codegraph-context-fim` — CodeGraph 相关代码子图 + FIM
+- `codegraph-planner-fim` — CodeGraph 子图 + DeepSeek 结构化意图 + FIM
+
+CodeGraph 首次运行会在样本 workspace 建立本地索引。若不需要图谱对照，可设置 `EVAL_MATRICES=baseline`。
