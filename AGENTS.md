@@ -6,6 +6,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - WHEN WRITE PLAN AND SPEC DONT USE `superpowers/` DIRECT YOU MUST USE `DOCS/` IS OK
 
+## Documentation Maintenance
+
+- Use [`docs/README.md`](docs/README.md) as the documentation entry point and keep it current when documents are added, moved, reclassified, or retired.
+- Put current design and operational references in `docs/reference/`; put completed, superseded, or historical plans in `docs/archive/`.
+- Keep links in root READMEs, `eval/README.md`, and related documents valid when a document path changes. Historical documents retain their original content unless a link must be repaired.
+
 ## Project Overview
 
 **FIM** is a locally-hosted, telemetry-free AI code completion VS Code extension. The repo directory is named "FIM" (Fill-in-the-Middle). It targets inline code completion only — chat and RAG have been deprecated. The current (and only) provider is **DeepSeek**; the architecture keeps a provider gateway (a `FimProvider` abstraction over a generic `llm()` streaming call, plus the provider-config entry point) so other providers can be added later through one extension point, rather than managed as fragmented forks.

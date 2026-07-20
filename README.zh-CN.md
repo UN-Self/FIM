@@ -74,10 +74,10 @@ FIM 是一个 VS Code 扩展。三步。
 2. 指向 DeepSeek——endpoint 可配，填上你的 key。
 3. 写一条注释。画一段骨架。按 `Alt+\`。
 
-它为什么这样设计——编排、FIM 模板、本地优先架构——都在 [`docs/`](./docs) 里：
+它为什么这样设计——编排、FIM 模板、本地优先架构——都在[文档索引](./docs/README.md)里：
 
-- [`docs/PD.md`](./docs/PD.md)——产品与技术设计（那笔注的完整版）
-- [`docs/providers.md`](./docs/providers.md)——支持的 provider
+- [`docs/reference/fim-overall-design.md`](./docs/reference/fim-overall-design.md)——当前 MVP 的产品与架构设计
+- [`docs/reference/providers.md`](./docs/reference/providers.md)——DeepSeek 配置说明
 
 ## 许可证
 

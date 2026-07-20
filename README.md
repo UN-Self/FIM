@@ -74,10 +74,10 @@ FIM is a VS Code extension. Three steps.
 2. Point it at DeepSeek — configurable endpoint, drop in your key.
 3. Write a comment. Draw a skeleton. Press `Alt+\`.
 
-Why it works this way — the orchestration, the FIM templates, the local-first architecture — lives in [`docs/`](./docs):
+Why it works this way — the orchestration, the FIM templates, the local-first architecture — lives in [the documentation index](./docs/README.md):
 
-- [`docs/PD.md`](./docs/PD.md) — product & technical design (the long version of the bet)
-- [`docs/providers.md`](./docs/providers.md) — supported providers
+- [`docs/reference/fim-overall-design.md`](./docs/reference/fim-overall-design.md) — current MVP product and architecture design
+- [`docs/reference/providers.md`](./docs/reference/providers.md) — DeepSeek configuration
 
 ## License
 

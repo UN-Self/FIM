@@ -27,7 +27,7 @@ DEEPSEEK_API_KEY=sk-xxx EVAL_DATASET=synthetic node out/eval/runner.js
 
 ## 架构
 
-见 `docs/2026-07-16-eval-framework-design.md`。
+见 [`docs/archive/2026-07-16-eval-framework-design.md`](../docs/archive/2026-07-16-eval-framework-design.md)。
 
 - `chain.ts` — A→G 全链路编排
 - `adapters/` — 可换组件（第一版 Noop，后续 graphify/codegraph 并入）

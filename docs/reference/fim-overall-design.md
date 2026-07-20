@@ -6,7 +6,7 @@
 > - [`PD.md`](./PD.md) — 未来跨编辑器架构参考（Client-Server、多 provider）
 > - [`PD-supplement.md`](./PD-supplement.md) — 技术难点清单与补充
 > - [`providers.md`](./providers.md) — Provider 配置说明
-> - [`config-ux-design.md`](./config-ux-design.md) — Settings UI 设计
+> - [`config-ux-design.md`](../archive/config-ux-design.md) — 历史 Settings UI 设计
 
 ## 1. Product Positioning
 
