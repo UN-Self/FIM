@@ -1,0 +1,51 @@
+{
+  "$description": "Golden fixtures mapping sample ID to expected completions. Used for exact-match and fuzzy-match comparison in eval metrics.",
+  "$generated": "2026-07-20",
+  "$note": "These completions represent what a GOOD DeepSeek FIM completion (temperature 0.2, split-only template) should produce. The primary value is the canonical expected output; alternatives are also acceptable.",
+  "fixtures": {
+    "syn-empty-file": {
+      "expectedCompletion": "",
+      "alternatives": ["// ", "import "],
+      "rationale": "Empty file with no context — model should produce empty or minimal placeholder."
+    },
+    "syn-line-continuation": {
+      "expectedCompletion": " + 3",
+      "alternatives": [" + 4", " * 2", ";\n", ";"],
+      "rationale": "Arithmetic expression continuation at end of 'const result = 1 + 2'."
+    },
+    "syn-block-start": {
+      "expectedCompletion": "return a + b;\n}",
+      "alternatives": ["return a + b;\n}\n", "const result = a + b;\n  return result;\n}"],
+      "rationale": "Function body completion for 'function add(a, b) {' — the natural body is a return statement."
+    },
+    "syn-import": {
+      "expectedCompletion": "foo } from './module'",
+      "alternatives": ["useState } from 'react'", "Component } from '@angular/core'", "Foo, Bar } from './utils'"],
+      "rationale": "Named import completion after 'import { ' — expect identifier(s) and from clause."
+    },
+    "syn-comment-to-code": {
+      "expectedCompletion": "array.sort((a, b) => a - b);\n",
+      "alternatives": ["array.sort();\n", "const sorted = array.sort();\n", "items.sort();\n"],
+      "rationale": "Code generated from the comment '// sort the array' — any sort call is reasonable."
+    },
+    "syn-argument-completion": {
+      "expectedCompletion": "x, y)",
+      "alternatives": ["x, y);", "x, y);\n", "x)"],
+      "rationale": "Argument completion for 'function foo(x, y) {} foo(' — pass the declared parameters."
+    },
+    "syn-test-completion": {
+      "expectedCompletion": "expect(add(1, 2)).toBe(3);\n  });\n});",
+      "alternatives": [
+        "expect(add(1, 2)).toEqual(3);\n  });\n});",
+        "const result = add(1, 2);\n    expect(result).toBe(3);\n  });\n});",
+        "expect(add(2, 3)).toBe(5);\n  });\n});"
+      ],
+      "rationale": "Jest/Vitest test body inside describe→it block — expect/assert pattern."
+    },
+    "syn-return-statement": {
+      "expectedCompletion": "return value;\n}",
+      "alternatives": ["return value;\n}\n", "return null;\n}", "return undefined;\n}"],
+      "rationale": "Return statement completion for 'function getValue() {' — return with closing brace."
+    }
+  }
+}
