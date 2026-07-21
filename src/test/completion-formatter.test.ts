@@ -118,6 +118,11 @@ describe("CompletionFormatter", () => {
       expect(result).toContain("const x = 1")
     })
 
+    it("preserves a closing brace that closes code before the cursor", () => {
+      const formatter = new CompletionFormatter(makeFakeEditor() as any)
+      expect(formatter.format("return value;\n}")).toContain("}")
+    })
+
     it("strips leading whitespace when cursor is at beginning of line", () => {
       const editor = makeFakeEditor({
         selectionActive: { line: 0, character: 0 }

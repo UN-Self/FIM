@@ -8,7 +8,10 @@ export interface EvalConfig {
     apiKey: string
     model: string
     enabled: boolean
+    runs: number
+    pairwiseRuns: number
   }
+  writerRuns: number
   contextLength: number
   dataset: "synthetic" | "fim-self" | "workspace" | "all"
   codegraph: {
@@ -32,6 +35,9 @@ export function loadConfig(): EvalConfig {
   const judgeBaseUrl = process.env.JUDGE_BASE_URL || ""
   const judgeApiKey = process.env.JUDGE_API_KEY || ""
   const judgeModel = process.env.JUDGE_MODEL || ""
+  const writerRuns = positiveInteger(process.env.EVAL_WRITER_RUNS, 3)
+  const judgeRuns = positiveInteger(process.env.EVAL_JUDGE_RUNS, 3)
+  const pairwiseJudgeRuns = positiveInteger(process.env.EVAL_PAIRWISE_JUDGE_RUNS, 3)
   const dataset = (process.env.EVAL_DATASET as EvalConfig["dataset"]) || "all"
   const matrixValues = (process.env.EVAL_MATRICES || "baseline,codegraph,codegraph-planner")
     .split(",")
@@ -47,8 +53,11 @@ export function loadConfig(): EvalConfig {
       baseUrl: judgeBaseUrl,
       apiKey: judgeApiKey,
       model: judgeModel,
-      enabled: Boolean(judgeBaseUrl && judgeApiKey && judgeModel)
+      enabled: Boolean(judgeBaseUrl && judgeApiKey && judgeModel),
+      runs: judgeRuns,
+      pairwiseRuns: pairwiseJudgeRuns
     },
+    writerRuns,
     contextLength: 100,
     dataset,
     codegraph: {
@@ -63,4 +72,9 @@ export function loadConfig(): EvalConfig {
     matrices: matrixValues.length ? matrixValues : ["baseline"],
     useEngineChain
   }
+}
+
+function positiveInteger(value: string | undefined, fallback: number): number {
+  const parsed = Number(value)
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback
 }

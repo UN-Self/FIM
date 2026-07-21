@@ -235,8 +235,14 @@
           "default": true,
           "markdownDescription": "When `true`, FIM will continue to make completion requests to the API after the previous completion was accepted. This can provide a more fluid completion experience."
         },
-        "fim.embeddingIgnoredGlobs": {
+        "fim.validateWithTypeScript": {
           "order": 14,
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Checks TypeScript and JavaScript completions before showing them, and hides completions that introduce new compiler errors."
+        },
+        "fim.embeddingIgnoredGlobs": {
+          "order": 15,
           "type": "array",
           "default": [],
           "markdownDescription": "Ignores file paths matching these globs when gathering completion context."
@@ -279,7 +285,6 @@
     "eslint-plugin-import": "^2.31.0",
     "eslint-plugin-simple-import-sort": "^12.1.1",
     "tree-sitter-wasms": "^0.1.7",
-    "typescript": "^4.7.4",
     "vitest": "^1.6.1",
     "web-tree-sitter": "^0.22.1"
   },
@@ -299,6 +304,7 @@
     "react-dom": "^18.2.0",
     "react-i18next": "^15.1.1",
     "string_score": "^0.1.22",
+    "typescript": "^4.7.4",
     "uuid": "^9.0.1"
   },
   "os": [

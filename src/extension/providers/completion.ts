@@ -50,6 +50,7 @@ import {
 import { llm } from "../llm"
 import { getNodeAtPosition, getParser } from "../parser"
 import { truncateCompletion } from "../postprocessor"
+import { validateTypeScriptCompletion } from "../typescript-diagnostics"
 import {
   getFimDataFromProvider,
   getIsMiddleOfString,
@@ -583,6 +584,10 @@ export class CompletionProvider
     if (items.length > 0) {
       const completionText = (items[0] as InlineCompletionItem).insertText
       if (typeof completionText === "string" && completionText.length > 0) {
+        if (!this.passesTypeScriptValidation(completionText)) {
+          this._statusBar.text = "$(code)"
+          return []
+        }
         this._completion = ""
         this._statusBar.text = "$(code)"
         this.lastCompletionText = completionText
@@ -613,6 +618,7 @@ export class CompletionProvider
 
   private finalizeCompletion(formattedCompletion: string): InlineCompletionItem[] {
     if (!this._position) return []
+    if (!this.passesTypeScriptValidation(formattedCompletion)) return []
 
     this.logCompletion(formattedCompletion)
 
@@ -641,5 +647,23 @@ export class CompletionProvider
     )
 
     return this.finalizeCompletion(formattedCompletion)
+  }
+
+  private passesTypeScriptValidation(completion: string): boolean {
+    if (!this.config.get<boolean>("validateWithTypeScript", true)) return true
+    if (!this._document || !this._position || !completion.trim()) return true
+
+    const result = validateTypeScriptCompletion({
+      fileName: this._document.fileName,
+      languageId: this._document.languageId,
+      originalText: this._document.getText(),
+      completionText: completion,
+      offset: this._document.offsetAt(this._position)
+    })
+    if (result.checked && !result.valid) {
+      logger.log(`Rejected completion with ${result.newErrorCount} new TypeScript diagnostic(s)`)
+      return false
+    }
+    return true
   }
 }

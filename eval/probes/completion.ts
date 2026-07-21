@@ -15,10 +15,13 @@ export async function probeCompletion(
   suffix: string,
   filePath: string,
   languageId: string,
-  config: EvalConfig
+  config: EvalConfig,
+  evaluateQuality = true
 ): Promise<CompletionProbeResult> {
   const layer1 = evalLayer1(completionText, modelError, latencyMs)
   const layer2 = await evalLayer2(prefix, completionText, suffix, filePath, languageId)
-  const layer3 = await evalLayer3(prefix, completionText, suffix, config.judge)
+  const layer3 = evaluateQuality
+    ? await evalLayer3(prefix, completionText, suffix, config.judge)
+    : { score: 0, reasoning: "evaluated after generation batch", judged: false }
   return { layer1, layer2, layer3 }
 }

@@ -75,8 +75,6 @@ export class CompletionFormatter {
           const lastOpen = openBrackets[openBrackets.length - 1]
           if (lastOpen && this.isMatchingPair(lastOpen, char)) {
             openBrackets.pop()
-          } else {
-            break
           }
         }
       }

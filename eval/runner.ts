@@ -1,4 +1,6 @@
 require("./stub/register")
+import { createHash } from "crypto"
+import { execFileSync } from "child_process"
 import * as fs from "fs"
 import * as path from "path"
 
@@ -11,7 +13,7 @@ import { runChain, runChainV2 } from "./chain"
 import { loadConfig } from "./config"
 import { loadSamples } from "./datasets/loader"
 import { loadWorkspaceFixtures } from "./datasets/workspace-loader"
-import { evalGraph, evalContext, evalPlanning, computeSuffixAlignment, computeDuplicationRate, checkBracketBalance, GraphMetrics, ContextMetrics, PlanningMetrics } from "./metrics"
+import { aggregateJudgeAttempts, aggregatePairwise, bootstrapWinRate, checkBracketBalance, computeDuplicationRate, computeSuffixAlignment, evalContext, evalGraph, evalPlanning, GraphMetrics, ContextMetrics, judgeCompletion, judgePairwise, JUDGE_RUBRIC_VERSION, PlanningMetrics } from "./metrics"
 import { probeCompletion, probeContext, probeIntent, probePrompt } from "./probes"
 
 async function main() {
@@ -68,6 +70,15 @@ async function main() {
   }
 
   const samples = loadSamples(config.dataset, fixtureData.samples)
+  const fixtureHash = createHash("sha256")
+    .update(JSON.stringify(samples.map((sample) => ({
+      id: sample.id,
+      cursor: sample.cursor,
+      expectedCompletion: sample.expectedCompletion,
+      expectedCompletionAlternatives: sample.expectedCompletionAlternatives,
+      content: fs.readFileSync(sample.filePath, "utf-8")
+    }))))
+    .digest("hex")
   const chainLabel = config.useEngineChain ? "ChainV2" : "ChainV1"
   console.log(
     `loaded ${samples.length} samples, ${matrices.length} matrices [${chainLabel}]`
@@ -90,7 +101,8 @@ async function main() {
 
   for (const sample of samples) {
     for (const matrix of matrices) {
-      process.stdout.write(`  ${sample.id} [${matrix.label}]... `)
+      for (let runIndex = 0; runIndex < config.writerRuns; runIndex++) {
+      process.stdout.write(`  ${sample.id} [${matrix.label}] run ${runIndex + 1}/${config.writerRuns}... `)
       try {
         // Select chain version
         const chainResult = config.useEngineChain
@@ -107,12 +119,14 @@ async function main() {
           artifacts.prefixSuffix.suffix,
           sample.filePath,
           sample.languageId,
-          config
+          config,
+          false
         )
 
         results.push({
           sampleId: sample.id,
           matrixLabel: matrix.label,
+          runIndex,
           contextProbe: probeContext(artifacts.context),
           intentProbe: probeIntent(
             artifacts.intent,
@@ -123,7 +137,14 @@ async function main() {
             suffixLength: artifacts.prompt.suffix.length,
             suffixPreview: artifacts.prompt.suffix.slice(0, 80)
           },
-          completionProbe
+          completionProbe,
+          completionArtifact: {
+            rawCompletion: artifacts.model.rawCompletion,
+            finalCompletion: completion.text,
+            truncated: artifacts.completion.truncated,
+            prefix: artifacts.prefixSuffix.prefix,
+            suffix: artifacts.prefixSuffix.suffix
+          }
         })
 
         // Compute V2 metrics when using ChainV2
@@ -165,8 +186,112 @@ async function main() {
         )
       } catch (e) {
         console.log(`FAIL: ${(e as Error).message}`)
-        results.push({ sampleId: sample.id, matrixLabel: matrix.label, error: (e as Error).message })
+        results.push({ sampleId: sample.id, matrixLabel: matrix.label, runIndex, error: (e as Error).message })
       }
+      }
+    }
+  }
+
+  // Judge generated artifacts separately so judge variance is not confused
+  // with a fresh Writer response.
+  if (config.judge.enabled) {
+    for (const result of results) {
+      if (!result.completionArtifact || !result.completionProbe) continue
+      const attempts = []
+      for (let judgeRun = 0; judgeRun < config.judge.runs; judgeRun++) {
+        attempts.push(await judgeCompletion({
+          prefix: result.completionArtifact.prefix,
+          completion: result.completionArtifact.finalCompletion,
+          suffix: result.completionArtifact.suffix
+        }, config.judge))
+      }
+      const aggregate = aggregateJudgeAttempts(attempts)
+      result.judge = aggregate
+      result.completionProbe.layer3 = {
+        score: aggregate.score || 0,
+        reasoning: aggregate.verdict
+          ? `verdict=${aggregate.verdict}; agreement=${aggregate.agreement.toFixed(2)}`
+          : "all structured judge attempts failed",
+        judged: Boolean(aggregate.verdict)
+      }
+    }
+  }
+
+  const primarySummary = matrices.map((matrix) => {
+    const matrixResults = results.filter((result) => result.matrixLabel === matrix.label && result.completionArtifact)
+    const judged = matrixResults.filter((result) => result.judge?.verdict)
+    const bySample = new Map<string, Set<string>>()
+    for (const result of matrixResults) {
+      const completions = bySample.get(result.sampleId) || new Set<string>()
+      completions.add(result.completionArtifact.finalCompletion.trim())
+      bySample.set(result.sampleId, completions)
+    }
+    const writerDiversity = bySample.size
+      ? [...bySample.values()].reduce((sum, completions) => sum + completions.size, 0) / bySample.size
+      : 0
+    const judgeAttempts = judged.flatMap((result) => result.judge.attempts)
+    return {
+      matrix: matrix.label,
+      outputs: matrixResults.length,
+      accepted: judged.filter((result) => result.judge.verdict === "accept").length,
+      partial: judged.filter((result) => result.judge.verdict === "partial").length,
+      rejected: judged.filter((result) => result.judge.verdict === "reject").length,
+      acceptRate: judged.length
+        ? `${Math.round((judged.filter((result) => result.judge.verdict === "accept").length / judged.length) * 100)}%`
+        : "n/a",
+      judgeUnstableRate: judged.length
+        ? `${Math.round((judged.filter((result) => result.judge.unstable).length / judged.length) * 100)}%`
+        : "n/a",
+      judgeErrorRate: judgeAttempts.length
+        ? `${Math.round((judgeAttempts.filter((attempt) => attempt.error).length / judgeAttempts.length) * 100)}%`
+        : "n/a",
+      writerDiversity: writerDiversity.toFixed(2)
+    }
+  })
+
+  const pairwiseSummary: any[] = []
+  if (config.judge.enabled && matrices.some((matrix) => matrix.label === "baseline-fim")) {
+    const baselineByKey = new Map(
+      results
+        .filter((result) => result.matrixLabel === "baseline-fim" && result.completionArtifact)
+        .map((result) => [`${result.sampleId}:${result.runIndex}`, result])
+    )
+    for (const matrix of matrices.filter((item) => item.label !== "baseline-fim")) {
+      const sampleScores = new Map<string, number[]>()
+      const matrixResults = results.filter((result) => result.matrixLabel === matrix.label && result.completionArtifact)
+      for (const candidate of matrixResults) {
+        const baseline = baselineByKey.get(`${candidate.sampleId}:${candidate.runIndex}`)
+        if (!baseline) continue
+        const attempts = []
+        for (let judgeRun = 0; judgeRun < config.judge.pairwiseRuns; judgeRun++) {
+          const candidateLeft = (candidate.runIndex + judgeRun) % 2 === 0
+          attempts.push(await judgePairwise({
+            prefix: candidate.completionArtifact.prefix,
+            suffix: candidate.completionArtifact.suffix,
+            left: candidateLeft ? candidate.completionArtifact.finalCompletion : baseline.completionArtifact.finalCompletion,
+            right: candidateLeft ? baseline.completionArtifact.finalCompletion : candidate.completionArtifact.finalCompletion
+          }, config.judge, candidateLeft))
+        }
+        const aggregate = aggregatePairwise(attempts)
+        candidate.pairwise = aggregate
+        const valid = aggregate.wins + aggregate.ties + aggregate.losses
+        if (valid > 0) {
+          const scores = sampleScores.get(candidate.sampleId) || []
+          scores.push((aggregate.wins + aggregate.ties * 0.5) / valid)
+          sampleScores.set(candidate.sampleId, scores)
+        }
+      }
+      const perSample = [...sampleScores.values()].map((scores) => scores.reduce((sum, score) => sum + score, 0) / scores.length)
+      const interval = bootstrapWinRate(perSample)
+      pairwiseSummary.push({
+        matrix: matrix.label,
+        baseline: "baseline-fim",
+        comparedSamples: perSample.length,
+        winRate: interval.rate.toFixed(3),
+        lower95: interval.lower.toFixed(3),
+        upper95: interval.upper.toFixed(3),
+        winner: perSample.length > 0 && interval.lower > 0.5 ? "candidate" : "inconclusive"
+      })
     }
   }
 
@@ -274,8 +399,20 @@ async function main() {
   const reportJson: any = {
     timestamp,
     chainVersion: config.useEngineChain ? "v2" : "v1",
+    evaluation: {
+      writerRuns: config.writerRuns,
+      judgeRuns: config.judge.runs,
+      pairwiseJudgeRuns: config.judge.pairwiseRuns,
+      judgeEnabled: config.judge.enabled,
+      judgeModel: config.judge.model || undefined,
+      judgeRubricVersion: JUDGE_RUBRIC_VERSION,
+      fixtureHash,
+      gitRevision: getGitRevision()
+    },
     results,
-    summary
+    summary,
+    primarySummary,
+    pairwiseSummary
   }
   if (config.useEngineChain) {
     reportJson.v2Metrics = v2MetricsResults
@@ -293,12 +430,42 @@ async function main() {
     "",
     "## L1/L2/L3 Metrics",
     "",
-    "| matrix | L1 Rate | L2 Rate | L3 Avg | No Compl | Intent | Ctx Tokens | Avg Latency | Samples |",
+    "| matrix | L1 Rate | L2 Rate | L3 Median /4 | No Compl | Intent | Ctx Tokens | Avg Latency | Samples |",
     "|--------|---------|---------|--------|----------|--------|------------|-------------|---------|",
     ...summary.map((s) =>
       `| ${s.matrix} | ${s.l1Rate} | ${s.l2Rate} | ${s.l3Avg} | ${s.noCompletion} | ${s.intentRate} | ${s.avgContextTokens} | ${s.avgLatencyMs}ms | ${s.samples} |`
     )
   ]
+
+  if (config.judge.enabled) {
+    mdLines.push(
+      "",
+      "## Structured LLM Judge",
+      "",
+      `Writer runs per sample/matrix: ${config.writerRuns}; completion judge runs: ${config.judge.runs}; pairwise judge runs: ${config.judge.pairwiseRuns}.`,
+      "",
+      "| matrix | Outputs | Accept | Partial | Reject | Accept Rate | Judge Unstable | Judge Errors | Writer Diversity |",
+      "|--------|---------|--------|---------|--------|-------------|----------------|--------------|------------------|",
+      ...primarySummary.map((summary) =>
+        `| ${summary.matrix} | ${summary.outputs} | ${summary.accepted} | ${summary.partial} | ${summary.rejected} | ${summary.acceptRate} | ${summary.judgeUnstableRate} | ${summary.judgeErrorRate} | ${summary.writerDiversity} |`
+      )
+    )
+  }
+
+  if (pairwiseSummary.length > 0) {
+    mdLines.push(
+      "",
+      "## Blind Pairwise Judge",
+      "",
+      "A score above 0.5 favors the candidate. The 95% interval is a deterministic bootstrap over fixture-level scores; a candidate wins only when its lower bound exceeds 0.5.",
+      "",
+      "| candidate | baseline | Samples | Win Rate | 95% CI | Decision |",
+      "|-----------|----------|---------|----------|--------|----------|",
+      ...pairwiseSummary.map((summary) =>
+        `| ${summary.matrix} | ${summary.baseline} | ${summary.comparedSamples} | ${summary.winRate} | [${summary.lower95}, ${summary.upper95}] | ${summary.winner} |`
+      )
+    )
+  }
 
   if (config.useEngineChain && v2Summary.length > 0) {
     mdLines.push(
@@ -339,6 +506,14 @@ async function main() {
   // Cleanup
   closeCodeGraphInstances()
   console.log(`\nreport: ${path.join(reportDir, `${timestamp}.md`)}`)
+}
+
+function getGitRevision(): string | undefined {
+  try {
+    return execFileSync("git", ["rev-parse", "HEAD"], { cwd: path.resolve(__dirname, "..", ".."), encoding: "utf-8" }).trim()
+  } catch {
+    return undefined
+  }
 }
 
 main().catch((e) => {
