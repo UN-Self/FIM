@@ -338,12 +338,21 @@ export class BaseProvider {
             ? { authorization: `Bearer ${provider.apiKey}` }
             : {})
         },
-        body: JSON.stringify({
-          max_tokens: 1,
-          model: provider.modelName,
-          prompt: "hi",
-          stream: false
-        })
+        body: JSON.stringify(
+          provider.apiPath?.includes("/chat/completions")
+            ? {
+                max_tokens: 1,
+                model: provider.modelName,
+                messages: [{ role: "user", content: "hi" }],
+                stream: false
+              }
+            : {
+                max_tokens: 1,
+                model: provider.modelName,
+                prompt: "hi",
+                stream: false
+              }
+        )
       })
 
       this.webView?.postMessage({
