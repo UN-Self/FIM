@@ -1,6 +1,6 @@
 # 分层日志设计（Leveled Logging）
 
-> 当前状态：已批准的设计，待实现。权威文档以代码为准。
+> 当前状态：已实现，具体以代码为准。
 >
 > 相关背景：`npm run eval` 曾在每个 FIM 请求打印完整 body + options（含 `Authorization: Bearer <key>`），导致 eval stdout 几十 KB 噪音并泄漏 API key。根因是 [src/common/logger.ts](../../src/common/logger.ts) 没有日志等级概念，所有输出无条件打印。
 

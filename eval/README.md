@@ -20,7 +20,8 @@
 - `EVAL_MATRICES` — `baseline,codegraph,codegraph-planner` 的逗号分隔组合（默认全部）
 - `CODEGRAPH_MAX_NODES` — CodeGraph 子图的最大节点数（默认 `12`）
 - `EVAL_USE_ENGINE_CHAIN` — 设为 `true` 时使用 Engine ChainV2（默认 `false`）
-- `INTENT_BASE_URL` / `INTENT_API_KEY` / `INTENT_MODEL` — 意图 planner 的 OpenAI-compatible 配置；默认复用 DeepSeek key/model
+- `INTENT_BASE_URL` / `INTENT_API_KEY` / `INTENT_MODEL` / `INTENT_MAX_CONTEXT_CHARS`（默认 `24000`）— 意图 planner 的 OpenAI-compatible 配置；默认复用 DeepSeek key/model
+- `FIM_LOG_LEVEL` — FIM 日志等级 `error`/`warn`/`info`/`debug`/`trace`（默认 `info`）。`info` 静音请求 dump 与 formatter 跟踪；`trace` 打印 FIM 请求全量 dump（API key 始终脱敏）。优先级：扩展内 `fim.logLevel` 设置 > 此变量 > 默认
 
 ## 运行
 
