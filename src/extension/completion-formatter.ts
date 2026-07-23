@@ -3,6 +3,7 @@ import { Position, Range, TextEditor } from "vscode"
 
 import { CLOSING_BRACKETS, OPENING_BRACKETS, QUOTES } from "../common/constants"
 import { supportedLanguages } from "../common/languages"
+import { logger } from "../common/logger"
 import { Bracket } from "../common/types"
 import { getLineBreakCount } from "../webview/utils"
 
@@ -19,7 +20,6 @@ export class CompletionFormatter {
   private normalizedCompletion = ""
   private originalCompletion = ""
   public languageId: string | undefined
-  private isDebugEnabled = false
 
   constructor(editor: TextEditor) {
     this.editor = editor
@@ -35,11 +35,6 @@ export class CompletionFormatter {
       this.cursorPosition.character > 0
         ? this.lineText.charAt(this.cursorPosition.character - 1)
         : ""
-  }
-
-  public setDebug(enabled: boolean): this {
-    this.isDebugEnabled = enabled
-    return this
   }
 
   private isMatchingPair(open?: Bracket, close?: string): boolean {
@@ -85,9 +80,7 @@ export class CompletionFormatter {
     this.completion =
       accumulatedCompletion.trimEnd() || this.originalCompletion.trimEnd()
 
-    if (this.isDebugEnabled) {
-      console.log(`After matchCompletionBrackets: ${this.completion}`)
-    }
+    logger.debug(`After matchCompletionBrackets: ${this.completion}`)
 
     return this
   }
@@ -100,9 +93,7 @@ export class CompletionFormatter {
       this.completion = this.completion.trim()
     }
 
-    if (this.isDebugEnabled) {
-      console.log(`After ignoreBlankLines: ${this.completion}`)
-    }
+    logger.debug(`After ignoreBlankLines: ${this.completion}`)
 
     return this
   }
@@ -156,9 +147,7 @@ export class CompletionFormatter {
       this.completion = this.completion.slice(0, -overlapLength)
     }
 
-    if (this.isDebugEnabled) {
-      console.log(`After removeDuplicateText: ${this.completion}`)
-    }
+    logger.debug(`After removeDuplicateText: ${this.completion}`)
 
     return this
   }
@@ -198,9 +187,7 @@ export class CompletionFormatter {
       }
     }
 
-    if (this.isDebugEnabled) {
-      console.log(`After removeUnnecessaryMiddleQuotes: ${this.completion}`)
-    }
+    logger.debug(`After removeUnnecessaryMiddleQuotes: ${this.completion}`)
 
     return this
   }
@@ -237,9 +224,7 @@ export class CompletionFormatter {
       this.completion = this.completion.slice(0, -1)
     }
 
-    if (this.isDebugEnabled) {
-      console.log(`After removeDuplicateQuotes: ${this.completion}`)
-    }
+    logger.debug(`After removeDuplicateQuotes: ${this.completion}`)
 
     return this
   }
@@ -266,9 +251,7 @@ export class CompletionFormatter {
       }
     }
 
-    if (this.isDebugEnabled) {
-      console.log(`After preventDuplicateLine: ${this.completion}`)
-    }
+    logger.debug(`After preventDuplicateLine: ${this.completion}`)
 
     return this
   }
@@ -278,9 +261,7 @@ export class CompletionFormatter {
       this.completion = this.completion.trimEnd()
     }
 
-    if (this.isDebugEnabled) {
-      console.log(`After removeInvalidLineBreaks: ${this.completion}`)
-    }
+    logger.debug(`After removeInvalidLineBreaks: ${this.completion}`)
 
     return this
   }
@@ -290,9 +271,7 @@ export class CompletionFormatter {
       this.completion = ""
     }
 
-    if (this.isDebugEnabled) {
-      console.log(`After skipMiddleOfWord: ${this.completion}`)
-    }
+    logger.debug(`After skipMiddleOfWord: ${this.completion}`)
 
     return this
   }
@@ -310,9 +289,7 @@ export class CompletionFormatter {
       this.completion = ""
     }
 
-    if (this.isDebugEnabled) {
-      console.log(`After skipSimilarCompletions: ${this.completion}`)
-    }
+    logger.debug(`After skipSimilarCompletions: ${this.completion}`)
 
     return this
   }
@@ -333,9 +310,7 @@ export class CompletionFormatter {
       this.completion = this.completion.trimStart()
     }
 
-    if (this.isDebugEnabled) {
-      console.log(`After trimStart: ${this.completion}`)
-    }
+    logger.debug(`After trimStart: ${this.completion}`)
 
     return this
   }
@@ -378,21 +353,19 @@ export class CompletionFormatter {
       this.completion = completionLines.join("\n")
     }
 
-    if (this.isDebugEnabled) {
-      console.log(`After preventQuotationCompletions: ${this.completion}`)
-    }
+    logger.debug(`After preventQuotationCompletions: ${this.completion}`)
 
     return this
   }
 
   public debug(): void {
-    console.log(`Text after cursor: ${this.textAfterCursor}`)
-    console.log(`Original completion: ${this.originalCompletion}`)
-    console.log(`Normalized completion: ${this.normalizedCompletion}`)
-    console.log(`Character after cursor: ${this.charAfterCursor}`)
-    console.log(`Character before cursor: ${this.charBeforeCursor}`)
-    console.log(`Language ID: ${this.languageId}`)
-    console.log(`Final completion: ${this.completion}`)
+    logger.trace(`Text after cursor: ${this.textAfterCursor}`)
+    logger.trace(`Original completion: ${this.originalCompletion}`)
+    logger.trace(`Normalized completion: ${this.normalizedCompletion}`)
+    logger.trace(`Character after cursor: ${this.charAfterCursor}`)
+    logger.trace(`Character before cursor: ${this.charBeforeCursor}`)
+    logger.trace(`Language ID: ${this.languageId}`)
+    logger.trace(`Final completion: ${this.completion}`)
   }
 
   public format(completion: string): string {
