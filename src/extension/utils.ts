@@ -33,7 +33,7 @@ import {
   QUOTES,
   SKIP_DECLARATION_SYMBOLS} from "../common/constants"
 import { supportedLanguages } from "../common/languages"
-import { logger } from "../common/logger"
+import { logger, redactSecrets } from "../common/logger"
 import {
   Bracket,
   ChatCompletionMessage,
@@ -782,10 +782,10 @@ export function readGitIgnoreFile(): string[] | undefined {
 export const logStreamOptions = (opts: any) => {
   const hostname = opts.options?.hostname ?? "unknown"
   const port = opts.options?.port ?? undefined
-  const body = opts.body ?? {}
-  const options = opts.options ?? {}
+  const body = redactSecrets(opts.body ?? {})
+  const options = redactSecrets(opts.options ?? {})
 
-  const totalCharacters = calculateTotalCharacters(body.messages)
+  const totalCharacters = calculateTotalCharacters(opts.body?.messages)
 
   const logMessage = `
     ***Fim Stream Debug***
@@ -799,7 +799,7 @@ export const logStreamOptions = (opts: any) => {
     Number characters in all messages = ${totalCharacters}
   `.trim()
 
-  logger.log(logMessage)
+  logger.trace(logMessage)
 }
 
 const calculateTotalCharacters = (
