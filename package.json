@@ -252,6 +252,25 @@
           "type": "boolean",
           "default": true,
           "markdownDescription": "Activates debug logging for FIM. When `true`, FIM will output detailed logs, which can be helpful for troubleshooting."
+        },
+        "fim.logLevel": {
+          "order": 20,
+          "type": "string",
+          "enum": [
+            "error",
+            "warn",
+            "info",
+            "debug",
+            "trace"
+          ],
+          "enumDescriptions": [
+            "Errors only",
+            "Errors and warnings",
+            "General operational info (default behavior)",
+            "Detailed completion-pipeline traces",
+            "Full request/response dumps (API keys always redacted)"
+          ],
+          "markdownDescription": "Controls FIM log verbosity. Precedence: this setting (when set) > the `FIM_LOG_LEVEL` environment variable > default `info`. Use `trace` to inspect FIM prompts — API keys are always redacted."
         }
       }
     }

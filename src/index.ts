@@ -14,7 +14,7 @@ import {
   FIM_COMMAND_NAME,
   WEBUI_TABS
 } from "./common/constants"
-import { logger } from "./common/logger"
+import { logger, resolveLevel } from "./common/logger"
 import { ServerMessage } from "./common/types"
 import { setContext } from "./extension/context"
 import { EngineAdapter, isEngineEnabled } from "./extension/engine-adapter"
@@ -30,6 +30,17 @@ let _engineAdapter: EngineAdapter | null = null
 export async function activate(context: ExtensionContext) {
   setContext(context)
   const config = workspace.getConfiguration("fim")
+
+  const applyLogLevel = () => {
+    logger.setLevel(
+      resolveLevel(
+        config.get<string>("logLevel"),
+        process.env.FIM_LOG_LEVEL
+      )
+    )
+  }
+  applyLogLevel()
+
   const statusBarItem = window.createStatusBarItem(StatusBarAlignment.Right)
 
   logger.log("Fim completion extension starting")
@@ -123,6 +134,9 @@ export async function activate(context: ExtensionContext) {
       fileInteractionCache.incrementStrokes(currentLine, currentCharacter)
     }),
     window.registerWebviewViewProvider("fim.sidebar", sidebarProvider),
+    workspace.onDidChangeConfiguration((e) => {
+      if (e.affectsConfiguration("fim.logLevel")) applyLogLevel()
+    }),
     statusBarItem
   )
 
