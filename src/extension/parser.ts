@@ -3,6 +3,7 @@ import { Position } from "vscode"
 import Parser, { SyntaxNode } from "web-tree-sitter"
 
 import { WASM_LANGUAGES } from "../common/constants"
+import { logger } from "../common/logger"
 
 const parserCache: { [language: string]: Parser } = {}
 
@@ -38,7 +39,7 @@ export const getParser = async (
     parserCache[language] = parser
     return parser
   } catch (e) {
-    console.error("Error in getParser:", e)
+    logger.warn(`Error in getParser: ${e}`)
     throw e
   }
 }
