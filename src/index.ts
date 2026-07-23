@@ -32,11 +32,10 @@ export async function activate(context: ExtensionContext) {
   const config = workspace.getConfiguration("fim")
 
   const applyLogLevel = () => {
+    // Re-fetch on each call so a live `fim.logLevel` change applies without a window reload.
+    const cfg = workspace.getConfiguration("fim")
     logger.setLevel(
-      resolveLevel(
-        config.get<string>("logLevel"),
-        process.env.FIM_LOG_LEVEL
-      )
+      resolveLevel(cfg.get<string>("logLevel"), process.env.FIM_LOG_LEVEL)
     )
   }
   applyLogLevel()
