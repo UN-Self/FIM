@@ -9,7 +9,7 @@
 ## 配置（env）
 
 - `DEEPSEEK_API_KEY` — 必填，被测 DeepSeek API key
-- `DEEPSEEK_MODEL` — 默认 `deepseek-chat`
+- `DEEPSEEK_MODEL` — 默认 `deepseek-v4-flash`
 - `JUDGE_BASE_URL` — Layer3 裁判 OpenAI-compatible baseUrl（留空则 Layer3 skip）
 - `JUDGE_API_KEY` — 裁判 key
 - `JUDGE_MODEL` — 裁判模型名

@@ -14,7 +14,7 @@ FIM 默认使用 DeepSeek API 提供 FIM（Fill-in-the-Middle）代码补全。D
 | **API Path** | FIM 补全端点 | `/beta/completions` |
 | **API Protocol** | 协议 | `https` |
 | **API Key** | DeepSeek API Key | （需自行填写） |
-| **Model Name** | 模型名称 | `deepseek-chat` |
+| **Model Name** | 模型名称 | `deepseek-v4-flash` |
 
 ### 获取 API Key
 

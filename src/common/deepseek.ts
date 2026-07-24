@@ -1,7 +1,7 @@
 export const DEEPSEEK_PROVIDER_ID = "deepseek-default"
 export const DEEPSEEK_DEFAULT_BASE_URL =
   "https://api.deepseek.com/beta/completions"
-export const DEEPSEEK_DEFAULT_MODEL = "deepseek-chat"
+export const DEEPSEEK_DEFAULT_MODEL = "deepseek-v4-flash"
 
 export const API_PROVIDERS = {
   Deepseek: "deepseek"

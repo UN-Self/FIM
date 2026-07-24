@@ -25,8 +25,8 @@ describe("DeepSeek provider defaults", () => {
   })
 
   describe("DEEPSEEK_DEFAULT_MODEL", () => {
-    it("is 'deepseek-chat'", () => {
-      expect(DEEPSEEK_DEFAULT_MODEL).toBe("deepseek-chat")
+    it("is 'deepseek-v4-flash'", () => {
+      expect(DEEPSEEK_DEFAULT_MODEL).toBe("deepseek-v4-flash")
     })
   })
 
