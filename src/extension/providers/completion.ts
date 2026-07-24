@@ -417,7 +417,7 @@ export class CompletionProvider
                 relevanceScore: interaction.relevanceScore
               }
             } catch (error) {
-              console.error(`Error opening document ${filePath}:`, error)
+              logger.warn(`Error opening document ${filePath}: ${error}`)
               return null
             }
           })

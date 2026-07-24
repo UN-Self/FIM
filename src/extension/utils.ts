@@ -33,7 +33,7 @@ import {
   QUOTES,
   SKIP_DECLARATION_SYMBOLS} from "../common/constants"
 import { supportedLanguages } from "../common/languages"
-import { logger } from "../common/logger"
+import { logger, redactSecrets } from "../common/logger"
 import {
   Bracket,
   ChatCompletionMessage,
@@ -492,7 +492,7 @@ export const getGitChanges = async (): Promise<string> => {
     })
     return stdout
   } catch (error) {
-    console.error("Error executing git command:", error)
+    logger.warn(`Error executing git command: ${error}`)
     return ""
   }
 }
@@ -578,7 +578,7 @@ export async function getDocumentSplitChunks(
     const chunks = getSplitChunks(tree.rootNode, options)
     return combineChunks(chunks, options)
   } catch (error) {
-    console.error(`Error parsing file ${filePath}: ${error}`)
+    logger.warn(`Error parsing file ${filePath}: ${error}`)
     return simpleChunk(content, options)
   }
 }
@@ -745,19 +745,19 @@ export function readGitIgnoreFile(): string[] | undefined {
   try {
     const folders = workspace.workspaceFolders
     if (!folders || folders.length === 0) {
-      console.log("No workspace folders found")
+      logger.debug("No workspace folders found")
       return undefined
     }
 
     const rootPath = folders[0].uri.fsPath
     if (!rootPath) {
-      console.log("Root path is undefined")
+      logger.debug("Root path is undefined")
       return undefined
     }
 
     const gitIgnoreFilePath = path.join(rootPath, ".gitignore")
     if (!fs.existsSync(gitIgnoreFilePath)) {
-      console.log(".gitignore file not found at", gitIgnoreFilePath)
+      logger.debug(`.gitignore file not found at ${gitIgnoreFilePath}`)
       return undefined
     }
 
@@ -773,7 +773,7 @@ export function readGitIgnoreFile(): string[] | undefined {
         return pattern
       })
   } catch (e) {
-    console.error("Error reading .gitignore file:", e)
+    logger.warn(`Error reading .gitignore file: ${e}`)
     return undefined
   }
 }
@@ -782,10 +782,10 @@ export function readGitIgnoreFile(): string[] | undefined {
 export const logStreamOptions = (opts: any) => {
   const hostname = opts.options?.hostname ?? "unknown"
   const port = opts.options?.port ?? undefined
-  const body = opts.body ?? {}
-  const options = opts.options ?? {}
+  const body = redactSecrets(opts.body ?? {})
+  const options = redactSecrets(opts.options ?? {})
 
-  const totalCharacters = calculateTotalCharacters(body.messages)
+  const totalCharacters = calculateTotalCharacters(opts.body?.messages)
 
   const logMessage = `
     ***Fim Stream Debug***
@@ -799,7 +799,7 @@ export const logStreamOptions = (opts: any) => {
     Number characters in all messages = ${totalCharacters}
   `.trim()
 
-  logger.log(logMessage)
+  logger.trace(logMessage)
 }
 
 const calculateTotalCharacters = (
