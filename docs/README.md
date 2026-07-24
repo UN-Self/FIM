@@ -10,6 +10,7 @@
 - [`reference/PD-supplement.md`](./reference/PD-supplement.md) — 技术难点与补充材料
 - [`reference/codebase-pruning-guide.md`](./reference/codebase-pruning-guide.md) — 已完成的代码裁剪记录
 - [`reference/logo-design-brief.md`](./reference/logo-design-brief.md) — Logo 设计说明
+- [`reference/eval-l3-judge-quality.md`](./reference/eval-l3-judge-quality.md) — L3 LLM 评分锚定标准答案的调研与改进方案
 
 ## 项目立场
 
