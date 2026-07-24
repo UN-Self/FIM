@@ -11,7 +11,7 @@
 改进方向（按优先级）：
 
 1. **P0**：先建确定性参考指标（exact/alternative match、edit similarity），零方差零成本，是锚点。
-2. **P1**：裁判改造为 reference-guided，verdict 改为等价类三档（`equivalent` / `acceptable` / `wrong`）；验收条件拆成原子断言逐条判对错，通过后再做整体质量评判（见 P1 小节"断言式判卷"与"两段式"）。
+2. **P1**：裁判改造为 reference-guided，verdict 改为等价类三档（`equivalent` / `acceptable` / `wrong`）；验收条件拆成原子断言逐条判对错，通过后再做整体质量评判；A/B 盲测同步升级为 reference-guided（均见 P1 小节）。
 3. **P2**：建 judge 校准集（人工标注 ~40 条），以 judge-人一致率验证"评分准不准"，目标 ≥80%。
 4. **P3（可选）**：synthetic 可执行样本走沙箱断言，代码正确性的金标准。
 
@@ -113,10 +113,23 @@
 - **质量分区分"对"的层次**：同为 `equivalent`，"对且优雅"与"对但别扭"由整体质量分拉开，供方案对比时参考
 - **校准分工**（接 P2）：断言门用人工标注的断言真值校准；整体评判用人工质量分校准，两者分别报告一致率
 
+#### A/B 盲测（pairwise）：L3 的"相对臂"，同步升级
+
+A/B 盲测与单条裁判同属 L3：单条裁判回答"这个补全好不好"（绝对质量），盲测回答"方案 A 和方案 B 谁强"（相对优劣），是方案对比决策的依据。现有机制（`judge.ts` `judgePairwise` + `runner.ts:266-273`）已较规范：裁判只见 Candidate A/B 不知身份（盲）、`(runIndex + judgeRun) % 2` 确定性位置轮换、多次比较 + bootstrap 95% CI、区间下界 >0.5 才判胜出。
+
+但它和单条裁判有同样的短板——**reference-free + 整体式**：裁判看不到标准答案，只能凭感觉比较。升级路径与两段式对齐：
+
+- **注入参考答案**：pairwise prompt 附带 `expectedCompletion`/`alternatives`/`rationale`，裁判从"猜哪个好"变为"对着答案比哪个更接近"
+- **断言结果进场**：两候选的断言门结果写入 prompt（"A 挂了断言 X，B 全过"），裁判只做剩余权衡；断言结果差异本身可作为 tie-breaker，进一步压缩主观空间
+- **双评一致规则**：同一比较跑 A-B 与 B-A 两序，同胜才记 win/loss，否则记 tie（见"偏差控制"新增机制 1）；位置不一致率入报告（新增机制 2）
+- **校准覆盖**：P2 人工标注集同时标注 pairwise 相对优劣，裁判的相对判断同样要过 ≥80% 一致率
+
+升级后 L3 内部形成三条臂：**断言门（单条对错）→ 整体评判（单条好坏）+ A/B 盲测（方案间相对优劣）**。
+
 ### P2 — Judge 校准（meta-evaluation）
 
-- 从历史报告抽 ~40 条补全人工标注三档 verdict
-- 跑裁判 vs 人工标签，计算 accuracy + Cohen's κ + per-verdict confusion matrix，写入报告头
+- 从历史报告抽 ~40 条补全人工标注三档 verdict；pairwise 样本同时标注相对优劣
+- 跑裁判 vs 人工标签，计算 accuracy + Cohen's κ + per-verdict confusion matrix，写入报告头；单条与 pairwise 两臂分别报一致率
 - judge-人一致率 ≥80% 才采信 accept rate；rubric 版本升级必重跑
 - 这是唯一能证明"LLM 评分准确"的手段
 
