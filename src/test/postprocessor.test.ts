@@ -13,7 +13,7 @@ function makeArgs(overrides: Partial<TruncateArgs> = {}): TruncateArgs {
     completion: "",
     providerFimData: "",
     chunkCount: 0,
-    providerModelName: "deepseek-chat",
+    providerModelName: "deepseek-v4-flash",
     providerFimTemplate: "deepseek",
     nodeAtPosition: null,
     parser: undefined,

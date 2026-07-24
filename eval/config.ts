@@ -31,7 +31,7 @@ export interface EvalConfig {
 
 export function loadConfig(): EvalConfig {
   const deepseekApiKey = process.env.DEEPSEEK_API_KEY || ""
-  const deepseekModel = process.env.DEEPSEEK_MODEL || "deepseek-chat"
+  const deepseekModel = process.env.DEEPSEEK_MODEL || "deepseek-v4-flash"
   const judgeBaseUrl = process.env.JUDGE_BASE_URL || ""
   const judgeApiKey = process.env.JUDGE_API_KEY || ""
   const judgeModel = process.env.JUDGE_MODEL || ""

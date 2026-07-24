@@ -166,7 +166,7 @@ export function mapProvider(provider: FimProvider): DeepSeekProviderConfig {
     apiPath: provider.apiPath ?? "/beta/completions",
     apiPort: provider.apiPort,
     apiProtocol: provider.apiProtocol ?? "https",
-    modelName: provider.modelName ?? "deepseek-chat",
+    modelName: provider.modelName ?? "deepseek-v4-flash",
     fimTemplate: provider.fimTemplate,
     repositoryLevel: provider.repositoryLevel ?? false
   }

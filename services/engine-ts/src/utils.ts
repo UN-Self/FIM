@@ -40,7 +40,7 @@ export function kebabToSentence(kebabStr: string): string {
 /**
  * Truncate a model name to at most 40 characters for display purposes.
  *
- *   getModelShortName("deepseek-chat")             // "deepseek-chat"
+ *   getModelShortName("deepseek-v4-flash")             // "deepseek-v4-flash"
  *   getModelShortName("a-very-long-model-name-...") // "a-very-long-model-name-..."
  */
 export function getModelShortName(name: string): string {

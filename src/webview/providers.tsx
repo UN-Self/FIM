@@ -158,7 +158,7 @@ function ProviderForm({ provider, updateProvider }: ProviderFormProps) {
               name="modelName"
               required
               value={modelName}
-              placeholder="deepseek-chat"
+              placeholder="deepseek-v4-flash"
               onInput={(event) => {
                 setModelName((event.target as HTMLInputElement).value)
               }}

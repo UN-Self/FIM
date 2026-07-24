@@ -10,7 +10,7 @@ const provider: DeepSeekProviderConfig = {
   apiKey: "test-key",
   apiPath: "/beta/completions",
   apiProtocol: "https",
-  modelName: "deepseek-chat"
+  modelName: "deepseek-v4-flash"
 }
 
 function makeRequest(requestId: string): CompletionRequest {
